@@ -1,6 +1,8 @@
-import { writable } from 'svelte/store'
+import { writable, derived } from 'svelte/store'
 import { Identity } from 'cryptology'
 import Feed from 'picofeed'
+import { RantMessage } from './messages'
+
 import App from './App.svelte'
 // Todo: turn this into standalone-module
 const initIdentity = () => {
@@ -20,8 +22,36 @@ const uid = initIdentity()
 
 const state = writable(0)
 const theme = writable(0)
-const starterSample = `
-# 💌 1kilo.rant
+const rant = writable(SampleMessage())
+const feed = new Feed(null, { secretKey: uid.sig.sec, contentEncoding: RantMessage })
+const pickle = derived([rant, theme], ([$rant, $theme]) => {
+  feed.truncate(0)
+  feed.append({
+    card: {
+      theme: $theme,
+      date: new Date().getTime(),
+      text: $rant
+    }
+  })
+  return feed.pickle()
+})
+
+const app = new App({
+	target: document.body,
+	props: {
+		uid,
+    rant,
+    theme,
+    state,
+    pickle
+	}
+})
+
+export default app
+
+
+function SampleMessage () {
+  return `# 💌 1kilo.rant
 
 ## 🎉 Welcome!
 This App is the equivalent of a digital Postcard.
@@ -47,9 +77,16 @@ Using the theme-selector above you can choose the color of your postcard.
 
 Ok we have about 300 bytes remaining.
 
-## Let's demo some markup:
+## Demo
+
 **Bold** _italics_ [links]()
 ![images](https://mytrackerbadge)
+
+# h1
+## h2
+### h3
+#### h4
+##### h5
 
 | name | type | age |
 |-|-|-|
@@ -68,18 +105,9 @@ Ok we have about 300 bytes remaining.
 // codeblocks
 $ sudo rm -rf /
 \`\`\`
+
+## Final bytes
 Well that's about it. about 10minutes read tops! 🍑
 `
-const rant = writable(starterSample)
 
-const app = new App({
-	target: document.body,
-	props: {
-		uid,
-    rant,
-    theme,
-    state
-	}
-})
-
-export default app
+}

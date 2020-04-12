@@ -4,6 +4,7 @@ export let uid
 export let rant
 export let state
 export let theme
+export let pickle
 // imports
 import { derived } from 'svelte/store'
 import marked from 'marked'
@@ -25,7 +26,9 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
 <main class={$mainClass}>
   <nav>
     <!-- Todo: uid component -->
-    <code><small>{uid.sig.pub.toString('hex')}</small>  Bytes: {$rant.length} / 1024 </code>
+    <code><small>{uid.sig.pub.toString('hex')}</small>  Bytes: {$pickle.length} / 1024 </code>
+    <button on:click={toggleState} class="">{$state ? 'Preview' : 'Editor'}</button>
+    {#if $state}
     Theme:
     <select bind:value={$theme}>
       {#each themes as t}
@@ -34,7 +37,7 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
         </option>
       {/each}
     </select>
-    <button on:click={toggleState} class="">{$state ? 'Preview' : 'Edit'}</button>
+    {/if}
   </nav>
 
   {#if $state}
@@ -44,6 +47,7 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   {/if}
   <section id="rendered">
     {@html $mdHtml}
+    <textarea style="width: 100%">{$pickle}</textarea>
   </section>
 </main>
 

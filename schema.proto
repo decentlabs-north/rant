@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message Postcard {
+  uint64 date = 1;
+  int32 theme = 2;
+  string text = 3;
+  string signatue = 4;
+}
+
+message RantMessage {
+  oneof msg {
+    Postcard card = 1;
+  }
+}
