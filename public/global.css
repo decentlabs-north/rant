@@ -1,3 +1,27 @@
+/* flexi.css */
+.flex{display:flex;}
+.row{flex-direction: row;}
+.row-reverse{flex-direction: row-reverse;}
+.column{flex-direction: column;}
+.column-reverse{flex-direction: column-reverse;}
+.wrap{flex-wrap: wrap;}
+.wrap-reverse{flex-wrap: wrap-reverse;}
+.nowrap{flex-wrap: nowrap;}
+.space-around{ justify-content: space-around; }
+.space-between{ justify-content: space-between; }
+.start{ justify-content: flex-start; }
+.end{ justify-content: flex-end; }
+.center{ justify-content: center; }
+.xstart{ align-items: flex-start; }
+.xend{ align-items: flex-end; }
+.xcenter{ align-items: center; }
+.xbaseline{ align-items: baseline; }
+.xstrech { align-items: stretch; }
+.grow1{ flex-grow: 1; }
+.grow2{ flex-grow: 2; }
+.grow3{ flex-grow: 3; }
+.grow4{ flex-grow: 4; }
+/* global */
 html, body {
 	position: relative;
 	width: 100%;
@@ -89,6 +113,8 @@ main.edit #rendered {
   background-color: white;
 }
 main {
+  width: 100%;
+  min-height: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
@@ -101,13 +127,18 @@ main nav {
   grid-column: 1 / 5;
   color: #83a598;
   background-color: #000; /*#2c323b;*/
+  max-height: 2em;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 main.edit nav {
   position: fixed;
   width: 100%;
 }
 button:focus { border: none; }
-main nav button {
+main nav button, main nav select {
   border: 0;
   margin: 0;
   padding: 2px 24px;
@@ -118,3 +149,7 @@ main nav button {
   color: antiqueWhite;
 }
 main.show nav button { background-color: #98c379; }
+main nav select {
+ background: #fe8019;
+ color: antiqueWhite;
+}

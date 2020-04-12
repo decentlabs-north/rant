@@ -43,7 +43,15 @@ function definePostcard () {
       length += 1 + len
     }
     if (defined(obj.text)) {
-      var len = encodings.string.encodingLength(obj.text)
+      var len = encodings.bytes.encodingLength(obj.text)
+      length += 1 + len
+    }
+    if (defined(obj.compression)) {
+      var len = encodings.varint.encodingLength(obj.compression)
+      length += 1 + len
+    }
+    if (defined(obj.encryption)) {
+      var len = encodings.varint.encodingLength(obj.encryption)
       length += 1 + len
     }
     return length
@@ -65,8 +73,18 @@ function definePostcard () {
     }
     if (defined(obj.text)) {
       buf[offset++] = 26
-      encodings.string.encode(obj.text, buf, offset)
-      offset += encodings.string.encode.bytes
+      encodings.bytes.encode(obj.text, buf, offset)
+      offset += encodings.bytes.encode.bytes
+    }
+    if (defined(obj.compression)) {
+      buf[offset++] = 32
+      encodings.varint.encode(obj.compression, buf, offset)
+      offset += encodings.varint.encode.bytes
+    }
+    if (defined(obj.encryption)) {
+      buf[offset++] = 40
+      encodings.varint.encode(obj.encryption, buf, offset)
+      offset += encodings.varint.encode.bytes
     }
     encode.bytes = offset - oldOffset
     return buf
@@ -80,7 +98,9 @@ function definePostcard () {
     var obj = {
       date: 0,
       theme: 0,
-      text: ""
+      text: null,
+      compression: 0,
+      encryption: 0
     }
     while (true) {
       if (end <= offset) {
@@ -100,8 +120,16 @@ function definePostcard () {
         offset += encodings.int32.decode.bytes
         break
         case 3:
-        obj.text = encodings.string.decode(buf, offset)
-        offset += encodings.string.decode.bytes
+        obj.text = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
+        break
+        case 4:
+        obj.compression = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
+        break
+        case 5:
+        obj.encryption = encodings.varint.decode(buf, offset)
+        offset += encodings.varint.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)

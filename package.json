@@ -24,7 +24,10 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "cryptology": "^1.0.0",
+    "debounce": "^1.2.0",
     "dompurify": "^2.0.8",
+    "lz-string": "^1.4.4",
+    "lzutf8": "^0.5.5",
     "marked": "^0.8.2",
     "picofeed": "^1.2.0",
     "protocol-buffers-encodings": "^1.1.0",

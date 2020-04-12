@@ -35,9 +35,15 @@ export default {
     // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       browser: true,
-      dedupe: ['svelte', 'sodium-universal']
+      dedupe: ['svelte', 'sodium-universal'],
+      preferBuiltins: true // <-- If this refers to builtins below then yes.
     }),
-    commonjs(),
+    commonjs({
+      namedExports: {
+        'lz-string': ['compressToUint8Array', 'decompressFromUint8Array'],
+        'lzutf8': ['compress', 'decompress']
+      }
+    }),
 
     // These should probably be replaced by injecting
     // https://github.com/feross/buffer

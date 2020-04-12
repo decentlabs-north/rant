@@ -1,7 +1,10 @@
-import { writable, derived } from 'svelte/store'
+import { writable, derived, readable } from 'svelte/store'
 import { Identity } from 'cryptology'
 import Feed from 'picofeed'
 import { RantMessage } from './messages'
+import { compress } from 'lzutf8'
+import { compressToUint8Array } from 'lz-string'
+import dbnc from 'debounce'
 
 import App from './App.svelte'
 // Todo: turn this into standalone-module
@@ -24,16 +27,39 @@ const state = writable(0)
 const theme = writable(0)
 const rant = writable(SampleMessage())
 const feed = new Feed(null, { secretKey: uid.sig.sec, contentEncoding: RantMessage })
-const pickle = derived([rant, theme], ([$rant, $theme]) => {
-  feed.truncate(0)
-  feed.append({
-    card: {
-      theme: $theme,
-      date: new Date().getTime(),
-      text: $rant
-    }
-  })
-  return feed.pickle()
+
+const stats = readable({}, set => {
+  const pack = dbnc(([$rant, $theme]) => {
+    if (!$rant.length) return
+    // Let's waste some memory and cpu
+    // and pick the algo that offers the best space efficiency
+    const candidates = [
+      Buffer.from($rant, 'utf8'),
+      compress(Buffer.from($rant, 'utf8')),
+      compressToUint8Array($rant)
+    ]
+    const winrar = [ ...candidates ].sort((a, b) => a.length > b.length)[0]
+    const compression = candidates.indexOf(winrar)
+    feed.truncate(0) // empty the bottle
+    feed.append({
+      card: {
+        theme: $theme,
+        date: new Date().getTime(),
+        text: Buffer.from(winrar),
+        compression
+      }
+    })
+    const pickle = feed.pickle()
+    window.location.hash = pickle
+    set({
+      pickle,
+      compression,
+      compressionRatio: winrar.length / candidates[0].length,
+      size: winrar.length
+    })
+  }, 1000)
+  return derived([rant, theme], v => v)
+    .subscribe(v => pack(v))
 })
 
 const app = new App({
@@ -43,7 +69,7 @@ const app = new App({
     rant,
     theme,
     state,
-    pickle
+    stats
 	}
 })
 

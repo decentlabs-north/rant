@@ -1,6 +1,9 @@
-# cybermite
+# rant
 
-> JAM-stack without A
+> Digital equivalent of a postcard
+
+
+http://mattmahoney.net/dc/text.html
 
 - no remote APIs
 - single static file
