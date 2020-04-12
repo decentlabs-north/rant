@@ -22,15 +22,14 @@ const initIdentity = () => {
 }
 const uid = initIdentity()
 // --- end of uid
-
-const state = writable(0)
 const theme = writable(0)
 const rant = writable(SampleMessage())
 const feed = new Feed(null, { secretKey: uid.sig.sec, contentEncoding: RantMessage })
-
+/* this is actually the state of the model */
 const stats = readable({}, set => {
   const pack = dbnc(([$rant, $theme]) => {
     if (!$rant.length) return
+    $rant = $rant.replace(/\r/, '')
     // Let's waste some memory and cpu
     // and pick the algo that offers the best space efficiency
     const candidates = [
@@ -54,10 +53,10 @@ const stats = readable({}, set => {
     set({
       pickle,
       compression,
-      compressionRatio: winrar.length / candidates[0].length,
+      ratio: candidates[0].length / winrar.length,
       size: winrar.length
     })
-  }, 1000)
+  }, 500)
   return derived([rant, theme], v => v)
     .subscribe(v => pack(v))
 })
@@ -68,7 +67,6 @@ const app = new App({
 		uid,
     rant,
     theme,
-    state,
     stats
 	}
 })

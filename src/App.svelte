@@ -1,14 +1,16 @@
 <script>
+// imports
+import { derived, writable } from 'svelte/store'
+import marked from 'marked'
+import Purify from 'dompurify'
+import IdentityPane from './IdentityPane.svelte'
+
 // props
 export let uid
 export let rant
-export let state
 export let theme
 export let stats
-// imports
-import { derived } from 'svelte/store'
-import marked from 'marked'
-import Purify from 'dompurify'
+
 // code
 const pickle = derived(stats, s => s.pickle || '')
 const mdHtml = derived(rant, md => marked(Purify.sanitize(md)))
@@ -21,6 +23,10 @@ const themes = [
   'blackmail'
 ].map((name, id) => ({ name, id}))
 
+
+/* The main state of the view.. */
+const state = writable(0)
+
 const toggleState = state.update.bind(state, s => s ? 0 : 1)
 const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? 'edit' : 'show'}`)
 </script>
@@ -30,18 +36,32 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   <nav>
     <div><!-- left -->
       <!-- Todo: uid component -->
-      <code><small>{uid.sig.pub.toString('hex')}</small></code>
+      <IdentityPane identity={uid}/>
     </div>
 
     <div><!-- middle -->
-      <button on:click={toggleState} class="">{$state ? 'Preview' : 'Editor'}</button>
+      <button on:click={toggleState}
+              class="uline"
+              class:purp={$state}
+              class:moss={!$state}>{$state ? 'Preview' : 'Editor'}</button>
+      {#if $state}
+        <button class="uline red emo">🌼</button>
+      {/if}
     </div>
 
-    <div><!-- right -->
+    <div class="flex row xcenter"><!-- right -->
       {#if $state}
-        Bytes: {$stats.size} / 1024 ({$stats.compressionRatio})
-        Theme:
-        <select bind:value={$theme}>
+        <!-- capacity and indicator -->
+        <div class="flex column xcenter">
+          <samp>{$stats.size} / 1024</samp>
+          <div id="capacity">
+            <span style={`width: ${$stats.size / 10.24}%;`}></span>
+          </div>
+        </div>
+        <code>[🗜️{Math.round($stats.ratio * 100)}%]</code>
+
+        <!-- Theme choose -->
+        <select style="display: none" bind:value={$theme}>
           {#each themes as t}
             <option value={t.id}>
             {t.name}
@@ -49,9 +69,9 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
           {/each}
         </select>
       {:else}
-        <button style="background-color: #c678dd">Encrypt</button>
-        <button style="background-color: #fe8019">Socmed</button>
-        <button style="background-color: #fb4934">Clipboard</button>
+        <button class="uline purp">Encrypt</button>
+        <button class="uline orange">Socmed</button>
+        <button class="uline red">Clipboard</button>
       {/if}
     </div>
   </nav>
@@ -64,7 +84,7 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   {/if}
 
   <!-- content -->
-  <section id="rendered">
+  <section id="render">
     {@html $mdHtml}
   </section>
 </main>

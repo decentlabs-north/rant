@@ -22,36 +22,19 @@
 .grow3{ flex-grow: 3; }
 .grow4{ flex-grow: 4; }
 /* global */
-html, body {
-	position: relative;
-	width: 100%;
-	height: 100%;
+:root {
+  --purp: #c678dd;
+  --red: #fb4934;
+  --bone: #e8d8b0;
+  --faded: #928374;
+  --slate: #83a598;
+  --coal: #2c323b;
+  --orange: #fe8019;
+  --moss: #98c379;
+  --grass: #8ec07c;
+  --nav-height: 2em;
 }
 
-body {
-	color: #333;
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-}
-
-a {
-	color: rgb(0,100,200);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-a:visited {
-	color: rgb(0,80,160);
-}
-
-label {
-	display: block;
-}
 /*
 input, button, select, textarea {
 	font-family: inherit;
@@ -70,46 +53,76 @@ input:disabled {
 input[type="range"] {
 	height: 0;
 }
+html, body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
 */
 
-
-/* My stuff */
-#rendered {
-  padding: 2em;
-}
+/***** CYBORG *****/
 /*make first h1 into a big title*/
-#rendered h1:first-child {
+.cyborg #render h1:first-child {
   text-align: center;
   color: #ff3e00;
   text-transform: uppercase;
   font-size: 4em;
   font-weight: 100;
 }
-#editor { min-height: 100%; }
-/*
- * purp: #c678dd
- * red: #fb4934
- * bone: #e8d8b0
- * fade: #928374
- * slate: #83a598
- * coal: #2c323b
- * orange: #fe8019
- * moss: #98c379
- * grass: #8ec07c
- */
-#editor textarea {
-  margin: 0;
-  margin-top: 2em;
-  border: 0;
+
+.cyborg #render {
+	color: #333;
+	box-sizing: border-box;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.cyborg a {
+	color: rgb(0,100,200);
+	text-decoration: none;
+}
+
+.cyborg a:hover {
+	text-decoration: underline;
+}
+
+.cyborg a:visited {
+	color: rgb(0,80,160);
+}
+
+.cyborg label {
+	display: block;
+}
+/** End theme cyborg **/
+
+/* My stuff */
+#render {
+  padding: 2em;
+}
+body {
+	color: #333;
+	margin: 0;
+	padding: 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+#editor {
+  min-height: 100%;
   padding: 1em;
   background-color: #2c323b;
+  padding-top: calc(var(--nav-height) + 1em);
+}
+#editor textarea {
+  margin: 0;
+  background: inherit;
+  border: 0;
   color: #e8d8b0;
+  font-size: larger;
   width: 100%;
   height: 100%;
 }
-main.edit #rendered {
+main.edit #render {
   height: 100%;
-  box-shadow: -6px -25px 20px rgba(0, 0, 0, 0.7);
+  box-shadow: -6px -25px 20px rgba(0, 0, 0, 0.4);
   background-color: white;
 }
 main {
@@ -119,15 +132,16 @@ main {
   grid-template-columns: repeat(4, 1fr);
 }
 main #editor { grid-column: 1 / 3; }
-main #rendered { grid-column: 3 / 5; }
-main.show #rendered {
+main #render { grid-column: 3 / 5; }
+main.show #render {
   grid-column: 2 / 4;
 }
 main nav {
   grid-column: 1 / 5;
-  color: #83a598;
+  color: var(--faded);
   background-color: #000; /*#2c323b;*/
-  max-height: 2em;
+  height: var(--nav-height);
+  max-height: var(--nav-height);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -137,19 +151,55 @@ main.edit nav {
   position: fixed;
   width: 100%;
 }
-button:focus { border: none; }
-main nav button, main nav select {
+button:focus { /* Browser focus prop */ }
+main nav .block {
   border: 0;
   margin: 0;
   padding: 2px 24px;
   border-radius: 0;
   height: 100%;
-  line-height: 2em;
-  background-color: #c678dd;
+  line-height: var(--nav-height);
+  background-color: var(--purp);
   color: antiqueWhite;
 }
-main.show nav button { background-color: #98c379; }
+main.show nav .block { background-color: #98c379; }
 main nav select {
- background: #fe8019;
+ background: var(--moss);
  color: antiqueWhite;
+}
+
+main nav #capacity {
+  margin: 0;
+  border: 1px solid var(--faded);
+  display: inline-block;
+  /*line-height: var(--nav-height);
+  height: var(--nav-height);*/
+  width: 5em;
+}
+#capacity span {
+  z-index: -2;
+  margin: 0;
+  display: block;
+  /*height: calc(var(--nav-height) - 4px);*/
+  height: 2px;
+  background-color: var(--faded);
+  position: relative;
+  width: 45%;
+  transition: width 2s ease-in;
+}
+nav .uline {
+  border: 0;
+  margin: 0 2px;
+  line-height: calc(var(--nav-height) - 2px);
+  border-bottom: 2px solid var(--slate);
+  background: inherit;
+  color: inherit;
+}
+.uline.red { border-bottom: 2px solid var(--red); }
+.uline.orange { border-bottom: 2px solid var(--orange); }
+.uline.purp { border-bottom: 2px solid var(--purp); }
+.uline.grass { border-bottom: 2px solid var(--grass); }
+.uline.moss { border-bottom: 2px solid var(--moss); }
+.emo, g {
+  font-family: apple color emoji,segoe ui emoji,noto color emoji,android emoji,emojisymbols,emojione mozilla,twemoji mozilla,segoe ui symbol;
 }
