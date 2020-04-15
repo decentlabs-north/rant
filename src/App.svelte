@@ -101,7 +101,7 @@ const encVisible = writable(false)
   <section id="render">
     {@html $mdHtml}
   </section>
-  <footer><a href="https://decentlabs.se">1k.Rant copyright © Tony Ivanov 2020 - License GNU AGPLv3</a></footer>
+  <footer><a href="https://decentlabs.se">1k.Rant copyright © Tony Ivanov 2020 - License GNU AGPLv3</a> <a href="https://github.com/telamon/rant/">Source</a></footer>
   <EncryptionSettings secret={secret} visible={encVisible}/>
 </main>
 
