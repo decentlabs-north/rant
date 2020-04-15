@@ -69,7 +69,7 @@ export default {
     // If we're building for production (npm run build
     // instead of npm run dev), minify
     production && terser(),
-    production && petrify('public/index.html', 'docs/index.html')
+    // production && petrify('public/index.html', 'docs/index.html')
   ],
   watch: {
     clearScreen: false
