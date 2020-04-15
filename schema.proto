@@ -6,9 +6,6 @@ message Postcard {
   bytes text = 3;
   uint32 compression = 4;
   uint32 encryption = 5;
-  // or plain title,, something for humans to look at when they
-  // see a pickle
-  /* string signature = 4;*/
 }
 
 message RantMessage {

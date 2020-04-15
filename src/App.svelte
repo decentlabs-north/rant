@@ -6,20 +6,24 @@ import Purify from 'dompurify'
 import IdentityPane from './IdentityPane.svelte'
 
 // props
+export let card
 export let uid
 export let rant
 export let theme
-export let stats
 
 // code
-const pickle = derived(stats, s => s.pickle || '')
-const mdHtml = derived(rant, md => marked(Purify.sanitize(md)))
+const pickle = derived(card, s => s.pickle || '')
+const mdHtml = derived([rant, card], ([$md, $card]) => marked(Purify.sanitize($md))
+  .replace(/\{\{DATE\}\}/gi, new Date($card.date))
+  .replace(/\{\{KEY\}\}/gi, $card.key.toString('hex'))
+)
+
 const themes = [
   'cyborg',
   'love-letter',
   'happy-birthday',
   'invitation',
-  'roundrobin',
+  'robin',
   'blackmail'
 ].map((name, id) => ({ name, id}))
 
@@ -34,9 +38,19 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
 <main class={$mainClass}>
   <!-- controls -->
   <nav>
-    <div><!-- left -->
-      <!-- Todo: uid component -->
-      <IdentityPane identity={uid}/>
+    <div class="flex row xcenter"><!-- left -->
+      {#if $state}
+        <!-- capacity and indicator -->
+        <div class="flex column xcenter">
+          <samp>{$card.size} / 1024</samp>
+          <div id="capacity">
+            <span style={`width: ${$card.size / 10.24}%;`}></span>
+          </div>
+        </div>
+        <code>[🗜️{Math.round($card.ratio * 100)}%]</code>
+      {:else}
+        <IdentityPane identity={uid}/>
+      {/if}
     </div>
 
     <div><!-- middle -->
@@ -51,17 +65,8 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
 
     <div class="flex row xcenter"><!-- right -->
       {#if $state}
-        <!-- capacity and indicator -->
-        <div class="flex column xcenter">
-          <samp>{$stats.size} / 1024</samp>
-          <div id="capacity">
-            <span style={`width: ${$stats.size / 10.24}%;`}></span>
-          </div>
-        </div>
-        <code>[🗜️{Math.round($stats.ratio * 100)}%]</code>
-
         <!-- Theme choose -->
-        <select style="display: none" bind:value={$theme}>
+        <select class="uline moss" bind:value={$theme}>
           {#each themes as t}
             <option value={t.id}>
             {t.name}
@@ -87,6 +92,10 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   <section id="render">
     {@html $mdHtml}
   </section>
+
+
+
+  <footer><a href="https://decentlabs.se">1k.Rant copyright © Tony Ivanov 2020 - License GNU AGPLv3</a></footer>
 </main>
 
 <style>
