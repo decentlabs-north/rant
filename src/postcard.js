@@ -2,7 +2,7 @@ const Feed = require('picofeed')
 const { RantMessage } = require('./messages')
 const { compress, decompress } = require('lzutf8')
 const { compressToUint8Array, decompressFromUint8Array } = require('lz-string')
-
+const { encrypt, decrypt } = require('cryptology')
 
 module.exports = class Picocard extends Feed {
   constructor () {
@@ -13,15 +13,7 @@ module.exports = class Picocard extends Feed {
   }
   get theme () { return this._card.theme }
   get date () { return this._card.date }
-  get text () {
-    const decompressors = [
-      i => i.toString('utf8'),
-      decompress,
-      decompressFromUint8Array
-    ]
-    const card = this._card
-    return decompressors[card.compression](card.text)
-  }
+  get text () { return this._unpackText({ secret: this.__secret }) }
   get title () {
     const md = this.text
     if (!md && !md.length) return
@@ -39,7 +31,32 @@ module.exports = class Picocard extends Feed {
     return this.get(0).card
   }
 
+  decrypt(secret) {
+    this.__secret = secret
+    return this._unpackText({ secret })
+  }
+
+  _unpackText (opts = {}) {
+    const decompressors = [
+      i => i.toString('utf8'),
+      decompress,
+      decompressFromUint8Array
+    ]
+    const card = this._card
+    switch (card.encryption) {
+      case 0: // not encrypted; TODO: maybe always encrypt with 0K for deniability.
+        return decompressors[card.compression](card.text)
+      case 1: // secret_box encryption
+        if (!opts.secret) throw new Error('ContentEncrypted')
+        const plain = decrypt(card.text, opts.secret)
+        return decompressors[card.compression](plain)
+    }
+  }
+
   _pack (props, sk) {
+    const secret = props.secret
+    delete props.secret
+
     const card = {
       // Defaults
       text: '',
@@ -71,6 +88,13 @@ module.exports = class Picocard extends Feed {
     // And leave a note of what type of compression was used.
     card.compression = candidates.indexOf(winrar)
     card.text = Buffer.from(winrar)
+
+    this.__secret = secret // TODO: introduces state, but i'm to lazy to fix title getter.
+    if (this.__secret) {
+      card.encryption = 1
+      card.text = encrypt(card.text, this.__secret)
+    }
+
     this.truncate(0) // evict all previous data.
     this.append({ card }, sk)
     return card.text.length

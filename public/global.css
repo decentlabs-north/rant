@@ -32,6 +32,8 @@
   --orange: #fe8019;
   --moss: #98c379;
   --grass: #8ec07c;
+  --cobalt: rgb(0,100,200);
+
   --nav-height: 2em;
 }
 
@@ -71,7 +73,7 @@ html, body {
   font-weight: 100;
 }
 .cyborg a {
-	color: rgb(0,100,200);
+	color: var(--cobalt);
 	text-decoration: none;
 }
 
@@ -207,6 +209,8 @@ nav .uline {
 .uline.purp { border-bottom: 2px solid var(--purp); }
 .uline.grass { border-bottom: 2px solid var(--grass); }
 .uline.moss { border-bottom: 2px solid var(--moss); }
+.uline.cobalt { border-bottom: 2px solid var(--cobalt); }
+
 .emo, g {
   font-family: apple color emoji,segoe ui emoji,noto color emoji,android emoji,emojisymbols,emojione mozilla,twemoji mozilla,segoe ui symbol;
 }
@@ -228,3 +232,12 @@ p code {
   padding: 2px 4px;
 }
 
+.brand {
+  color: var(--cobalt);
+  font-weight: normal;
+  margin: 0 1em;
+}
+.imgmoji {
+  font-size: 15vw;
+  display: inline-block;
+}

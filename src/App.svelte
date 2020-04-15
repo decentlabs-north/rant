@@ -4,19 +4,23 @@ import { derived, writable } from 'svelte/store'
 import marked from 'marked'
 import Purify from 'dompurify'
 import IdentityPane from './IdentityPane.svelte'
-
+import EncryptionSettings from './EncryptionSettings.svelte'
 // props
 export let card
 export let uid
 export let rant
 export let theme
-
+export let secret
+export let editMode
 // code
 const pickle = derived(card, s => s.pickle || '')
-const mdHtml = derived([rant, card], ([$md, $card]) => marked(Purify.sanitize($md))
-  .replace(/\{\{DATE\}\}/gi, new Date($card.date))
-  .replace(/\{\{KEY\}\}/gi, $card.key.toString('hex'))
-)
+const mdHtml = derived([rant, card], ([$md, $card]) => {
+  const preprocessed = $md
+    .replace(/!\[([^\]]+)\]\(emoj?i?:([^\)]+)\)/gi, '<span class="imgmoji" alt="$1" title="$1">$2</span>')
+  return marked(Purify.sanitize(preprocessed))
+    .replace(/\{\{DATE\}\}/gi, new Date($card.date))
+    .replace(/\{\{KEY\}\}/gi, $card.key.toString('hex'))
+})
 
 const themes = [
   'cyborg',
@@ -28,18 +32,20 @@ const themes = [
 ].map((name, id) => ({ name, id}))
 
 
-/* The main state of the view.. */
-const state = writable(0)
 
-const toggleState = state.update.bind(state, s => s ? 0 : 1)
-const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? 'edit' : 'show'}`)
+const toggleState = editMode.update.bind(editMode, s => !s)
+const mainClass = derived([theme, editMode], ([t, s]) => `${themes[t].name} ${s ? 'edit' : 'show'}`)
+
+const encVisible = writable(false)
 </script>
 
 <main class={$mainClass}>
   <!-- controls -->
   <nav>
     <div class="flex row xcenter"><!-- left -->
-      {#if $state}
+      <h3 class="brand">1k.rant</h3>
+      <small>v0.5.0-alpha</small>
+      {#if $editMode}
         <!-- capacity and indicator -->
         <div class="flex column xcenter">
           <samp>{$card.size} / 1024</samp>
@@ -55,16 +61,20 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
 
     <div><!-- middle -->
       <button on:click={toggleState}
-              class="uline"
-              class:purp={$state}
-              class:moss={!$state}>{$state ? 'Preview' : 'Editor'}</button>
-      {#if $state}
+              class="uline moss">{$editMode ? 'Preview' : 'Editor'}</button>
+      {#if $editMode}
         <button class="uline red emo">🌼</button>
+        <!-- encryption button + indicator-->
+        <button class="uline"
+                class:cobalt={!$secret.type}
+                class:purp={$secret.type}
+                on:click={() => $encVisible = true }>Encryption <span>{$secret.type ? '🔒' : '🔓'}</span></button>
       {/if}
     </div>
 
     <div class="flex row xcenter"><!-- right -->
-      {#if $state}
+      {#if $editMode}
+
         <!-- Theme choose -->
         <select class="uline moss" bind:value={$theme}>
           {#each themes as t}
@@ -74,7 +84,6 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
           {/each}
         </select>
       {:else}
-        <button class="uline purp">Encrypt</button>
         <button class="uline orange">Socmed</button>
         <button class="uline red">Clipboard</button>
       {/if}
@@ -82,7 +91,7 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   </nav>
 
   <!-- editor -->
-  {#if $state}
+  {#if $editMode}
     <section id="editor">
       <textarea bind:value={$rant}></textarea>
     </section>
@@ -92,10 +101,8 @@ const mainClass = derived([theme, state], ([t, s]) => `${themes[t].name} ${s ? '
   <section id="render">
     {@html $mdHtml}
   </section>
-
-
-
   <footer><a href="https://decentlabs.se">1k.Rant copyright © Tony Ivanov 2020 - License GNU AGPLv3</a></footer>
+  <EncryptionSettings secret={secret} visible={encVisible}/>
 </main>
 
 <style>

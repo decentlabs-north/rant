@@ -11,6 +11,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.0",
     "@rollup/plugin-node-resolve": "^7.0.0",
+    "crass": "^0.12.3",
     "protocol-buffers": "^4.1.2",
     "rollup": "^2.6.0",
     "rollup-plugin-livereload": "^1.0.0",
@@ -32,6 +33,7 @@
     "marked": "^0.8.2",
     "picofeed": "^1.2.0",
     "protocol-buffers-encodings": "^1.1.0",
+    "scrypt-js": "^3.0.0",
     "sirv-cli": "^0.4.4"
   }
 }

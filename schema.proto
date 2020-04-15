@@ -6,6 +6,7 @@ message Postcard {
   bytes text = 3;
   uint32 compression = 4;
   uint32 encryption = 5;
+  bytes nonce = 6;
 }
 
 message RantMessage {

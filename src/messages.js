@@ -54,6 +54,10 @@ function definePostcard () {
       var len = encodings.varint.encodingLength(obj.encryption)
       length += 1 + len
     }
+    if (defined(obj.nonce)) {
+      var len = encodings.bytes.encodingLength(obj.nonce)
+      length += 1 + len
+    }
     return length
   }
 
@@ -86,6 +90,11 @@ function definePostcard () {
       encodings.varint.encode(obj.encryption, buf, offset)
       offset += encodings.varint.encode.bytes
     }
+    if (defined(obj.nonce)) {
+      buf[offset++] = 50
+      encodings.bytes.encode(obj.nonce, buf, offset)
+      offset += encodings.bytes.encode.bytes
+    }
     encode.bytes = offset - oldOffset
     return buf
   }
@@ -100,7 +109,8 @@ function definePostcard () {
       theme: 0,
       text: null,
       compression: 0,
-      encryption: 0
+      encryption: 0,
+      nonce: null
     }
     while (true) {
       if (end <= offset) {
@@ -130,6 +140,10 @@ function definePostcard () {
         case 5:
         obj.encryption = encodings.varint.decode(buf, offset)
         offset += encodings.varint.decode.bytes
+        break
+        case 6:
+        obj.nonce = encodings.bytes.decode(buf, offset)
+        offset += encodings.bytes.decode.bytes
         break
         default:
         offset = skip(prefix & 7, buf, offset)

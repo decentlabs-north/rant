@@ -1,5 +1,6 @@
 const test = require('tape')
 const Postcard = require('./src/postcard')
+const { randomBytes } = require('crypto')
 
 test('serlization', t => {
   const { pk, sk } = Postcard.signPair()
@@ -24,8 +25,9 @@ test('title extraction', t => {
 title
 =====
 some text
+# 3nd title
 `
-  const ex2 = `\n\n# Text \n more stuff`
+  const ex2 = `\n\n# Text \n more stuff \n## more title`
 
   p.update({text: ex1}, sk)
   t.equal(p.title, 'title')
@@ -34,3 +36,14 @@ some text
   t.end()
 })
 
+
+test('secret box encryption', t => {
+  const { sk } = Postcard.signPair()
+  const p = new Postcard()
+  const text = 'Bob is a bastard'
+  const secret = randomBytes(32)
+  p.update({ text, secret }, sk) // preliminary api.
+  const r = Postcard.from(p.pickle())
+  t.equal(r.decrypt(secret), text)
+  t.end()
+})

@@ -6,8 +6,12 @@ import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import builtins from 'rollup-plugin-node-builtins'
 import globals from 'rollup-plugin-node-globals'
+import crass from 'crass'
 
 const production = !process.env.ROLLUP_WATCH
+
+// On creating a pipeline for outputting html.
+// https://github.com/bdadam/rollup-plugin-html
 
 export default {
   input: 'src/main.js',
@@ -24,6 +28,7 @@ export default {
       // we'll extract any component CSS out into
       // a separate file - better for performance
       css: css => {
+        // TODO: merge with global.css and inject into head.
         css.write('public/build/bundle.css')
       }
     }),
@@ -49,7 +54,6 @@ export default {
     // https://github.com/feross/buffer
     globals(),
     builtins(),
-
 
     // In dev mode, call `npm run start` once
     // the bundle has been generated
@@ -113,10 +117,12 @@ function petrify (input, output) {
       let m
       while (m = html.match(cexp)) {
         const file = `public${m[1]}`
-        const css = readFileSync(file)
+        const css = crass.parse(readFileSync(file))
+          .optimize({ o1: true })
         console.log(`Inlining ${file}`)
-        html = html.replace(m[0], `<!-- inline ${file} -->
-          <style>${css.toString('utf8')}</style>
+        html = html.replace(m[0], `
+  <!-- inline ${file} -->
+  <style>${css.toString()}</style>
         `)
       }
       // write out the destination
