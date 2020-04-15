@@ -1,6 +1,6 @@
 # 1k.rant
 
-> Digital equivalent of a postcard
+> Digital equivalent of a postcard [https://telamon.github.io/rant/](https://telamon.github.io/rant/)
 
 ## WIP; Alpha 0.5
 
