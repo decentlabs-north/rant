@@ -3,10 +3,10 @@ import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
-import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import builtins from 'rollup-plugin-node-builtins'
 import globals from 'rollup-plugin-node-globals'
 import crass from 'crass'
+import analyze from 'rollup-plugin-analyzer'
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -63,13 +63,13 @@ export default {
     // browser on changes when not in production
     !production && livereload('public'),
 
-    // bundle size stats
-    production && sizeSnapshot(),
+    production && analyze({ summaryOnly: true }),
 
     // If we're building for production (npm run build
     // instead of npm run dev), minify
-    production && terser(),
-    // production && petrify('public/index.html', 'docs/index.html')
+    production && terser({ output: { comments: false } }),
+
+    production && petrify('public/index.html', 'docs/index.html')
   ],
   watch: {
     clearScreen: false
@@ -101,17 +101,6 @@ function petrify (input, output) {
     writeBundle (opts, bundle) {
       let html = readFileSync(input).toString('utf8')
 
-      // inline js
-      for (const name in bundle) {
-        const artefact = bundle[name]
-        // inline js when found.
-        const rexp = new RegExp(`<script[^>]+src=[^>]+${artefact.fileName}[^>]+>`)
-        if (html.match(rexp)) {
-          console.log('Inlining artefact', name)
-          html = html.replace(rexp, `<script>window.addEventListener('DOMContentLoaded',ev => { ${artefact.code} })`)
-        }
-      }
-
       // fugly inline css
       const cexp = new RegExp(`<link[^>]+href=['"]([^'"]+\.css)['"][^>]*>`)
       let m
@@ -124,6 +113,22 @@ function petrify (input, output) {
   <!-- inline ${file} -->
   <style>${css.toString()}</style>
         `)
+      }
+
+      // inline js
+      for (const name in bundle) {
+        const artifact = bundle[name]
+        // inline js when found.
+        const rexp = new RegExp(`<script[^>]+src=[^>]+${artifact.fileName}[^>]+>`)
+        if (html.match(rexp)) {
+          console.log('Inlining artifact', name)
+          const chunks = html.replace(rexp, '<script>¤¤¤PITA¤¤¤')
+            .split('¤¤¤PITA¤¤¤')
+
+          const code = `window.addEventListener('DOMContentLoaded',ev => {\n` +
+                        artifact.code + `\n})`
+          html = chunks[0] + code + chunks[1]
+        }
       }
       // write out the destination
       mkdirSync(dirname(output), { recursive: true })

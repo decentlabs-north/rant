@@ -18,7 +18,7 @@ let showModal = false
 </script>
 <div >
   <!-- navbar content -->
-  <span on:click="{() => showModal = true}">
+  <span class="identity uline purp" on:click="{() => showModal = true}">
   <!--<div bind:this={container}></div>-->
   👤<code>{spk.toString('hex').substr(0, 12)}</code>
   </span>

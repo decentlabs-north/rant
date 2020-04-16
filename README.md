@@ -1,6 +1,30 @@
 # 1k.rant
 
-> Digital equivalent of a postcard [https://telamon.github.io/rant/](https://telamon.github.io/rant/)
+> [Smallest markdown editor in the world](https://telamon.github.io/rant/)
+
+_This is my latest attempt at mastering the art of "Doing it Wrong"_
+
+I present to you a decentralized ultra-portable Markdown editor it's entire code base occupying a single file less than 256kB.
+
+You can just right click + save the webpage
+and the app will continue to work when opened from `file:`-system
+and of course without any requirements for an internet connection.
+
+To make things a bit more interesting, the markdown documents you produce
+are _fictionally_ limited to 1kB, and stored in the [worlds smallest blockchain](https://github.com/telamohn/picofeed) that it self lives
+inside one of the most portable data structure available, the `URL`.
+
+
+!💌!
+
+**``- It's the digital equivalent of a Postcard´´**
+
+
+(or an essential tool for people who love to rant but
+have issues sticking to a chosen topic.)
+
+
+
 
 ## WIP; Alpha 0.5
 

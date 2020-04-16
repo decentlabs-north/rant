@@ -15,11 +15,20 @@ export let editMode
 // code
 const pickle = derived(card, s => s.pickle || '')
 const mdHtml = derived([rant, card], ([$md, $card]) => {
+  const subdiv = (k, n) => {
+    return !n-- ? k : [
+      subdiv(k.slice(0, k.length >> 1), n),
+      subdiv(k.slice(k.length >> 1), n)
+    ].flat()
+  }
   const preprocessed = $md
-    .replace(/!\[([^\]]+)\]\(emoj?i?:([^\)]+)\)/gi, '<span class="imgmoji" alt="$1" title="$1">$2</span>')
+    // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
+    .replace(/!([^!]{1,5})!/g, '<span class="imgmoji">$1</span>')
   return marked(Purify.sanitize(preprocessed))
     .replace(/\{\{DATE\}\}/gi, new Date($card.date))
-    .replace(/\{\{KEY\}\}/gi, $card.key.toString('hex'))
+    .replace(/\{\{KEY\}\}/gi, `<pre class="pksig">${
+        subdiv(uid.sig.pub.toString('hex'), 3).join('\n')
+      }</pre>`)
 })
 
 const themes = [
@@ -28,6 +37,7 @@ const themes = [
   'happy-birthday',
   'invitation',
   'robin',
+  'spooky',
   'blackmail'
 ].map((name, id) => ({ name, id}))
 
@@ -39,12 +49,12 @@ const mainClass = derived([theme, editMode], ([t, s]) => `${themes[t].name} ${s 
 const encVisible = writable(false)
 </script>
 
-<main class={$mainClass}>
+<main class={$mainClass} on:keyUp={e => e.key === 'Tab' && toggleState()}>
   <!-- controls -->
   <nav>
     <div class="flex row xcenter"><!-- left -->
-      <h3 class="brand">1k.rant</h3>
-      <small>v0.5.0-alpha</small>
+      <h3 class="brand">1024R</h3>
+      <small id="version">v0.6.0-alpha</small>
       {#if $editMode}
         <!-- capacity and indicator -->
         <div class="flex column xcenter">
@@ -53,7 +63,7 @@ const encVisible = writable(false)
             <span style={`width: ${$card.size / 10.24}%;`}></span>
           </div>
         </div>
-        <code>[🗜️{Math.round($card.ratio * 100)}%]</code>
+        <code class="compression-indicator">[🗜️{Math.round($card.ratio * 100)}%]</code>
       {:else}
         <IdentityPane identity={uid}/>
       {/if}
@@ -61,14 +71,14 @@ const encVisible = writable(false)
 
     <div><!-- middle -->
       <button on:click={toggleState}
-              class="uline moss">{$editMode ? 'Preview' : 'Editor'}</button>
+              class="uline moss">{$editMode ? 'Preview' : 'Edit'}</button>
       {#if $editMode}
-        <button class="uline red emo">🌼</button>
+        <!--<button class="uline red emo">🌼</button>-->
         <!-- encryption button + indicator-->
         <button class="uline"
                 class:cobalt={!$secret.type}
                 class:purp={$secret.type}
-                on:click={() => $encVisible = true }>Encryption <span>{$secret.type ? '🔒' : '🔓'}</span></button>
+                on:click={() => $encVisible = true }>Encrypt <span>{$secret.type ? '🔒' : '🔓'}</span></button>
       {/if}
     </div>
 
@@ -84,7 +94,7 @@ const encVisible = writable(false)
           {/each}
         </select>
       {:else}
-        <button class="uline orange">Socmed</button>
+        <button class="uline orange">Share</button>
         <button class="uline red">Clipboard</button>
       {/if}
     </div>
