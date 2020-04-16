@@ -6,6 +6,7 @@ import App from './App.svelte'
 import { scrypt } from 'cryptology'
 const NOCRYPT = 0
 const PWCRYPT = 1
+
 // Todo: turn this into standalone-module
 const initIdentity = () => {
   const stored = localStorage.getItem('identity')
@@ -51,9 +52,13 @@ try {
 if (card.length) {
   theme.set(card.theme)
   const { encryption, nonce } = card._card
+  const hsh = window.location.hash || ''
+  const pidx = hsh.indexOf(Postcard.PICKLE)
+  const hint = decodeURIComponent(pidx === -1 ? '' : hsh.slice(1, pidx-1))
+    .replace(/_/g, ' ')
 
   const attemptPWDecrypt = (msg = 'Input password') => {
-    const passphrase = prompt(msg)
+    const passphrase = prompt(`${msg}\n${hint}`)
     if (!passphrase) return clear()
     console.log(nonce)
     scrypt(passphrase, nonce)
@@ -104,11 +109,14 @@ const cardStore = readable({size: 0, key: ''}, set => {
     }
 
     const pickle = card.pickle()
-    const title = card.title
-    // TODO: provide $secret.hint instead of title for encrypted notes.
-    const fancyPickle = !title || $secret.type ? pickle
-      : `${encodeURIComponent(title.replace(/ +/g, '_'))}-${pickle}`
-    window.location.hash = fancyPickle // Does this leak our rant to gogoolôgug?
+
+    if ($editMode) {
+      const title = card.title
+      // TODO: provide $secret.hint instead of title for encrypted notes.
+      const fancyPickle = !title || $secret.type ? pickle
+        : `${encodeURIComponent(title.replace(/ +/g, '_'))}-${pickle}`
+      window.location.hash = fancyPickle // Does this leak our rant to gogoolôgug?
+    }
     set({
       id: card.id,
       date: card.date,

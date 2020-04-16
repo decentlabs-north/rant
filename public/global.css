@@ -264,8 +264,13 @@ pre.pksig { background: none !important; text-align: center; }
 main.spooky  {
   background-color: ghostwhite;
 }
-.spooky #render h1:first-child {
-  font-family: "Courier New", monospace;
+
+main.show.spooky nav, main.show.spooky footer {
+  animation: 0.3s ease-in 6s normal backwards blurin;
+}
+
+.spooky #render *:first-child {
+  font-family: "Courier", monospace;
   font-size: 3em;
   font-weight: 100;
   margin-bottom: 0;
@@ -273,14 +278,15 @@ main.spooky  {
   text-transform: capitalize;
   animation: 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0s 3 alternate backwards running blurin;
 }
+
 .spooky #render *:nth-child(2) {
   font-family: "Times New Roman", serif;
   font-weight: normal;
   margin-top: 0;
-  animation: 0.5s ease-in 2s normal backwards blurin;
+  animation: 0.8s ease-in-out 2s 3 alternate backwards blurin;
 }
 .spooky #render *:nth-child(3) {
-  animation: 4s linear 2s 1 both flicker;
+  animation: 4s linear 2.4s 1 both flicker;
 }
 
 @keyframes blurin {
@@ -318,4 +324,91 @@ main.spooky  {
     filter: blur(0);
     opacity: 1;
   }
+}
+/** Morpheus theme **/
+main.morpheus  {
+  background-color: black;
+  color: #19c824;
+  font-family: "Courier", monospace;
+}
+.morpheus #render {
+}
+main.show.morpheus nav, main.show.spooky footer {
+  animation: 0.3s ease-in 6s normal backwards blurin;
+}
+
+@keyframes morphsldwn {
+  0% {  top: 0; height: 100vh; }
+  100% {
+    top: var(--nav-height);
+    height: calc(100vh - var(--nav-height));
+  }
+}
+@keyframes morphblink {
+  0% { opacity: 0; }
+  49% { opacity: 0; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.6; }
+}
+@keyframes morphtypesim {
+  0% { width: 0; display: none; }
+  1% { width: 0; display: initial; }
+  100% { width: 100%; }
+}
+
+.show.morpheus:before, .show.morpheus #render:before {
+  display: block;
+  position: absolute;
+  width: 100vw;
+  height: calc(100vh - var(--nav-height));
+  animation: 1s linear 6s normal both morphsldwn;
+  left: 0;
+  content: ' ';
+  background: repeating-linear-gradient(0deg,
+    rgba(8,15,9,0.0),
+    rgba(8,15,9,0.0) 2px,
+    rgba(255,255,255,0.2) 4px,
+    rgba(255,255,255,0.3) 7px,
+    rgba(8,15,9,0.0) 10px
+    );
+}
+.show.morpheus #render:before {
+  background: radial-gradient(
+    rgba(8, 15, 9, 0.0),
+    rgba(8, 15, 9, 1.0) 98%
+  );
+}
+/* fake cursor */
+.morpheus #render *:nth-child(2):after {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  background: #19c824;
+  content: '0';
+  animation: 2s ease-in-out 0s infinite both morphblink;
+}
+.morpheus #render h1:first-child {
+  font-size: 3em;
+  font-weight: 100;
+  margin-bottom: 0;
+  text-align: center;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 2s linear 0s normal both morphtypesim;
+}
+.morpheus #render pre {
+  /* background: none;*/
+}
+.morpheus #render *:nth-child(2) {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 2s linear 2s normal both morphtypesim;
+}
+.morpheus #render *:nth-child(3) {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 2s linear 4s normal both morphtypesim;
 }

@@ -23,7 +23,7 @@ const mdHtml = derived([rant, card], ([$md, $card]) => {
   }
   const preprocessed = $md
     // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
-    .replace(/!([^!]{1,5})!/g, '<span class="imgmoji">$1</span>')
+    .replace(/!([^!\n ]{1,6})!/g, '<span class="imgmoji">$1</span>')
   return marked(Purify.sanitize(preprocessed))
     .replace(/\{\{DATE\}\}/gi, new Date($card.date))
     .replace(/\{\{KEY\}\}/gi, `<pre class="pksig">${
@@ -31,20 +31,20 @@ const mdHtml = derived([rant, card], ([$md, $card]) => {
       }</pre>`)
 })
 
-const themes = [
-  'cyborg',
-  'love-letter',
-  'happy-birthday',
-  'invitation',
-  'robin',
-  'spooky',
-  'blackmail'
-].map((name, id) => ({ name, id}))
+const themes = {
+  0: 'cyborg',
+  1: 'love-letter',
+  5: 'spooky',
+  6: 'morpheus'
+  // ['happy-birthday', 2],
+  // ['invitation', 3],
+  // ['robin', 4],
+}
 
 
 
 const toggleState = editMode.update.bind(editMode, s => !s)
-const mainClass = derived([theme, editMode], ([t, s]) => `${themes[t].name} ${s ? 'edit' : 'show'}`)
+const mainClass = derived([theme, editMode], ([t, s]) => `${themes[t] ? themes[t] : themes[0]} ${s ? 'edit' : 'show'}`)
 
 const encVisible = writable(false)
 </script>
@@ -87,9 +87,9 @@ const encVisible = writable(false)
 
         <!-- Theme choose -->
         <select class="uline moss" bind:value={$theme}>
-          {#each themes as t}
-            <option value={t.id}>
-            {t.name}
+          {#each Object.keys(themes) as t}
+            <option value={t}>
+            {themes[t]}
             </option>
           {/each}
         </select>
