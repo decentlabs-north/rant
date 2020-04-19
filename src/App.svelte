@@ -71,7 +71,7 @@ const encVisible = writable(false)
 
     <div><!-- middle -->
       <button on:click={toggleState}
-              class="uline moss">{$editMode ? 'Preview' : 'Edit'}</button>
+              class="uline moss state-toggle">{$editMode ? 'Preview' : 'Edit'}</button>
       {#if $editMode}
         <!--<button class="uline red emo">🌼</button>-->
         <!-- encryption button + indicator-->
@@ -84,9 +84,8 @@ const encVisible = writable(false)
 
     <div class="flex row xcenter"><!-- right -->
       {#if $editMode}
-
         <!-- Theme choose -->
-        <select class="uline moss" bind:value={$theme}>
+        <select class="uline red" bind:value={$theme}>
           {#each Object.keys(themes) as t}
             <option value={t}>
             {themes[t]}
@@ -103,7 +102,8 @@ const encVisible = writable(false)
   <!-- editor -->
   {#if $editMode}
     <section id="editor">
-      <textarea bind:value={$rant}></textarea>
+      <!-- rows attr is a chrome workaround -->
+      <textarea bind:value={$rant} rows="60"></textarea>
     </section>
   {/if}
 
@@ -111,7 +111,7 @@ const encVisible = writable(false)
   <section id="render">
     {@html $mdHtml}
   </section>
-  <footer><a href="https://decentlabs.se">1k.Rant copyright © Tony Ivanov 2020 - License GNU AGPLv3</a> <a href="https://github.com/telamon/rant/">Source</a></footer>
+  <footer><a href="http://decentlabs.se">1k.Rant copyright © DecentLabs 2020 - License GNU AGPLv3</a> <a href="https://github.com/telamon/rant/">Source</a></footer>
   <EncryptionSettings secret={secret} visible={encVisible}/>
 </main>
 

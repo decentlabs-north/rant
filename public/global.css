@@ -65,7 +65,7 @@ html, body {
 /***** CYBORG *****/
 /* Based off the default svelte style*/
 /*make first h1 into a big title*/
-.cyborg #render h1:first-child {
+.cyborg #render > h1:first-child {
   text-align: center;
   color: #ff3e00;
   text-transform: uppercase;
@@ -108,15 +108,17 @@ body {
 	padding: 0;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
+#render img { max-width: 100% }
 
 #editor {
   min-height: 100%;
   padding: 1em;
   background-color: #2c323b;
   padding-top: calc(var(--nav-height) + 1em);
-  min-height: calc(100vh - var(--nav-height) * 2);
+  min-height: 100%; /*calc(100vh - var(--nav-height) * 2);*/
 }
 #editor textarea {
+  display: block;
   margin: 0;
   background: inherit;
   border: 0;
@@ -265,11 +267,11 @@ main.spooky  {
   background-color: ghostwhite;
 }
 
-main.show.spooky nav, main.show.spooky footer {
+main.show.spooky nav, main.show.spooky footer, .spooky #render > * {
   animation: 0.3s ease-in 6s normal backwards blurin;
 }
 
-.spooky #render *:first-child {
+.spooky #render > *:first-child {
   font-family: "Courier", monospace;
   font-size: 3em;
   font-weight: 100;
@@ -279,14 +281,14 @@ main.show.spooky nav, main.show.spooky footer {
   animation: 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0s 3 alternate backwards running blurin;
 }
 
-.spooky #render *:nth-child(2) {
+.spooky #render > *:nth-child(2) {
   font-family: "Times New Roman", serif;
   font-weight: normal;
   margin-top: 0;
   animation: 0.8s ease-in-out 2s 3 alternate backwards blurin;
 }
-.spooky #render *:nth-child(3) {
-  animation: 4s linear 2.4s 1 both flicker;
+.spooky #render > *:nth-child(3) {
+  animation: 5s linear 2.4s 1 both flicker;
 }
 
 @keyframes blurin {
@@ -301,9 +303,7 @@ main.show.spooky nav, main.show.spooky footer {
     opacity: 1;
   }
 }
-/*
- * { animation: 4s linear 0s 1 normal both running text-flicker-in-glow;}
- * */
+
 @keyframes flicker {
 
   0% {
@@ -325,6 +325,7 @@ main.show.spooky nav, main.show.spooky footer {
     opacity: 1;
   }
 }
+
 /** Morpheus theme **/
 main.morpheus  {
   background-color: black;
@@ -356,9 +357,14 @@ main.show.morpheus nav, main.show.spooky footer {
   100% { width: 100%; }
 }
 
+.morpheus #render > *  {
+  animation: 1s linear 6s normal backwards blurin;
+}
+
+/* scanlines */
 .show.morpheus:before, .show.morpheus #render:before {
   display: block;
-  position: absolute;
+  position: fixed;
   width: 100vw;
   height: calc(100vh - var(--nav-height));
   animation: 1s linear 6s normal both morphsldwn;
@@ -372,6 +378,7 @@ main.show.morpheus nav, main.show.spooky footer {
     rgba(8,15,9,0.0) 10px
     );
 }
+/* vignette */
 .show.morpheus #render:before {
   background: radial-gradient(
     rgba(8, 15, 9, 0.0),
@@ -379,15 +386,16 @@ main.show.morpheus nav, main.show.spooky footer {
   );
 }
 /* fake cursor */
-.morpheus #render *:nth-child(2):after {
+.morpheus #render > *:nth-child(2):after {
   display: inline-block;
   width: 0.5em;
   height: 1em;
   background: #19c824;
-  content: '0';
+  content: ' ';
   animation: 2s ease-in-out 0s infinite both morphblink;
 }
-.morpheus #render h1:first-child {
+
+.morpheus #render > *:first-child {
   font-size: 3em;
   font-weight: 100;
   margin-bottom: 0;
@@ -397,16 +405,13 @@ main.show.morpheus nav, main.show.spooky footer {
   overflow: hidden;
   animation: 2s linear 0s normal both morphtypesim;
 }
-.morpheus #render pre {
-  /* background: none;*/
-}
-.morpheus #render *:nth-child(2) {
+.morpheus #render > *:nth-child(2) {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   animation: 2s linear 2s normal both morphtypesim;
 }
-.morpheus #render *:nth-child(3) {
+.morpheus #render > *:nth-child(3) {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;

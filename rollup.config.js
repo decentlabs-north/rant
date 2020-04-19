@@ -1,4 +1,5 @@
 import svelte from 'rollup-plugin-svelte'
+// import inject from '@rollup/plugin-inject'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import livereload from 'rollup-plugin-livereload'
@@ -43,6 +44,7 @@ export default {
       dedupe: ['svelte', 'sodium-universal'],
       preferBuiltins: true // <-- If this refers to builtins below then yes.
     }),
+
     commonjs({
       namedExports: {
         'lz-string': ['compressToUint8Array', 'decompressFromUint8Array'],
