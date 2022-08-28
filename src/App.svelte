@@ -1,7 +1,7 @@
 <script>
 // imports
 import { derived, writable } from 'svelte/store'
-import marked from 'marked'
+import { marked } from 'marked'
 import Purify from 'dompurify'
 import IdentityPane from './IdentityPane.svelte'
 import EncryptionSettings from './EncryptionSettings.svelte'
@@ -27,7 +27,7 @@ const mdHtml = derived([rant, card], ([$md, $card]) => {
   return marked(Purify.sanitize(preprocessed))
     .replace(/\{\{DATE\}\}/gi, new Date($card.date))
     .replace(/\{\{KEY\}\}/gi, `<pre class="pksig">${
-        subdiv(uid.sig.pub.toString('hex'), 3).join('\n')
+        subdiv(uid.pk.toString('hex'), 3).join('\n')
       }</pre>`)
 })
 
@@ -53,8 +53,8 @@ const encVisible = writable(false)
   <!-- controls -->
   <nav>
     <div class="flex row xcenter"><!-- left -->
-      <h3 class="brand">1024R</h3>
-      <small id="version">v0.6.0-alpha</small>
+      <h3 class="brand">rant</h3>
+      <small id="version">v2.0.0-alpha</small>
       {#if $editMode}
         <!-- capacity and indicator -->
         <div class="flex column xcenter">
@@ -111,7 +111,7 @@ const encVisible = writable(false)
   <section id="render">
     {@html $mdHtml}
   </section>
-  <footer><a href="http://decentlabs.se">1k.Rant copyright © DecentLabs 2020 - License GNU AGPLv3</a> <a href="https://github.com/telamon/rant/">Source</a></footer>
+  <footer><a href="http://rant.xorcery.co">rant.xorcery.co copyright © DecentLabs 2020 - License GNU AGPLv3</a> <a href="https://github.com/telamon/rant/">Source</a></footer>
   <EncryptionSettings secret={secret} visible={encVisible}/>
 </main>
 

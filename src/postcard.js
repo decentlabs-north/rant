@@ -1,19 +1,21 @@
 const Feed = require('picofeed')
-const { RantMessage } = require('./messages')
 const { compress, decompress } = require('lzutf8')
 const { compressToUint8Array, decompressFromUint8Array } = require('lz-string')
 const { encrypt, decrypt } = require('cryptology')
 
-module.exports = class Picocard extends Feed {
+module.exports = class Picocard {
   constructor () {
-    super({ contentEncoding: RantMessage })
+    this.feed = new Feed()
   }
-  get key () {
-    for (const { key } of this.blocks()) return key
-  }
+
+  get key () { return this.feed.first.key }
+
   get theme () { return this._card.theme }
+
   get date () { return this._card.date }
+
   get text () { return this._unpackText({ secret: this.__secret }) }
+
   get title () {
     const md = this.text
     if (!md && !md.length) return
@@ -23,6 +25,7 @@ module.exports = class Picocard extends Feed {
     const m2 = this.text.match(/^#+ (.+)\s+$/m)
     if (m2) return m2[1]
   }
+
   update (props, sk) {
     return this._pack(props, sk)
   }
@@ -31,7 +34,7 @@ module.exports = class Picocard extends Feed {
     return this.get(0).card
   }
 
-  decrypt(secret) {
+  decrypt (secret) {
     this.__secret = secret
     return this._unpackText({ secret })
   }
@@ -46,10 +49,11 @@ module.exports = class Picocard extends Feed {
     switch (card.encryption) {
       case 0: // not encrypted; TODO: maybe always encrypt with 0K for deniability.
         return decompressors[card.compression](card.text)
-      case 1: // secret_box encryption
+      case 1: { // secret_box encryption
         if (!opts.secret) throw new Error('ContentEncrypted')
         const plain = decrypt(card.text, opts.secret)
         return decompressors[card.compression](plain)
+      }
     }
   }
 
@@ -67,7 +71,7 @@ module.exports = class Picocard extends Feed {
       // Merge new
       ...props,
       // Auto generated ontop
-      date: new Date().getTime(),
+      date: new Date().getTime()
     }
 
     if (!card.text.length) return
@@ -84,7 +88,7 @@ module.exports = class Picocard extends Feed {
       compressToUint8Array(text)
     ]
     // Overwrite with compressed data
-    const winrar = [ ...candidates ].sort((a, b) => a.length > b.length)[0]
+    const winrar = [...candidates].sort((a, b) => a.length > b.length)[0]
     // And leave a note of what type of compression was used.
     card.compression = candidates.indexOf(winrar)
     card.text = Buffer.from(winrar)

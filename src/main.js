@@ -1,14 +1,14 @@
 import { writable, derived, readable } from 'svelte/store'
-import { Identity } from 'cryptology'
-import dbnc from 'debounce'
 import Postcard from './postcard'
 import App from './App.svelte'
 import { scrypt } from 'cryptology'
+import { signPair } from 'picofeed'
 const NOCRYPT = 0
 const PWCRYPT = 1
-
+const dbnc = fn => fn
 // Todo: turn this into standalone-module
 const initIdentity = () => {
+  return signPair()
   const stored = localStorage.getItem('identity')
   if (!stored) {
     const id = new Identity()
@@ -28,13 +28,13 @@ const rant = writable('')
 const secret = writable({ type: 0 })
 
 const clear = () => {
+  return // TODO: why what when?
   card.truncate(0)
   card.merge(sample())
   secret.set({ type: 0 })
   rant.set(card.text)
   editMode.set(false)
 }
-
 
 // --- end of uid
 const card = new Postcard()
@@ -54,17 +54,17 @@ if (card.length) {
   const { encryption, nonce } = card._card
   const hsh = window.location.hash || ''
   const pidx = hsh.indexOf(Postcard.PICKLE)
-  const hint = decodeURIComponent(pidx === -1 ? '' : hsh.slice(1, pidx-1))
+  const hint = decodeURIComponent(pidx === -1 ? '' : hsh.slice(1, pidx - 1))
     .replace(/_/g, ' ')
 
   const attemptPWDecrypt = (msg = 'Input password') => {
-    const passphrase = prompt(`${msg}\n${hint}`)
+    const passphrase = window.prompt(`${msg}\n${hint}`)
     if (!passphrase) return clear()
     console.log(nonce)
     scrypt(passphrase, nonce)
       .then(key => {
         try {
-          secret.set({ key, nonce: nonce, type: PWCRYPT})
+          secret.set({ key, nonce, type: PWCRYPT })
           rant.set(card.decrypt(key))
         } catch (err) {
           if (err.type === 'DecryptionFailedError') attemptPWDecrypt('Wrong password, try again')

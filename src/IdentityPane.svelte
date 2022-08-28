@@ -1,19 +1,7 @@
 <script>
   import Modal from './Modal.svelte'
   export let identity
-/* // Hashicons cost us 27k of minified data or about 7k compressed.
-   // I like the but not the cubes, maybe fork it or talk to the author.
-
-import { onMount } from 'svelte'
-import hashicon from 'hashicon'
-onMount(() => {
-  const ico = hashicon(spk, 22)
-  container.appendChild(ico)
-})
-let container
- */
-
-let spk = identity.sig.pub
+let spk = identity.pk
 let showModal = false
 </script>
 <div >
@@ -30,10 +18,10 @@ let showModal = false
       Mysterious Stranger
     </h2>
     <pre>
-SPK {identity.sig.pub.toString('hex')}
-SSK {identity.sig.sec.slice(0, 32).toString('hex')}
-BPK {identity.box.pub.toString('hex')}
-BSK {identity.box.sec.toString('hex')}
+      SPK {identity.pk.toString('hex')}
+      SSK {identity.sk.slice(0, 32).toString('hex')}
+      <!-- BPK {identity.box.pub.toString('hex')}
+      BSK {identity.box.sec.toString('hex')}-->
     </pre>
 	</Modal>
 {/if}
