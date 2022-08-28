@@ -2,7 +2,7 @@ const test = require('tape')
 const Postcard = require('./src/postcard')
 const { randomBytes } = require('crypto')
 
-test('serlization', t => {
+test('serialization', t => {
   const { pk, sk } = Postcard.signPair()
   const p = new Postcard()
   // p.date is p.version

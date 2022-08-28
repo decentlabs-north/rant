@@ -7,7 +7,7 @@
     "serve": "rollup -c -w",
     "protobuf": "protocol-buffers -o src/messages.js schema.proto",
     "start": "sirv public",
-    "surge": "surge docs/ fresh-fowl.surge.sh"
+    "surge": "surge docs/ 1k.surge.sh"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.1.0",
