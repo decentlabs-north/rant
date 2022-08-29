@@ -1,11 +1,21 @@
-const Feed = require('picofeed')
-const { compress, decompress } = require('lzutf8')
-const { compressToUint8Array, decompressFromUint8Array } = require('lz-string')
-const { encrypt, decrypt } = require('cryptology')
+import Feed from 'picofeed'
+import lzutf8 from 'lzutf8'
+import lzString from 'lz-string'
+// const { encrypt, decrypt } = require('cryptology')
+const { compress, decompress } = lzutf8
+const { compressToUint8Array, decompressFromUint8Array } = lzString
+function encrypt (message, secret) {}
+function decrypt (message, secret) {}
 
-module.exports = class Picocard {
-  constructor () {
-    this.feed = new Feed()
+// TODO: I want to separate compression/serialization from
+// block signing/production.
+export default class Picocard {
+  constructor (feed = new Feed()) {
+    this.feed = feed
+  }
+
+  static from (pickle) {
+    return new Picocard(Feed.from(pickle))
   }
 
   get key () { return this.feed.first.key }
@@ -102,14 +112,5 @@ module.exports = class Picocard {
     this.truncate(0) // evict all previous data.
     this.append({ card }, sk)
     return card.text.length
-  }
-
-  static from (source, opts = {}) {
-    const card = new Picocard()
-    const d = Feed.from(source, opts)
-    card.buf = d.buf
-    card.tail = d.tail
-    card._lastBlockOffset = d._lastBlockOffset
-    return card
   }
 }
