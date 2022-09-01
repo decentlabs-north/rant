@@ -4,10 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "serve": "rollup -c -w",
-    "start": "sirv public",
-    "surge": "surge docs/ 1k.surge.sh",
+    "dev": "rollup -w -c rollup2.config.js",
+    "start": "sirv pub/",
     "test": "tape test.js",
     "debug": "node inspect $(npm bin)/tape test.js"
   },
@@ -16,6 +14,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "crass": "^0.12.3",
     "memory-level": "^1.0.0",
+    "pico-css": "^4.0.1",
     "rollup": "^2.78.1",
     "rollup-plugin-analyzer": "^4.0.0",
     "rollup-plugin-css-only": "^3.1.0",

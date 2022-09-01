@@ -2474,6 +2474,11 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
+pico-css@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/pico-css/-/pico-css-4.0.1.tgz#85c908e4af573e9cbdbc4c8c7552518b925aaac6"
+  integrity sha512-8QOTq0pdsWgu75GeCF6bUNvmkFDFctU9wEX1z1V8dSeyaY1RNXHCEJKZRrycBRlH+jxsUUTyfcAavenGF+72AA==
+
 picofeed@^3.4.0:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/picofeed/-/picofeed-3.4.0.tgz#b8172adadb78ed9fbabec006ba3c7cec8a23283c"

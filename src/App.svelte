@@ -23,7 +23,7 @@ const mdHtml = derived([rant, card], ([$md, $card]) => {
   }
   const preprocessed = $md
     // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
-    .replace(/!([^!\n ]{1,6})!/g, '<span class="imgmoji">$1</span>')
+    .replace(/!([^!\n ]{1,8})!/g, '<span class="imgmoji">$1</span>')
   return marked(Purify.sanitize(preprocessed))
     .replace(/\{\{DATE\}\}/gi, new Date($card.date))
     .replace(/\{\{KEY\}\}/gi, `<pre class="pksig">${
