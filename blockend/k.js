@@ -5,23 +5,40 @@ import { pack, unpack, extractTitle } from './picocard.js'
 export const TYPE_RANT = 0
 
 export default class Kernel extends SimpleKernel {
-  _draft = null
-
   constructor (db) {
     super(db)
     this.repo.allowDetached = true
     this.store.register(Notebook())
+
+    // set up current ptr for checkout
     const c = write()
     this._current = c[0]
     this._setCurrent = c[1]
+
+    // set up writable draft
+    const [text, setText] = write('')
+    const [theme, setTheme] = write(0)
+    const [encryption, setEncryption] = write(0)
+    const [date, setDate] = write(Date.now())
+    // const [secret, setSecret] = write(rant.secret)
+    // combine all outputs
+    this._draft = combine({ text, theme, encryption, date })
+    // Stash all inputs
+    this._w = { setText, setTheme, setEncryption, setDate }
   }
 
   $rant () {
-    if (!get(this._current) && !this._draft) return init() // nothing shown, nothing editing.
-    if (this.isEditing) return mute(this._draft, this._mapRant.bind(this))
-    const n = combine(this._current, s => this.store.on('rants', s))
+    const n = combine(
+      this._current,
+      this._draft,
+      s => this.store.on('rants', s)
+    )
     return mute(
-      mute(n, ([current, rants]) => current && rants[btok(current)]),
+      mute(
+        n,
+        ([current, draft, rants]) =>
+          current ? rants[btok(current)] : draft
+      ),
       this._mapRant.bind(this)
     )
   }
@@ -34,8 +51,9 @@ export default class Kernel extends SimpleKernel {
   }
 
   async checkout (rantId) {
-    if (rantId === null) return this._makeDraft()
-    if (!this.store.state.rants[btok(rantId)]) throw new Error('UnknownRant')
+    if (rantId === null) {
+      this._setDraft()
+    } else if (!this.store.state.rants[btok(rantId)]) throw new Error('UnknownRant')
     this._setCurrent(rantId)
   }
 
@@ -45,8 +63,8 @@ export default class Kernel extends SimpleKernel {
     const c = get(this._current)
     const isCurrent = c && rant.id && c.equals(rant.id)
     let size = rant.size
-    if (this.isEditing && isCurrent) {
-      size = pack(rant).length
+    if (this.isEditing) { //  && isCurrent) {
+      size = rant.text ? pack(rant).length : 0
     }
     const state = isCurrent
       ? this.isEditing ? 'draft' : 'signed'
@@ -61,17 +79,17 @@ export default class Kernel extends SimpleKernel {
     }
   }
 
-  get isEditing () { return !!this._draft }
+  get isEditing () { return true }
 
   async setText (txt) {
     if (!this.isEditing) throw new Error('EditMode not active')
-    this._writers.setText(txt)
+    this._w.setText(txt)
     // this._dbncSaveDraft() // to plain registry
   }
 
   async setTheme (theme) {
     if (!this.isEditing) throw new Error('EditMode not active')
-    this._writers.setTheme(theme)
+    this._w.setTheme(theme)
     // this._dbncSaveDraft() // to plain registry
   }
 
@@ -97,9 +115,9 @@ export default class Kernel extends SimpleKernel {
     const modified = await this.dispatch(branch, true)
     if (!modified.length) throw new Error('commit() failed: rejected by store')
 
-    delete this._draft
-    delete this._writers
-    this._setCurrent(id)
+    await this.checkout(id)
+    // TODO: delete id from draft-store
+
     // this.rpc.shareBlocks(branch.slice(-1)) if Public
     return id
   }
@@ -128,17 +146,11 @@ export default class Kernel extends SimpleKernel {
     return 0
   }
 
-  _makeDraft (rant = {}) {
-    const [text, setText] = write(rant.text || '')
-    const [theme, setTheme] = write(rant.theme || 0)
-    // const [secret, setSecret] = write(rant.secret)
-    this._draft = combine({
-      text,
-      theme,
-      encryption: init(0),
-      date: init(Date.now())
-    })
-    this._writers = { setText, setTheme }
+  _setDraft (rant = {}) {
+    this._w.setText(rant.text || '')
+    this._w.setTheme(rant.theme || 0)
+    this._w.setEncryption(rant.encryption || 0)
+    this._w.setDate(rant.date || Date.now())
   }
 
   async import (url) { // Imports pickles
@@ -158,7 +170,7 @@ function Notebook () {
       const rant = unpack(block.body)
       const { type } = rant
       if (type !== TYPE_RANT) return 'UnknownBlock'
-      if (block.buffer.length > 1024) return 'RantTooBig'
+      if (block.body.length > 1024) return 'RantTooBig'
 
       return false
     },

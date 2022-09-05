@@ -1,7 +1,7 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from './blockend/k.js'
-import { pack, unpack, extractTitle } from './blockend/picocard.js'
+import { pack, unpack, extractTitle, extractExcerpt } from './blockend/picocard.js'
 import { next, get } from 'piconuro'
 
 test('Describe flow', async t => {
@@ -62,6 +62,19 @@ some text
   t.equal(extractTitle(ex1), 'title')
   t.equal(extractTitle(ex2), 'Text')
   t.equal(extractTitle(ex3), 'Hack')
+
+  // Filter out bigmoji
+  const ex4 = '# !🥚! Hen &amp Egg'
+  t.equal(extractTitle(ex4), 'Hen &amp Egg')
+  const ex5 = '!🥚!\n# Hen &amp Egg'
+  t.equal(extractTitle(ex5), 'Hen &amp Egg')
+})
+
+test('Excerpt extraction', async t => {
+  const ex1 = '!🥚!\n# Hen &amp; Egg\nIs a well known problem'
+  t.equal(extractExcerpt(ex1), 'Is a well known problem')
+  const ex2 = '# The Idea\nIt came to me when the time was right but the apple fell from the tree'
+  t.equal(extractExcerpt(ex2), 'It came to me when the time was right b')
 })
 
 test.skip('secret box encryption', t => {
@@ -73,6 +86,29 @@ test.skip('secret box encryption', t => {
   const r = Postcard.from(p.pickle())
   t.equal(r.decrypt(secret), text)
   t.end()
+})
+
+test('Drafts are saved', async t => {
+  const k = new Kernel(makeDB())
+  await k.boot()
+
+  await k.checkout(null)
+  let rant = get(k.$rant())
+  t.equal(rant.state, 'draft')
+  await k.setText('Peer Up!')
+  await k.setTheme(1)
+  // back out
+  const draft1 = await k.checkout(null)
+  // use a simple local counter for unpublished notes.
+  t.ok(Number.isFinite(draft1), 'checkout() returns previous id')
+  rant = get(k.$rant())
+  t.equal(rant.text, '')
+  await k.setText('All is not lost')
+  const draft2 = await k.checkout(draft1)
+  t.equal(draft2, draft1 + 1)
+  rant = get(k.$rant())
+  t.equal(rant.state, 'draft')
+  t.equal(rant.text, 'Peer Up!')
 })
 
 function makeDB () {

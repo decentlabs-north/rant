@@ -1,26 +1,43 @@
 import commonjs from '@rollup/plugin-commonjs'
+import polyfills from 'rollup-plugin-node-polyfills'
 import resolve from '@rollup/plugin-node-resolve'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
+import css from 'rollup-plugin-css-only'
 import crass from 'crass'
+import replace from '@rollup/plugin-replace'
+
+const version = JSON.parse(require('fs').readFileSync('./package.json')).version
+const commit = require('child_process')
+  .execSync('git rev-parse HEAD')
+  ?.toString('utf8').trim()
 
 const production = !process.env.ROLLUP_WATCH
 export default {
-  input: 'pub/app.js',
+  input: 'app.js',
   output: {
     sourcemap: true, // !production, costs about ~2MB
     format: 'es',
     name: 'rant',
-    file: 'pub/build/index.js'
+    file: 'pub/build/bundle.js'
   },
   plugins: [
+    css({ output: 'bundle.css', sourceMap: false }),
+    replace({
+      preventAssignment: true,
+      __ENV__: production ? 'production' : 'dev',
+      __VERSION__: version,
+      __COMMIT__: commit
+    }),
     resolve({
       browser: true,
+      dedupe: ['sodium-universal'],
       preferBuiltins: false
     }),
     commonjs(),
+    polyfills({ sourceMap: true, include: ['buffer'] }),
     !production && serve(),
     !production && livereload('pub/'),
     production && terser(),

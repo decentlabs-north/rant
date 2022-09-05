@@ -8,12 +8,13 @@
 
 
   <!--<link rel='icon' type='image/png' href='/favicon.png'>-->
-	<link rel='stylesheet' href='/global.css'>
 	<link rel='stylesheet' href='/build/bundle.css'>
-	<script defer src='/build/bundle.js'></script>
+  <link rel='stylesheet' href='/global.css'>
+	<script type="module" async src='/build/bundle.js'></script>
+  <style>
+  </style>
 </head>
-
-<body>
+<body data-theme="dark">
   <noscript>
     Dear user.<br/>
     I'm not a big fan on running other people's JavaScript either.<br/>
@@ -29,6 +30,51 @@
     <br/>
     Enjoy!<br/>
   </noscript>
+  <main id="main" data-mirror="true">
+    <home>
+      <nav class="row">
+        <button data-toltip="Drafts"><ico>📝</ico></button>
+        <button data-toltip="Saved"><ico>📑</ico></button>
+        <button data-toltip="Explore"><ico>🧭</ico></button>
+        <button data-toltip="Settings"><ico>⚙️</ico></button>
+      </nav>
+      <div class="container">
+        <h3>Drafts</h3>
+        <rant-list id="home-rants"/>
+      </div>
+    </home>
+    <editor class="">
+      <!-- Rant Menu -->
+      <nav class="row">
+        <button id="edit-back" data-toltip="Back"><ico>🔙</ico></button>
+        <button id="edit-preview" data-toltip="Preview"><ico>👁️</ico></button>
+        <details role="list">
+          <summary aria-haspopup="listbox" role="button" data-toltip="Options">
+            <ico>🎨</ico>
+          </summary>
+          <ul role="listbox">
+            <li><a>Encrypt</a></li>
+            <li><sub>Theme</sub></li>
+            <li><a>The Word</a></li>
+            <li><a>Rumor</a></li>
+            <li><a>Cyborg</a></li>
+            <li><a>Morpheus</a></li>
+            <li><a>Spooky</a></li>
+          </ul>
+        </details>
+        <button id="edit-btn-publish" data-tooltip="Publish"><ico>🔏</ico></button>
+      </nav>
+      <textarea id="markdown-area" placeholder="# Title"></textarea>
+      <div class="row xend">
+        <samp><span id="edit-capacity-bytes"></span>/1024</samp>
+        <progress id="edit-capacity-meter" max=100></progress>
+      </div>
+    </editor>
+    <render>
+      <render-ctrls id="render-ctrls"></render-ctrls>
+      <message-preview id="markdown-render" class="container"></message-preview>
+    </render>
+  </main>
 </body>
 </html>
 
