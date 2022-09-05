@@ -20,6 +20,7 @@
 .grow2{ flex-grow: 2; }
 .grow3{ flex-grow: 3; }
 .grow4{ flex-grow: 4; }
+.text-center { text-align: center; }
 /* Reconfigure Pico-CSS */
 /* Deep-purple Light scheme (Default) */
 /* Can be forced with data-theme="light" */
@@ -92,10 +93,8 @@ main {
 render,
 message-preview,
 home { display: block; }
-
-editor { grid-area: west; }
-render { grid-area: east; }
-home { grid-area: west; }
+.east { grid-area: east; }
+.west { grid-area: west; }
 message-preview.container { max-width: 700px !important; }
 
 /* main { transition: grid-template-columns 1s; } */
@@ -103,8 +102,7 @@ message-preview.container { max-width: 700px !important; }
 main[data-mirror=true] { grid-template-areas: "east west"; }
 main.mode-show:not([data-mirror=true]) { grid-template-columns: 0vw 100vw; }
 main.mode-show[data-mirror=true] { grid-template-columns: 100vw 0vw; }
-main.mode-show editor,
-main.mode-show home { display: none; }
+main.mode-show .west { display: none; }
 
 @media (max-width: 768px) {
   main.mode-edit:not([data-mirror=true]) { grid-template-columns: 100vw 0vw; }
@@ -119,11 +117,12 @@ main.mode-show home { display: none; }
 */
 
 /* routes */
-main:not([data-view="home"]) home { display: none; }
-main:not([data-view="edit"]) editor { display: none; }
-main:not([data-view="saved"]) saved { display: none; }
-main:not([data-view="discover"]) discover { display: none; }
-main:not([data-view="settings"]) settings { display: none; }
+main:not([data-view=home]) home { display: none; }
+main:not([data-view=saved]) saved { display: none; }
+main:not([data-view=discover]) discover { display: none; }
+main:not([data-view=settings]) settings { display: none; }
+/* TODO: redisign this part */
+main:not([data-view=edit]):not([data-view=pitch]):not([data-view=show]) editor { display: none; }
 
 /* make preview look like it's atop the editor */
 main render {
@@ -133,8 +132,8 @@ main render {
 
 /* Move V-padding from main to render-block */
 body > main { padding: 0; }
-render {
-  padding: var(--block-spacing-horizontal) var(--block-spacing-horizontal);
+render, .hpad {
+  padding: var(--block-spacing-vertical) var(--block-spacing-horizontal);
 }
 
 /* MainMenu button */
@@ -157,6 +156,7 @@ render-ctrls { display: block; margin-bottom: var(--block-spacing-vertical); }
 }
 .btn-round:last-child { margin-right: unset; }
 
+/* Fix dropdown button look */
 nav button,
 nav [role=list] > [role=button],
 nav details[role="list"][open] summary
@@ -168,11 +168,10 @@ nav details[role="list"][open] summary
   width: 100%;
   text-align: center;
 }
-/* Fix dropdown button look */
-nav [role=list] {
-  display: block;
-  width: 100%;
-}
+nav details[role="list"] summary[role=button] { height: 100%; line-height: 2; }
+nav [role=list] { display: block; width: 100%; }
+
+/* Fix pico-bug */
 [data-tooltip][role=button] { border-bottom: unset; cursor: pointer; }
 
 main editor { position: relative; min-height: 100vh; }
@@ -183,15 +182,14 @@ main editor { position: relative; min-height: 100vh; }
   outline: none;
   resize: none;
 }
-message-preview > h1:first-child {
+message-preview > h1:first-child,
+message-preview > h2:first-child,
+message-preview > h3:first-child {
   text-align: center;
 }
 main { position: relative }
 home { position: sticky; }
-rant-list {
-  display: block;
-  padding: 0 var(--block-spacing-horizontal);
-}
+rant-list { display: block; }
 rant-list rant icon {
   display: inline-block;
   --size: 1.9em;

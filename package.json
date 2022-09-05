@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -w -c rollup2.config.js",
+    "dev": "rollup -w -c rollup.config.js",
     "start": "sirv pub/",
     "test": "tape test.js",
     "debug": "node inspect $(npm bin)/tape test.js"

@@ -111,6 +111,15 @@ test('Drafts are saved', async t => {
   t.equal(rant.text, 'Peer Up!')
 })
 
+test.only('Persistent Config', async t => {
+  const k = new Kernel(makeDB())
+  await k.boot()
+  const [$v, setV] = k.config('theme', true)
+  t.equal(get($v), true)
+  setV(false)
+  t.equal(get($v), false)
+})
+
 function makeDB () {
   return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
 }

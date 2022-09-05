@@ -83,3 +83,8 @@ export function extractTitle (md) {
   const m2 = md.match(/^#+(.+)$/m)
   if (m2) return m2[1].trim()
 }
+
+export function extractExcerpt (md, len = 30) {
+  if (!md && !md.length) return
+  return md.substr(0, Math.min(md.length, len))
+}

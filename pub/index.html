@@ -16,34 +16,102 @@
 </head>
 <body data-theme="dark">
   <noscript>
-    Dear user.<br/>
-    I'm not a big fan on running other people's JavaScript either.<br/>
+    Not a fan of running other people's scripts?<br/>
     <br/>
-    This page was intended to only edit and display Markdown,<br/>
-    no ads and no analytics.<br/>
-    Actually no network connections at all!<br/>
-
-    The application contains only Free and Open software,<br/>
-    you can check the source-code yourself:<br/>
+    This app edits and displays Markdown<br/>
+    It contains only Free and Open software.<br/>
+    Have a look yourself:<br/>
     <br/>
     https://github.com/telamon/rant/<br/>
     <br/>
     Enjoy!<br/>
   </noscript>
   <main id="main" data-mirror="true">
-    <home>
-      <nav class="row">
-        <button data-toltip="Drafts"><ico>📝</ico></button>
-        <button data-toltip="Saved"><ico>📑</ico></button>
-        <button data-toltip="Explore"><ico>🧭</ico></button>
-        <button data-toltip="Settings"><ico>⚙️</ico></button>
-      </nav>
-      <div class="container">
+
+    <home class="west">
+      <main-menu></main-menu>
+      <div class="container hpad">
         <h3>Drafts</h3>
         <rant-list id="home-rants"/>
       </div>
     </home>
-    <editor class="">
+
+    <saved class="west">
+      <main-menu></main-menu>
+      <div class="hpad">
+        <h3>Saved</h3>
+        <code>Come back later :'(</code>
+      </div>
+    </saved>
+
+    <settings class="west">
+      <main-menu></main-menu>
+      <div class="hpad">
+        <h3>Settings</h3>
+        <p>
+          <label for="opt-dark-mode">
+            <input type="checkbox" role="switch" name="opt-dark-mode" id="opt-dark-mode"/>
+            Dark mode
+          </label>
+          <label for="opt-mirror">
+            <input type="checkbox" role="switch" name="opt-mirror" id="opt-mirror"/>
+            Swap east &amp; west on big displays
+          </label>
+        </p>
+        <p>
+          Your signature
+          <pre><code id="opt-pk"></code></pre>
+        </p>
+        <br/>
+        <hr/>
+        <sup><code>About</code></sup>
+        <logo>
+          <Icon id="dl-logo-red" />
+        </logo>
+        <h1 class="text-center">
+           1kilo Rant v<samp id="nfo-version"></samp>
+        </h1>
+        <p>
+          Where ever we're going, we'll get there eventually.
+          Meanwhile, come say hi!
+        <ul>
+          <li><a href="https://discord.gg/8RMRUPZ9RS">Discord</a></li>
+          <li><a href="https://github.com/telamon/rant/issues">Questions &amp; Support</a></li>
+          <li><a href="https://github.com/telamon/rant">Source code</a></li>
+        </ul>
+
+        <h5>Legalities</h5>
+        <table>
+          <tdata>
+            <tr><td>build</td><td id="nfo-build"></td></tr>
+            <tr><td>Cookies</td><td>none, zilch, zero</td></tr>
+            <tr><td>GDPR</td><td>All blocks are automatically erased when timers hit <code>00:00</code></td></tr>
+            <tr><td>User</td><td>We have absolutley no control over p2p interactions, apply common sense, be polite</td></tr>
+            <tr><td>License</td><td>GNU AGPL version 3</td></tr>
+            <tr><td>Motto</td><td>No servers, no supernodes, liberate humans and machines alike</td></tr>
+          </tdata>
+        </table>
+        <p>
+          <sub>Bottom line</sub><br/>
+          <samp>
+            This software is presented to you as is,
+            Decent Labs AB takes no responsibility for how this software is used or distributed.
+            <br/>
+            Refer to the contents of the aforementioned license for more details.
+          </samp>
+        </p>
+      </div>
+    </settings>
+
+    <discover class="west">
+      <main-menu></main-menu>
+      <div class="hpad">
+        <h3>Discover</h3>
+        <pre><code>Modem56 was left unplugged. Check back later</code></pre>
+      </div>
+    </discover>
+
+    <editor class="west col space-between">
       <!-- Rant Menu -->
       <nav class="row">
         <button id="edit-back" data-toltip="Back"><ico>🔙</ico></button>
@@ -70,7 +138,7 @@
         <progress id="edit-capacity-meter" max=100></progress>
       </div>
     </editor>
-    <render>
+    <render class="east">
       <render-ctrls id="render-ctrls"></render-ctrls>
       <message-preview id="markdown-render" class="container"></message-preview>
     </render>

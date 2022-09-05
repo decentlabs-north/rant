@@ -1,34 +1,57 @@
 import { marked } from 'marked'
 import Purify from 'dompurify'
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { write, gate, nfo, mute, get, settle } from 'piconuro'
+import { write, gate, nfo, mute, get, settle, combine, init } from 'piconuro'
 import Kernel from './blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
 const EMOJI_REGEXP = /!([^!\n ]{1,8})!/
 
-const [$view, setView] = write('edit')
-const [$mode, setMode] = write(false) // true: Show editor
+// const [$view, setView] = write('edit')
+const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
+const $view = mute($route, r => {
+  const t = {
+    p: 'pitch',
+    r: 'show',
+    e: 'edit',
+    d: 'home', // drafts
+    l: 'saved',
+    n: 'discover',
+    s: 'settings'
+  }
+  return t[r.path] || 'pitch'
+})
+const $mode = mute(combine(_mode, $route), ([m, r]) => {
+  // console.log('M', m, r) // TODO: rethink this logic, probably depend on k.$current()
+  if (!~['p', 'r', 'e'].indexOf(r.path)) return true
+  return m
+})
 const PITCH = `
-!☠️!
-##  Unstoppable Information
+## !☠️!  Unstoppable Information
 
 This app produces something like digital grafitti.
 The likelyhood of your words getting stuck
-on the internet forever are high.
+on the internet **forever** are high.
 
-Resistent against takedowns.
-Every time the message is shared it is replicated in it's full form.
+#### Resistent against takedowns
+> Every time the message is shared it is replicated in it's full form.
 
 ### limitation: \`1 Kilo Byte\`
 
-It's about 1000 characters, but don't worry, we provide compression
-and encryption to generate maximum amount of entertainment.
+It's about 1000 characters, but don't worry it's enough to vent some frustration.
+We provide compression and macros to generate maximum amount of entertainment.
 
-Bonus, wanna be stealthy? D/W we got ya covered,
-select some words and long-tap to encrypt them.
+Bonus, wanna be cryptic? Got ya covered!
+
+> Select some words and long-tap/right-click
+> to **redact** them using inline encryption.
+
+Want to say something with a flair?
+Check out the **themes**.
+
+Happy Ranting! =)
 `.trim()
 
 export const kernel = new Kernel(new BrowserLevel('rant.lvl', {
@@ -51,7 +74,7 @@ async function main () {
   nValue('markdown-area', mute(kernel.$rant(), r => r?.text), v => kernel.setText(v))
   nValue('edit-capacity-meter', mute(kernel.$rant(), r => Math.ceil((r.size / 1024) * 100)))
   nText('edit-capacity-bytes', mute(kernel.$rant(), r => `${r.size}`.padStart(4, '0')))
-  nClick('edit-back', () => setView('home'))
+  nClick('edit-back', () => navigate('d'))
   nClick('edit-preview', () => setMode(!get($mode)))
   nClick('edit-btn-publish', async () => {
     const id = await kernel.commit()
@@ -59,10 +82,41 @@ async function main () {
     setMode(false)
   })
 
+  /* Settings-view */
+  const darkMode = kernel.config('dark-mode', false)
+  nValue('opt-dark-mode', ...darkMode)
+  nAttr(document.body, 'theme', nfo(mute(darkMode[0], m => m ? 'dark' : 'light'), 'config-mode'))
+  const mirror = kernel.config('mirror', false)
+  nValue('opt-mirror', ...mirror)
+  nAttr('main', 'mirror', mirror[0])
+  nText('nfo-build', init(`__ENV__-__VERSION__-${'__COMMIT__'.substr(0, 8)}`))
+  nText('nfo-version', init('__VERSION__'.replace(/^(\d+).+/, '$1')))
+  nText('opt-pk', init(kernel.pk.toString('base64')))
+
   /* Home-view controls */
   stitch(kernel.$rants(), 'home-rants')
   await kernel.checkout(null)
 }
+
+class MainMenu extends Tonic {
+  click (ev) {
+    const el = Tonic.match(ev.target, 'button[data-route]')
+    if (!el) return
+    const path = el.dataset.route
+    if (get($route).path !== path) navigate(path)
+  }
+
+  render () {
+    return this.html`
+      <nav class="row">
+        <button data-route="d" data-toltip="Drafts"><ico>📝</ico></button>
+        <button data-route="l" data-toltip="Saved"><ico>📑</ico></button>
+        <button data-route="n" data-toltip="Discover"><ico>🧭</ico></button>
+        <button data-route="s" data-toltip="Settings"><ico>⚙️</ico></button>
+      </nav>
+    `
+  }
+}; Tonic.add(MainMenu)
 
 class RenderCtrls extends Tonic {
   async click (ev) {
@@ -127,7 +181,7 @@ Tonic.add(class MessagePreview extends Tonic {
     // Show date-of note
     text = text.replace(/\{\{DATE\}\}/gi, new Date(this.props.date))
     // TODO: run purify in kernel
-    return marked(Purify.sanitize(text))
+    return Purify.sanitize(marked(text))
   }
 
   render () {
@@ -157,9 +211,13 @@ Tonic.add(class RantList extends Tonic {
     let id
     if (el.dataset.id === 'new') id = null
     else id = Buffer.from(el.dataset.id, 'base64')
-
     await kernel.checkout(id)
-    setView('edit')
+    const pickle = get(kernel.$url())
+    if (pickle) {
+      navigate(`e/${el.dataset.id}`)
+    } else {
+      navigate(`r/${pickle}`)
+    }
     setMode(el.dataset.id === 'new')
   }
 
@@ -216,14 +274,25 @@ export function nEl (el) {
 
 export function nValue (id, output, input) {
   const el = nEl(id)
-  const unsub = output(v => { el.value = v })
+  const unsub = output(v => {
+    if (el.type === 'checkbox') el.checked = v
+    else el.value = v
+  })
   const handler = () => {
-    if (typeof input === 'function') input(el.value)
+    if (typeof input !== 'function') return
+    if (el.type === 'checkbox') input(el.checked)
+    else input(el.value)
   }
-  el.addEventListener('keyup', handler)
+  if (typeof input === 'function') {
+    el.addEventListener('keyup', handler)
+    el.addEventListener('change', handler)
+  }
   return () => {
     unsub()
-    el.removeEventListener('keyup', handler)
+    if (typeof input === 'function') {
+      el.removeEventListener('keyup', handler)
+      el.removeEventListener('change', handler)
+    }
   }
 }
 
@@ -256,9 +325,10 @@ export function nAttr (el, attr, output) {
 // #l/ => list collection
 // #n/ => explore/swarm
 // #s/ => settings
-function apply () {
+function apply () { // parses location -> neurons.
   const hash = window.location.hash
-  if (hash === '') return _setRoute('p', null, new URLSearchParams())
+  // console.log('hash', hash)
+  if (hash === '') return _setRoute({ path: 'e', id: null, q: new URLSearchParams() })
   const virt = new URL(hash.replace(/^#\/?/, 'x:'))
   const [path, id] = virt.pathname.split('/')
   const search = new URLSearchParams(virt.search)
@@ -268,8 +338,12 @@ function apply () {
     q[k] = v
     searchEmpty = undefined
   }
-  console.log('Route:', path.toLowerCase(), id, searchEmpty && q)
-  _setRoute(path.toLowerCase(), id, searchEmpty && q)
+  // console.log('Route:', path.toLowerCase(), 'id:', id, 'query:', searchEmpty && q)
+  _setRoute({
+    path: path.toLowerCase(),
+    id,
+    q: searchEmpty && q
+  })
 }
 export function navigate (path) {
   window.history.pushState(null, null, `/#${path}`.replace(/^#\/+/, '#/'))

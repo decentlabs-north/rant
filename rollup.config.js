@@ -1,49 +1,55 @@
-import svelte from 'rollup-plugin-svelte'
-// import inject from '@rollup/plugin-inject'
-import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import polyfills from 'rollup-plugin-node-polyfills'
+import resolve from '@rollup/plugin-node-resolve'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
+import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { dirname } from 'path'
 import css from 'rollup-plugin-css-only'
 import crass from 'crass'
-import analyze from 'rollup-plugin-analyzer'
+import replace from '@rollup/plugin-replace'
+
+const version = JSON.parse(require('fs').readFileSync('./package.json')).version
+const commit = require('child_process')
+  .execSync('git rev-parse HEAD')
+  ?.toString('utf8').trim()
 
 const production = !process.env.ROLLUP_WATCH
-
-// On creating a pipeline for outputting html.
-// https://github.com/bdadam/rollup-plugin-html
 export default {
-  input: 'src/main.js',
+  input: 'app.js',
   output: {
-    sourcemap: true,
-    format: 'iife',
-    name: 'app',
-    file: 'public/build/bundle.js'
+    sourcemap: true, // !production, costs about ~2MB
+    format: 'es',
+    name: 'rant',
+    file: 'pub/build/bundle.js'
   },
   plugins: [
-    svelte({
-      compilerOptions: { dev: !production }
-    }),
     css({ output: 'bundle.css', sourceMap: false }),
+    replace({
+      preventAssignment: true,
+      __ENV__: production ? 'production' : 'dev',
+      __VERSION__: version,
+      __COMMIT__: commit
+    }),
     resolve({
       browser: true,
-      dedupe: ['svelte', 'sodium-universal'],
+      dedupe: ['sodium-universal'],
       preferBuiltins: false
     }),
     commonjs(),
     polyfills({ sourceMap: true, include: ['buffer'] }),
     !production && serve(),
-    !production && livereload('public'),
-    production && analyze({ summaryOnly: true }),
-    production && terser({ output: { comments: false } }),
-    production && petrify('public/index.html', 'docs/index.html')
+    !production && livereload('pub/'),
+    production && terser(),
+    production && petrify()
   ],
   watch: {
     clearScreen: false
   }
 }
+
 function serve () {
+  const port = process.env.PORT || 3000
   let server
   function toExit () {
     if (server) server.kill(0)
@@ -53,7 +59,7 @@ function serve () {
       if (server) return
       server = require('child_process').spawn('npm',
         [
-          'run', 'start', '--', '--dev', '--host 0.0.0.0', '--port 5000'
+          'run', 'start', '--', '--dev', '--host 0.0.0.0', `--port ${port}`
         ],
         {
           stdio: ['ignore', 'inherit', 'inherit'],
@@ -66,8 +72,6 @@ function serve () {
   }
 }
 
-const { readFileSync, writeFileSync, mkdirSync } = require('fs')
-const { dirname } = require('path')
 function petrify (input, output) {
   return {
     writeBundle (opts, bundle) {

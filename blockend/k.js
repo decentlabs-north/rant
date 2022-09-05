@@ -25,6 +25,7 @@ export default class Kernel extends SimpleKernel {
     this._draft = combine({ text, theme, encryption, date })
     // Stash all inputs
     this._w = { setText, setTheme, setEncryption, setDate }
+    this._conf = {}
   }
 
   $rant () {
@@ -159,6 +160,27 @@ export default class Kernel extends SimpleKernel {
     const id = f.first.sig
     this._setCurrent(id)
     return id
+  }
+
+  config (key, defaultValue) {
+    if (typeof key !== 'string') throw new Error('Expected key to be string')
+    if (!this._conf[key]) {
+      const [output, input] = write(defaultValue)
+      const setter = async v => {
+        input(v)
+        await this.repo.writeReg(`cnf|${key}`, JSON.stringify(v))
+      }
+      this.repo.readReg(`cnf|${key}`).then(v => {
+        if (typeof v === 'undefined' && typeof defaultValue !== 'undefined') {
+          input(defaultValue)
+          return setter(defaultValue)
+        } else {
+          input(JSON.parse(v))
+        }
+      })
+      this._conf[key] = [output, setter]
+    }
+    return this._conf[key]
   }
 }
 
