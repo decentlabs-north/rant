@@ -1,19 +1,18 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from './blockend/k.js'
-import { pack, unpack, extractTitle, extractExcerpt } from './blockend/picocard.js'
-import { next, get } from 'piconuro'
+import { pack, unpack, extractTitle, extractExcerpt, extractIcon } from './blockend/picocard.js'
+import { get } from 'piconuro'
 
 test('Describe flow', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
-
-  t.notOk(get(k.$rant())) // current -> undefined
+  t.notOk(get(k.$rant()).id) // current -> undefined
   // Create new Rant
   await k.checkout(null) // makes new.
   let rant = get(k.$rant())
+  t.equal(rant.id, 'draft:0')
   t.equal(rant.state, 'draft')
-  t.notOk(rant.pickle)
   await k.setText('# Hack\nworld is not hackable')
   await k.setTheme(1)
   await k.setText('# Hack\nworld is not hackable\nit is soft')
@@ -24,7 +23,7 @@ test('Describe flow', async t => {
   rant = get(k.$rant())
   t.equal(rant.state, 'signed')
   t.equal(get(k.$rants()).length, 1)
-  const url = await next(k.$url(), 0)
+  const url = await k.pickle()
   t.ok(url)
 
   const k2 = new Kernel(makeDB())
@@ -74,7 +73,18 @@ test('Excerpt extraction', async t => {
   const ex1 = '!🥚!\n# Hen &amp; Egg\nIs a well known problem'
   t.equal(extractExcerpt(ex1), 'Is a well known problem')
   const ex2 = '# The Idea\nIt came to me when the time was right but the apple fell from the tree'
-  t.equal(extractExcerpt(ex2), 'It came to me when the time was right b')
+  const ex3 = '# !🥚! The Idea\nIt came to me when the time was right but the apple fell from the tree'
+  t.equal(extractExcerpt(ex2), 'It came to me when the time was right bu')
+  t.equal(extractExcerpt(ex3), extractExcerpt(ex2))
+})
+
+test('Icon extraction', async t => {
+  const ex1 = '!🥚!\n# Hen &amp; Egg\nIs a well known problem'
+  t.equal(extractIcon(ex1), '🥚')
+  const ex2 = '# The Idea\nIt came to me when the time was right but the apple fell from the tree'
+  t.notOk(extractIcon(ex2))
+  const ex3 = '# !🥚! The Idea\nIt came to me when the time was right but the apple fell from the tree'
+  t.equal(extractIcon(ex3), '🥚')
 })
 
 test.skip('secret box encryption', t => {
@@ -100,18 +110,20 @@ test('Drafts are saved', async t => {
   // back out
   const draft1 = await k.checkout(null)
   // use a simple local counter for unpublished notes.
-  t.ok(Number.isFinite(draft1), 'checkout() returns previous id')
+  t.equal(draft1, 'draft:0', 'checkout() returns previous id')
+  const drafts = await k.drafts()
+  t.equal(drafts.length, 1)
   rant = get(k.$rant())
   t.equal(rant.text, '')
   await k.setText('All is not lost')
   const draft2 = await k.checkout(draft1)
-  t.equal(draft2, draft1 + 1)
+  t.equal(draft2, 'draft:1')
   rant = get(k.$rant())
   t.equal(rant.state, 'draft')
   t.equal(rant.text, 'Peer Up!')
 })
 
-test.only('Persistent Config', async t => {
+test('Persistent Config', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   const [$v, setV] = k.config('theme', true)

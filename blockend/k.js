@@ -1,6 +1,6 @@
 import { SimpleKernel, Feed } from 'picostack'
 import { init, mute, write, combine, get, gate } from 'piconuro'
-import { pack, unpack, extractTitle } from './picocard.js'
+import { pack, unpack, extractTitle, extractIcon, extractExcerpt } from './picocard.js'
 
 export const TYPE_RANT = 0
 
@@ -9,7 +9,7 @@ export default class Kernel extends SimpleKernel {
     super(db)
     this.repo.allowDetached = true
     this.store.register(Notebook())
-
+    this._drafts = db.sublevel('drafts', { keyEncoding: 'utf8', valueEncoding: 'buffer' })
     // set up current ptr for checkout
     const c = write()
     this._current = c[0]
@@ -22,7 +22,7 @@ export default class Kernel extends SimpleKernel {
     const [date, setDate] = write(Date.now())
     // const [secret, setSecret] = write(rant.secret)
     // combine all outputs
-    this._draft = combine({ text, theme, encryption, date })
+    this._draft = combine({ id: this._current, text, theme, encryption, date })
     // Stash all inputs
     this._w = { setText, setTheme, setEncryption, setDate }
     this._conf = {}
@@ -38,10 +38,21 @@ export default class Kernel extends SimpleKernel {
       mute(
         n,
         ([current, draft, rants]) =>
-          current ? rants[btok(current)] : draft
+          Buffer.isBuffer(current) ? rants[btok(current)] : draft
       ),
       this._mapRant.bind(this)
     )
+  }
+
+  async drafts () {
+    const iter = this._drafts.iterator()
+    const drafts = []
+    for await (const [id, value] of iter) {
+      debugger
+      const draft = unpack(value)
+      drafts.push(this._mapRant({ id, ...draft }))
+    }
+    return drafts
   }
 
   $rants () {
@@ -51,36 +62,61 @@ export default class Kernel extends SimpleKernel {
     )
   }
 
+  async _saveDraft () {
+    if (!this.isEditing) throw new Error('NoDraftEdited')
+    const draft = get(this._draft)
+    const content = pack(draft)
+    await this._drafts.put(draft.id, content)
+  }
+
   async checkout (rantId) {
+    const prev = get(this._current)
+    if (isDraftID(prev)) {
+      await this._saveDraft()
+    }
+
     if (rantId === null) {
+      rantId = 'draft:' + await this._inc('draft')
       this._setDraft()
+    } else if (isDraftID(rantId)) {
+      const b = await this._drafts.get(rantId)
+      if (!b) throw new Error('DraftNotFound')
+      this._setDraft(unpack(b))
     } else if (!this.store.state.rants[btok(rantId)]) throw new Error('UnknownRant')
     this._setCurrent(rantId)
+    return prev
   }
 
   _mapRant (rant) {
-    if (!rant) return
+    if (!rant) throw new Error('NoRant')
     // console.log('_mapRant()', rant)
     const c = get(this._current)
-    const isCurrent = c && rant.id && c.equals(rant.id)
+    const isCurrent = c && rant.id && (
+      typeof c === 'string' ? c === rant.id : c.equals(rant.id)
+    )
+    const isDraft = !rant.rev
     let size = rant.size
-    if (this.isEditing) { //  && isCurrent) {
-      size = rant.text ? pack(rant).length : 0
-    }
-    const state = isCurrent
-      ? this.isEditing ? 'draft' : 'signed'
-      : rant.id ? 'signed' : 'draft'
+    if (isDraft) size = rant.text ? pack(rant).length : 0
+    // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
+
+    const state = isDraft ? 'draft' : 'signed'
+
     return {
       ...rant,
       state,
       selected: isCurrent,
       size,
       title: extractTitle(rant.text),
+      excerpt: extractExcerpt(rant.text),
+      icon: extractIcon(rant.text),
       decrypted: true
     }
   }
 
-  get isEditing () { return true }
+  get isEditing () {
+    const current = get(this._current)
+    return isDraftID(current)
+  }
 
   async setText (txt) {
     if (!this.isEditing) throw new Error('EditMode not active')
@@ -99,7 +135,7 @@ export default class Kernel extends SimpleKernel {
     this._checkReady()
     let branch = new Feed()
     const current = get(this._current)
-    if (current) {
+    if (current && Buffer.isBuffer(current)) {
       branch = await this.repo.resolveFeed(current)
       // TODO: this.repo.rollback(current) // evict old if exists
     }
@@ -117,34 +153,35 @@ export default class Kernel extends SimpleKernel {
     if (!modified.length) throw new Error('commit() failed: rejected by store')
 
     await this.checkout(id)
-    // TODO: delete id from draft-store
-
+    await this._drafts.del(current)
     // this.rpc.shareBlocks(branch.slice(-1)) if Public
     return id
   }
 
-  $url () {
-    const n = combine(this._current, s => this.store.on('rants', s))
-    return gate(
-      mute(n, async ([id, rants]) => {
-        if (!id) return
-        const rant = rants[btok(id)]
-        const block = (
-          await this.repo.readBlock(rant?.rev) ||
-          await this.repo.readBlock(id)
-        )
-        const p = Feed.from(block).pickle()
-        const title = rant.title
-        const hash = title
-          ? `${encodeURIComponent(title.replace(/ +/g, '_'))}-${p}`
-          : p
-        return `/#${hash}`
-      })
+  async pickle (id) {
+    if (!id && this.isEditing) throw new Error('Provide Id or set current to published rant')
+    if (!id) id = get(this._current)
+    const rants = get(s => this.store.on('rants', s))
+    if (!id) return
+    const rant = rants[btok(id)]
+    const block = (
+      await this.repo.readBlock(rant?.rev) ||
+      await this.repo.readBlock(id)
     )
+    const p = Feed.from(block).pickle()
+    const title = rant.title
+    const hash = title
+      ? `${encodeURIComponent(title.replace(/ +/g, '_'))}-${p}`
+      : p
+    return hash
   }
 
   async _inc (key) {
-    return 0
+    // Most likely races
+    const b = await this.repo.readReg(`inc|${key}`)
+    const i = (b ? JSON.parse(b) : -1) + 1
+    await this.repo.writeReg(`inc|${key}`, JSON.stringify(i))
+    return i
   }
 
   _setDraft (rant = {}) {
@@ -184,16 +221,15 @@ export default class Kernel extends SimpleKernel {
   }
 }
 
-function Notebook () {
+function Notebook (name = 'rants') {
   return {
-    name: 'rants',
+    name,
     initialValue: {},
     filter ({ block }) {
       const rant = unpack(block.body)
       const { type } = rant
       if (type !== TYPE_RANT) return 'UnknownBlock'
       if (block.body.length > 1024) return 'RantTooBig'
-
       return false
     },
 
@@ -212,3 +248,6 @@ function Notebook () {
 }
 
 function btok (buffer) { return buffer.toString('hex') }
+function isDraftID (id) {
+  return typeof id === 'string' && id.startsWith('draft:')
+}

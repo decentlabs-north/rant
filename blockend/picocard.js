@@ -6,6 +6,8 @@ const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
 function encrypt (message, secret) {}
 function decrypt (message, secret) {}
+// 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
+export const EMOJI_REGEXP = /!([^!\n ]{1,8})!/
 
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
@@ -76,15 +78,29 @@ export function unpack (buffer, secret) {
 }
 
 export function extractTitle (md) {
-  if (!md && !md.length) return
+  if (typeof md !== 'string' && !md.length) return
   // Not sure how robust theese regexes are, feel free to improve.
-  const m1 = md.match(/^\s*(.+)\s*\n==+/m)
-  if (m1) return m1[1].trim()
-  const m2 = md.match(/^#+(.+)$/m)
-  if (m2) return m2[1].trim()
+  let title = ''
+
+  let m = md.match(/^\s*(.+)\s*\n==+/m)
+  if (!m) m = md.match(/^#+(.+)$/m)
+  if (m) {
+    title = m[1]
+    if (this) this.rawOffset = m.index + m[0].length
+  }
+  return title.replace(new RegExp(EMOJI_REGEXP, 'g'), '').trim()
+}
+export function extractIcon (md) {
+  if (typeof md !== 'string' && !md.length) return
+  const m = md.match(EMOJI_REGEXP)
+  if (m) return m[1].trim()
 }
 
-export function extractExcerpt (md, len = 30) {
-  if (!md && !md.length) return
-  return md.substr(0, Math.min(md.length, len))
+export function extractExcerpt (md, len = 40) {
+  if (typeof md !== 'string' && !md.length) return
+  const bucket = {}
+  extractTitle.bind(bucket)(md)
+  return md.substr(bucket.rawOffset + 1, Math.min(md.length, len))
+    .replace(/[\n#`*_[\]]/g, '') // Strip out md markup
+    .trim()
 }

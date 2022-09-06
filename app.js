@@ -1,13 +1,11 @@
 import { marked } from 'marked'
 import Purify from 'dompurify'
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { write, gate, nfo, mute, get, settle, combine, init } from 'piconuro'
+import { write, gate, nfo, mute, get, settle, combine, init, memo } from 'piconuro'
 import Kernel from './blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
-// 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
-const EMOJI_REGEXP = /!([^!\n ]{1,8})!/
-
+import { EMOJI_REGEXP } from './blockend/picocard.js'
 // const [$view, setView] = write('edit')
 const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
@@ -58,7 +56,7 @@ export const kernel = new Kernel(new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
   keyEncoding: 'buffer'
 }))
-
+// window.k = kernel
 async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
@@ -72,8 +70,10 @@ async function main () {
 
   /* Edit-view controls */
   nValue('markdown-area', mute(kernel.$rant(), r => r?.text), v => kernel.setText(v))
-  nValue('edit-capacity-meter', mute(kernel.$rant(), r => Math.ceil((r.size / 1024) * 100)))
-  nText('edit-capacity-bytes', mute(kernel.$rant(), r => `${r.size}`.padStart(4, '0')))
+  const $size = memo(gate(mute(kernel.$rant(), r => r.size)))
+
+  nValue('edit-capacity-meter', mute($size, s => Math.ceil((s / 1024) * 100)))
+  nText('edit-capacity-bytes', mute($size, s => `${s}`.padStart(4, '0')))
   nClick('edit-back', () => navigate('d'))
   nClick('edit-preview', () => setMode(!get($mode)))
   nClick('edit-btn-publish', async () => {
@@ -95,10 +95,18 @@ async function main () {
 
   /* Home-view controls */
   stitch(kernel.$rants(), 'home-rants')
-  await kernel.checkout(null)
+  // await createNew()
 }
 
-class MainMenu extends Tonic {
+async function createNew () {
+  await kernel.checkout(null)
+  const r = get(kernel.$rant())
+  navigate(`e/${r.id}`)
+  setMode(true)
+}
+
+
+Tonic.add(class MainMenu extends Tonic {
   click (ev) {
     const el = Tonic.match(ev.target, 'button[data-route]')
     if (!el) return
@@ -116,9 +124,9 @@ class MainMenu extends Tonic {
       </nav>
     `
   }
-}; Tonic.add(MainMenu)
+})
 
-class RenderCtrls extends Tonic {
+Tonic.add(class RenderCtrls extends Tonic {
   async click (ev) {
     if (Tonic.match(ev.target, '#btn-toggle')) {
       setMode(!get($mode))
@@ -127,7 +135,7 @@ class RenderCtrls extends Tonic {
 
   render () {
     const { state } = this.props
-    console.log(this.props)
+    // console.log(this.props)
     if (state === 'pitch') {
       return this.html`
         <ctrls class="row space-between xcenter">
@@ -165,7 +173,7 @@ class RenderCtrls extends Tonic {
     `
     // 📤
   }
-}; Tonic.add(RenderCtrls)
+})
 
 Tonic.add(class MessagePreview extends Tonic {
   async click (e) {
@@ -186,7 +194,7 @@ Tonic.add(class MessagePreview extends Tonic {
 
   render () {
     // console.log('MP', this.props)
-    const { text, state } = this.props
+    const { text, state } = this.props?.n || {}
     if (text === '' && state !== 'draft') {
       return this.html`<code>Empty Casette</code>`
     }
@@ -209,39 +217,46 @@ Tonic.add(class RantList extends Tonic {
     if (!el) return
 
     let id
-    if (el.dataset.id === 'new') id = null
+    if (el.dataset.id === 'new') return createNew()
     else id = Buffer.from(el.dataset.id, 'base64')
     await kernel.checkout(id)
-    const pickle = get(kernel.$url())
-    if (pickle) {
-      navigate(`e/${el.dataset.id}`)
-    } else {
+    const r = get(kernel.$rant())
+    if (r.state === 'draft') { // continue editing
+      navigate(`e/${r.id}`)
+      setMode(true)
+    } else if (r.state === 'signed') {
+      const pickle = await kernel.pickle(id)
       navigate(`r/${pickle}`)
     }
-    setMode(el.dataset.id === 'new')
   }
 
   render () {
-    console.log('RantList', this.props)
-    if (!Array.isArray(this.props)) {
+    // console.log('Rants list:', this.props)
+    const { n: rants } = this.props
+    if (!Array.isArray(rants)) {
       return this.html`<p class="text-center"><code>No rants</code></p>`
     }
-
+    let newRant = ''
+    if (this.dataset.create === 'true') {
+      newRant = this.html`
+        <rant data-id="new" class="row xcenter">
+          <icon>🥚</icon>
+          <h4>New Rant</h4>
+        </rant>
+      `
+    }
     return this.html`
-      <rant data-id="new" class="row xcenter">
-        <icon>🥚</icon>
-        <h4>New Rant</h4>
-      </rant>
-      ${this.props.map(rant => {
-        const m = rant.text.match(EMOJI_REGEXP)
-        const icon = m ? m[1] : ' '
+      ${newRant}
+      ${rants.map(rant => {
         return this.html`
-          <rant data-id="${rant.id.toString('base64')}" class="row xcenter">
-            <icon>${icon}</icon>
+          <rant class="row xcenter"
+            data-id="${rant.id.toString('base64')}"
+            data-state="${rant.state}">
+            <icon>${rant.icon}</icon>
             <div class="col xstart">
               <h6>${rant.title}</h6>
               <small>${new Date(rant.date).toLocaleString()}</small>
-              <div class="sampl">${(rant.text || 'empty').substr(0, 40)}...</div>
+              <div class="sampl">${rant.excerpt}...</div>
             </div>
           </rant>
         `
@@ -257,7 +272,7 @@ export function stitch (n, el, dbg) {
   n = gate(n)
   if (dbg) n = nfo(n, dbg)
   const unsub = n(value => {
-    el.reRender(value)
+    el.reRender(prev => ({ ...prev, n: value }))
   })
   el.disconnected = () => unsub() // TODO: don't overwrite
 }
