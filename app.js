@@ -2,7 +2,7 @@ import { marked } from 'marked'
 import Purify from 'dompurify'
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { write, gate, nfo, mute, get, settle, combine, init, memo } from 'piconuro'
-import Kernel from './blockend/k.js'
+import Kernel, { isDraftID } from './blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
 import { EMOJI_REGEXP } from './blockend/picocard.js'
@@ -85,7 +85,7 @@ async function main () {
   /* Settings-view */
   const darkMode = kernel.config('dark-mode', false)
   nValue('opt-dark-mode', ...darkMode)
-  nAttr(document.body, 'theme', nfo(mute(darkMode[0], m => m ? 'dark' : 'light'), 'config-mode'))
+  nAttr(document.body, 'theme', mute(darkMode[0], m => m ? 'dark' : 'light'))
   const mirror = kernel.config('mirror', false)
   nValue('opt-mirror', ...mirror)
   nAttr('main', 'mirror', mirror[0])
@@ -94,7 +94,13 @@ async function main () {
   nText('opt-pk', init(kernel.pk.toString('base64')))
 
   /* Home-view controls */
-  stitch(kernel.$rants(), 'home-rants')
+  const $drafts = mute(gate($view), async v => {
+    if (v !== 'home') return []
+    return await kernel.drafts()
+  })
+  stitch($drafts, 'saved-drafts')
+  /* saved-view controls */
+  stitch(kernel.$rants(), 'saved-rants')
   // await createNew()
 }
 
@@ -104,7 +110,6 @@ async function createNew () {
   navigate(`e/${r.id}`)
   setMode(true)
 }
-
 
 Tonic.add(class MainMenu extends Tonic {
   click (ev) {
@@ -218,7 +223,12 @@ Tonic.add(class RantList extends Tonic {
 
     let id
     if (el.dataset.id === 'new') return createNew()
-    else id = Buffer.from(el.dataset.id, 'base64')
+    else {
+      id = isDraftID(el.dataset.id)
+        ? el.dataset.id
+        : Buffer.from(el.dataset.id, 'base64')
+    }
+
     await kernel.checkout(id)
     const r = get(kernel.$rant())
     if (r.state === 'draft') { // continue editing
@@ -233,11 +243,9 @@ Tonic.add(class RantList extends Tonic {
   render () {
     // console.log('Rants list:', this.props)
     const { n: rants } = this.props
-    if (!Array.isArray(rants)) {
-      return this.html`<p class="text-center"><code>No rants</code></p>`
-    }
+    const allowNew = this.dataset.create === 'true'
     let newRant = ''
-    if (this.dataset.create === 'true') {
+    if (allowNew) {
       newRant = this.html`
         <rant data-id="new" class="row xcenter">
           <icon>🥚</icon>
@@ -245,9 +253,12 @@ Tonic.add(class RantList extends Tonic {
         </rant>
       `
     }
+    if (!Array.isArray(rants) && !allowNew) {
+      return this.html`<p class="text-center"><code>No rants</code></p>`
+    }
     return this.html`
       ${newRant}
-      ${rants.map(rant => {
+      ${(rants || []).map(rant => {
         return this.html`
           <rant class="row xcenter"
             data-id="${rant.id.toString('base64')}"

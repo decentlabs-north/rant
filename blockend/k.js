@@ -48,7 +48,6 @@ export default class Kernel extends SimpleKernel {
     const iter = this._drafts.iterator()
     const drafts = []
     for await (const [id, value] of iter) {
-      debugger
       const draft = unpack(value)
       drafts.push(this._mapRant({ id, ...draft }))
     }
@@ -91,9 +90,8 @@ export default class Kernel extends SimpleKernel {
     if (!rant) throw new Error('NoRant')
     // console.log('_mapRant()', rant)
     const c = get(this._current)
-    const isCurrent = c && rant.id && (
-      typeof c === 'string' ? c === rant.id : c.equals(rant.id)
-    )
+    const isCurrent = (isDraftID(c) && c === rant.id) ||
+      (Buffer.isBuffer(c) && Buffer.isBuffer(rant.id) && c.equals(rant.id))
     const isDraft = !rant.rev
     let size = rant.size
     if (isDraft) size = rant.text ? pack(rant).length : 0
@@ -247,7 +245,7 @@ function Notebook (name = 'rants') {
   }
 }
 
-function btok (buffer) { return buffer.toString('hex') }
-function isDraftID (id) {
+export function btok (buffer) { return buffer.toString('hex') }
+export function isDraftID (id) {
   return typeof id === 'string' && id.startsWith('draft:')
 }
