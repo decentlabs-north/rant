@@ -61,11 +61,26 @@ export default class Kernel extends SimpleKernel {
     )
   }
 
-  async _saveDraft () {
+  async _saveDraft (defer = false) {
+    if (defer) return this._saveLater()
     if (!this.isEditing) throw new Error('NoDraftEdited')
+
+    if (!get(this._draft).text?.length) return
+    else this._w.setDate(Date.now()) // bump date
+
     const draft = get(this._draft)
     const content = pack(draft)
     await this._drafts.put(draft.id, content)
+  }
+
+  _saveLater () {
+    if (this._sTimeout) clearTimeout(this._sTimeout)
+    this._sTimeout = setTimeout(() => {
+      delete this._sTimeout
+      this._saveDraft()
+        .then(() => console.info('Draft Autosaved'))
+        .catch(err => console.error('AutoSaveFailed:', err))
+    }, 3000)
   }
 
   async checkout (rantId) {
@@ -119,13 +134,13 @@ export default class Kernel extends SimpleKernel {
   async setText (txt) {
     if (!this.isEditing) throw new Error('EditMode not active')
     this._w.setText(txt)
-    // this._dbncSaveDraft() // to plain registry
+    this._saveDraft(true) // to plain registry
   }
 
   async setTheme (theme) {
     if (!this.isEditing) throw new Error('EditMode not active')
     this._w.setTheme(theme)
-    // this._dbncSaveDraft() // to plain registry
+    await this._saveDraft()
   }
 
   async commit () { // TODO: use this.createBlock()
@@ -191,6 +206,8 @@ export default class Kernel extends SimpleKernel {
 
   async import (url) { // Imports pickles
     const f = Feed.from(url)
+    // TODO: return if f.first.sig === current (already checked out)
+    // TODO: skip dispatch if f.first.sig exists in $rants. (already imported)
     await this.dispatch(f, true)
     const id = f.first.sig
     this._setCurrent(id)
@@ -231,12 +248,12 @@ function Notebook (name = 'rants') {
       return false
     },
 
-    reducer ({ state, block, CHAIN, KEY }) {
+    reducer ({ state, block, CHAIN }) {
       const rant = unpack(block.body)
       state[btok(CHAIN)] = {
         ...rant,
         id: CHAIN,
-        author: KEY,
+        author: block.key,
         rev: block.sig,
         size: block.body.length
       }

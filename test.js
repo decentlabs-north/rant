@@ -22,6 +22,7 @@ test('Describe flow', async t => {
   const id = await k.commit()
   rant = get(k.$rant())
   t.equal(rant.state, 'signed')
+  t.ok(rant.author)
   t.equal(get(k.$rants()).length, 1)
   const url = await k.pickle()
   t.ok(url)

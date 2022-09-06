@@ -1,7 +1,7 @@
 import { marked } from 'marked'
 import Purify from 'dompurify'
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { write, gate, nfo, mute, get, settle, combine, init, memo } from 'piconuro'
+import { write, gate, nfo, mute, get, combine, init, memo } from 'piconuro'
 import Kernel, { isDraftID } from './blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
@@ -9,18 +9,16 @@ import { EMOJI_REGEXP } from './blockend/picocard.js'
 // const [$view, setView] = write('edit')
 const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
-const $view = mute($route, r => {
-  const t = {
-    p: 'pitch',
-    r: 'show',
-    e: 'edit',
-    d: 'home', // drafts
-    l: 'saved',
-    n: 'discover',
-    s: 'settings'
-  }
-  return t[r.path] || 'pitch'
-})
+const RT = {
+  p: 'pitch',
+  r: 'show',
+  e: 'edit',
+  d: 'home', // drafts
+  l: 'saved',
+  n: 'discover',
+  s: 'settings'
+}
+const $view = mute($route, r => RT[r.path] || 'pitch')
 const $mode = mute(combine(_mode, $route), ([m, r]) => {
   // console.log('M', m, r) // TODO: rethink this logic, probably depend on k.$current()
   if (!~['p', 'r', 'e'].indexOf(r.path)) return true
@@ -52,14 +50,16 @@ Check out the **themes**.
 Happy Ranting! =)
 `.trim()
 
-export const kernel = new Kernel(new BrowserLevel('rant.lvl', {
+const kernel = new Kernel(new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
   keyEncoding: 'buffer'
 }))
-// window.k = kernel
+window.k = kernel // sanity checking
+
 async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
+  // await kernel.store.reload()
 
   nAttr('main', 'view', $view)
   nClass('main', 'mode-edit', $mode)
@@ -101,7 +101,21 @@ async function main () {
   stitch($drafts, 'saved-drafts')
   /* saved-view controls */
   stitch(kernel.$rants(), 'saved-rants')
-  // await createNew()
+
+  /* On Route change */
+  mute(gate($route), async ({ path, id, q }) => {
+    switch (RT[path]) {
+      case 'show': {
+        await kernel.import(id)
+        return 'imported(todo: true)'
+      }
+      case 'edit':
+        await kernel.checkout(id)
+        return `checkout(${id})`
+      default:
+        return `NOOP(${RT[path]}, ${(id || '').substr(0, 24)})`
+    }
+  })(console.info)
 }
 
 async function createNew () {
@@ -139,7 +153,8 @@ Tonic.add(class RenderCtrls extends Tonic {
   }
 
   render () {
-    const { state } = this.props
+    const { state, rant } = this.props
+    if (!state) return
     // console.log(this.props)
     if (state === 'pitch') {
       return this.html`
@@ -148,15 +163,15 @@ Tonic.add(class RenderCtrls extends Tonic {
         </ctrls>
       `
     }
-
+    const dateStr = new Date(rant.date).toLocaleString()
     const status = state === 'draft'
       ? this.html`
         <small><code>DRAFT</code></small>
-        <small>Date: <span id="author-id">Monday</span></small>
+        <small>saved: ${dateStr}</small>
       `
       : this.html`
-        <small>Author: <span id="author-id">034V03</span></small>
-        <small>Date: <span id="author-id">Monday</span></small>
+        <small>Author: ${rant.author.slice(0, 4).toString('hex')}</small>
+        <small>Date: <span id="author-id">${dateStr}</span></small>
       `
     return this.html`
       <ctrls class="row space-between xcenter">
@@ -210,7 +225,7 @@ Tonic.add(class MessagePreview extends Tonic {
         <button class="create">Create new rant</button>
       `
     }
-    nEl('render-ctrls').reRender({ state })
+    nEl('render-ctrls').reRender({ state, rant: this.props.n })
     const md = this.html([this.preprocess(text)])
     return md
   }
