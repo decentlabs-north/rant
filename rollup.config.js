@@ -18,7 +18,7 @@ const production = !process.env.ROLLUP_WATCH
 export default {
   input: 'app.js',
   output: {
-    sourcemap: true, // !production, costs about ~2MB
+    sourcemap: !production, // costs about ~2MB
     format: 'es',
     name: 'rant',
     file: 'pub/build/bundle.js'
@@ -41,10 +41,11 @@ export default {
     !production && serve(),
     !production && livereload('pub/'),
     production && terser({
+      // https://github.com/terser/terser#terser
       keep_classnames: true,
       keep_fnames: true
     }),
-    production && petrify('./pub/index.html', './pub/build/index.html')
+    production && petrify('./pub/index.html', './pub/build/index.html'),
   ],
   watch: {
     clearScreen: false
@@ -75,7 +76,8 @@ function serve () {
   }
 }
 
-function petrify (input, output) {
+function petrify (input, output, opts = {}) {
+  // https://github.com/rollup/rollup/blob/master/docs/05-plugin-development.md
   return {
     name: 'petrify',
     writeBundle (opts, bundle) {
@@ -85,11 +87,15 @@ function petrify (input, output) {
       const cexp = /<link[^>]+href=['"]([^'"]+\.css)['"][^>]*>/
       let m
       while ((m = html.match(cexp))) {
-        const file = `pub${m[1]}`
-        /* const css = crass.parse(readFileSync(file))
-          .optimize({ o1: true })*/
-        const css = readFileSync(file)
+        const file = `pub${m[1]}` // <-- hardcoded output?
         console.log(`Inlining ${file}`)
+        let css = readFileSync(file)
+        try {
+          css = crass.parse(css)
+            .optimize({ o1: true })
+        } catch (err) {
+          console.warn(`Optimizing ${file} failed: `, err.message)
+        }
         html = html.replace(m[0], `
           <!-- inline ${file} -->
           <style>${css.toString()}</style>
@@ -103,10 +109,12 @@ function petrify (input, output) {
         const rexp = new RegExp(`<script[^>]+src=[^>]+${artifact.fileName}[^>]+>`)
         if (html.match(rexp)) {
           console.log('Inlining artifact', name)
+          // TODO: modifiy rexp to extract type attr
           const chunks = html.replace(rexp, '<script type="module">¤¤¤PITA¤¤¤')
             .split('¤¤¤PITA¤¤¤')
-          const code = artifact.code /* "window.addEventListener('DOMContentLoaded', async ev => {\n" +
-                        artifact.code + '\n})'*/
+          // non-module
+          // const code = `window.addEventListener('DOMContentLoaded', async ev => {${artifact.code}})`
+          const code = artifact.code
           html = chunks[0] + code + chunks[1]
         }
       }

@@ -74,6 +74,11 @@ export default class Kernel extends SimpleKernel {
     )
   }
 
+  async saveDraft () {
+    if (!this.isEditing) return
+    return this._saveDraft()
+  }
+
   async _saveDraft (defer = false) {
     if (defer) return this._saveLater()
     if (this._sTimeout) clearTimeout(this._sTimeout)

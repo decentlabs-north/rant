@@ -147,6 +147,12 @@ async function main () {
         return `NOOP(${RT[path]}, ${(id || '').substr(0, 24)})`
     }
   })(console.info)
+  /* Clear pending draft save on leave */
+  window.addEventListener('beforeunload', async () => {
+    console.info('Saving Draft beforeunload')
+    await kernel.saveDraft()
+    console.info('Draft Saved!')
+  })
 }
 
 async function createNew () {
