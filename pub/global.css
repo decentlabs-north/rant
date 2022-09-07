@@ -97,6 +97,7 @@ home { display: block; }
 .west { grid-area: west; }
 message-preview.container { max-width: 700px !important; }
 
+
 /* main { transition: grid-template-columns 1s; } */
 /* main.mode-show editor { overflow-x: hidden; width: 0; }*/
 main[data-mirror=true] { grid-template-areas: "east west"; }
@@ -104,12 +105,23 @@ main.mode-show:not([data-mirror=true]) { grid-template-columns: 0vw 100vw; }
 main.mode-show[data-mirror=true] { grid-template-columns: 100vw 0vw; }
 main.mode-show .west { display: none; }
 
+/* No Split  on .mode-edit - use full sceen */
 @media (max-width: 768px) {
   main.mode-edit:not([data-mirror=true]) { grid-template-columns: 100vw 0vw; }
   main.mode-edit[data-mirror=true] { grid-template-columns: 0vw 100vw; }
   main.mode-edit render { display: none; }
 }
-/*
+/* Horizontal Split on mode-edit,
+ * patch fullscreen elements to use 50% */
+@media (min-width: 768px) {
+  main.mode-edit editor { /* Make editor sticky */
+    position: fixed; min-width: 50vw; top: 0;
+  }
+  main.mode-edit[data-mirror=true] editor { left: 50vw; }
+  main.mode-edit dialog { min-width: 50%; left: 0; right: 50%;}
+  main.mode-edit[data-mirror=true] dialog { left: 50%; right: 0; }
+}
+/* Picocss default breakpoints
 @media (min-width:576px) {}
 @media (min-width:768px) {}
 @media (min-width:992px) {}
@@ -133,7 +145,7 @@ main render {
 /* Move V-padding from main to render-block */
 body > main { padding: 0; }
 render, .hpad {
-  padding: var(--block-spacing-vertical) var(--block-spacing-horizontal);
+  padding: var(--block-spacing-horizontal) var(--block-spacing-horizontal);
 }
 
 /* MainMenu button */
@@ -170,11 +182,11 @@ nav details[role="list"][open] summary
 }
 nav details[role="list"] summary[role=button] { height: 100%; line-height: 2; }
 nav [role=list] { display: block; width: 100%; }
-
+nav.bottom button, nav.bottom [role=button] { margin-bottom: 0; }
 /* Fix pico-bug */
 [data-tooltip][role=button] { border-bottom: unset; cursor: pointer; }
 
-main editor { position: relative; min-height: 100vh; }
+main editor { position: sticky; height: 100vh; }
 #markdown-area { /* area height is borked, maybe use contentEditable attribute instead */
   height: 80%;
   border-radius: 0;
@@ -182,6 +194,14 @@ main editor { position: relative; min-height: 100vh; }
   outline: none;
   resize: none;
 }
+
+editor:not([data-state=draft]) #edit-options,
+editor:not([data-state=draft]) #edit-publish,
+editor:not([data-state=signed]) #edit-fork,
+editor:not([data-state=signed]) #edit-share,
+editor[data-state=draft] .no-draft
+{ display: none; }
+
 message-preview > h1:first-child,
 message-preview > h2:first-child,
 message-preview > h3:first-child {
@@ -203,6 +223,11 @@ rant-list rant icon {
   border: 1px solid var(--primary);
   margin-right: var(--block-spacing-horizontal);
 }
+rant-list rant .trash {
+  background-image: var(--icon-close);
+  background-position: center center;
+  background-repeat: no-repeat;
+}
 rant-list rant h6, rant-list rant h4 { margin: 0; }
 rant-list rant .sample {
   display: block;
@@ -223,102 +248,21 @@ ico {
   display: inline;
   filter: sepia(71%) saturate(300%) hue-rotate(217deg);
 }
-/*---------------------- LEGACY ---------------------------*/
-/*
-@media only screen and (max-width: 900px) {
-  main { grid-template-columns: 1fr 2fr 2fr 1fr; }
-  main #editor { grid-column: 1 / 5; }
-  main.edit #render, #version, .identity code { display: none; }
-}*/
-/*
-@media only screen and (max-width: 600px) {
-  main.show #render { grid-column: 1 / 5; }
-  main.edit .brand, main.edit .compression-indicator { display: none }
-}*/
-/*
-main.edit nav {
+
+#r-btn-resume.btn-round {
+  --size: 3rem;
   position: fixed;
-  width: 100%;
+  background-color: var(--primary);
+  left: calc(50vw - 1.5rem);
+  top: calc(100vh - var(--block-spacing-vertical) - var(--size));
+  opacity: 0.9;
 }
-main nav .block {
-  border: 0;
-  margin: 0;
-  padding: 2px 24px;
-  border-radius: 0;
-  height: 100%;
-  line-height: var(--nav-height);
-  background-color: var(--purp);
-  color: antiqueWhite;
-}
-main.show nav .block { background-color: #98c379; }
-main nav select {
- background: inherit;
- color: inherit;
- text-align: center;
- border: none;
-}main nav #capacity {
-  margin: 0;
-  border: 1px solid var(--faded);
-  display: inline-block;
-  width: 5em;
-}
-main.edit footer { display: none; }
-main footer { grid-column: 1 / 5; }
-footer { font-size: smaller; color: #bbb; text-align: center; margin-top: auto; }
-footer a, footer a:visited { color: #bbb !important; }
-#capacity span {
-  z-index: -2;
-  margin: 0;
-  display: block;
-  height: 2px;
-  background-color: var(--faded);
-  position: relative;
-  width: 45%;
-  transition: width 2s ease-in;
-}
-nav .uline {
-  border: 0;
-  margin: 0 2px;
-  line-height: calc(var(--nav-height) - 2px);
-  border-bottom: 2px solid var(--slate);
-  background: inherit;
-  color: inherit;
-}
-.uline.red { border-bottom: 2px solid var(--red); }
-.uline.orange { border-bottom: 2px solid var(--orange); }
-.uline.purp { border-bottom: 2px solid var(--purp); }
-.uline.grass { border-bottom: 2px solid var(--grass); }
-.uline.moss { border-bottom: 2px solid var(--moss); }
-.uline.cobalt { border-bottom: 2px solid var(--cobalt); }
-*/
+#r-ghost-pad { line-height: 3rem; }
+.mode-edit #r-btn-resume.btn-round,
+  render:not([data-state=draft]) #r-btn-resume.btn-round,
+  .mode-edit #r-ghost-pad,
+  render:not([data-state=draft]) #r-ghost-pad { display: none; }
 
-/* -- MARKDOWN rules -- */
-emo, g {
-  font-family: apple color emoji,segoe ui emoji,noto color emoji,android emoji,emojisymbols,emojione mozilla,twemoji mozilla,segoe ui symbol;
-}
-
-
-/* markdown-codeblock */
-#render pre {
-  background-color: #ececec;
-  border-radius: 3px;
-  padding: 0.7em 1em;
-}
-pre code {
-  color: var(--faded);
-}
-p code {
-  border-radius: 3px;
-  color: var(--faded);
-  background-color: #ececec;
-  padding: 2px 4px;
-}
-
-.brand {
-  color: var(--cobalt);
-  font-weight: normal;
-  margin: 0 1em;
-}
 .imgmoji {
   font-size: 6rem;
   display: inline-block;
@@ -329,16 +273,34 @@ p code {
 }
 pre.pksig { background: none !important; text-align: center; }
 
-/** SPOOKY theme **/
-main.spooky  {
-  background-color: ghostwhite;
+/*---------------- THEME "light/dark" on dark/light fix ----*/
+render[data-theme=light] {
+  background-color: var(--background-color);
+}
+render[data-theme=dark] {
+  background-color: var(--background-color);
 }
 
-main.show.spooky nav, main.show.spooky footer, .spooky #render > * {
+/*-- THEME "ghostwriter" port of legacy-'spooky' ---*/
+render[data-theme=ghostwriter] {
+  --background-color: ghostwhite;
+  --color: black;
+  --h1-color: var(--color);
+  --h2-color: var(--color);
+  --h3-color: var(--color);
+  --h4-color: var(--color);
+  --h5-color: var(--color);
+  --code-background-color: var(--background-color);
+  --code-color: var(--color);
+  --font-family: "Times New Roman", serif;
+  background-color: var(--background-color)
+}
+render[data-theme=ghostwriter] render-ctrls,
+render[data-theme=ghostwriter] #markdown-render > * {
   animation: 0.3s ease-in 6s normal backwards blurin;
+  font-family: var(--font-family);
 }
-
-.spooky #render > *:first-child {
+render[data-theme=ghostwriter] #markdown-render > *:first-child {
   font-family: "Courier", monospace;
   font-size: 3em;
   font-weight: 100;
@@ -348,13 +310,12 @@ main.show.spooky nav, main.show.spooky footer, .spooky #render > * {
   animation: 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0s 3 alternate backwards running blurin;
 }
 
-.spooky #render > *:nth-child(2) {
-  font-family: "Times New Roman", serif;
+render[data-theme=ghostwriter] #markdown-render > *:nth-child(2) {
   font-weight: normal;
   margin-top: 0;
   animation: 0.8s ease-in-out 2s 3 alternate backwards blurin;
 }
-.spooky #render > *:nth-child(3) {
+render[data-theme=ghostwriter] #markdown-render > *:nth-child(3) {
   animation: 5s linear 2.4s 1 both flicker;
 }
 
@@ -372,7 +333,6 @@ main.show.spooky nav, main.show.spooky footer, .spooky #render > * {
 }
 
 @keyframes flicker {
-
   0% {
     opacity: 0;
   }
@@ -393,16 +353,29 @@ main.show.spooky nav, main.show.spooky footer, .spooky #render > * {
   }
 }
 
-/** Morpheus theme **/
-main.morpheus  {
-  background-color: black;
-  color: #19c824;
-  font-family: "Courier", monospace;
+/*-- THEME "morpheus" ---*/
+render[data-theme=morpheus] {
+  --background-color: black;
+  --color: #a0ff7e;
+  --primary: var(--color);
+  --h1-color: var(--color);
+  --h2-color: var(--color);
+  --h3-color: var(--color);
+  --h4-color: var(--color);
+  --h5-color: var(--color);
+  --code-background-color: var(--background-color);
+  --code-color: var(--color);
+  --font-family: monospace, "Courier";
+  background-color: var(--background-color);
+  --nav-height: 0;
 }
-.morpheus #render {
+render[data-theme=morpheus] render-ctrls,
+render[data-theme=morpheus] #markdown-render > * {
+  animation: 0.5s ease-in 10s normal backwards blurin;
 }
-main.show.morpheus nav, main.show.spooky footer {
-  animation: 0.3s ease-in 6s normal backwards blurin;
+render[data-theme=morpheus] #r-btn-resume {
+  background-color: #a0ff7e30;
+  border: none;
 }
 
 @keyframes morphsldwn {
@@ -424,98 +397,186 @@ main.show.morpheus nav, main.show.spooky footer {
   100% { width: 100%; }
 }
 
-.morpheus #render > *  {
-  animation: 1s linear 6s normal backwards blurin;
-}
-
 /* scanlines */
-.show.morpheus:before, .show.morpheus #render:before {
+render[data-theme=morpheus]:before,
+render[data-theme=morpheus] #markdown-render:before {
   display: block;
   position: fixed;
-  width: 100vw;
-  height: calc(100vh - var(--nav-height));
-  animation: 1s linear 6s normal both morphsldwn;
+  width: 50%;
+  height: 100vh;
+  top: 0;
   left: 0;
   content: ' ';
+  z-index: 1;
   background: repeating-linear-gradient(0deg,
     rgba(8,15,9,0.0),
     rgba(8,15,9,0.0) 2px,
     rgba(255,255,255,0.2) 4px,
     rgba(255,255,255,0.3) 7px,
     rgba(8,15,9,0.0) 10px
-    );
-}
-/* vignette */
-.show.morpheus #render:before {
-  background: radial-gradient(
-    rgba(8, 15, 9, 0.0),
-    rgba(8, 15, 9, 1.0) 98%
   );
 }
+render[data-theme=morpheus] render-ctrls,
+render[data-theme=morpheus] #r-btn-resume {
+  z-index: 20;
+}
+
+/* vignette */
+render[data-theme=morpheus] #markdown-render:before {
+ z-index: 16;
+ background: radial-gradient(
+   rgba(8, 15, 9, 0.0),
+   rgba(8, 15, 9, 1.0) 98%
+ );
+}
+
+.mode-edit:not([data-mirror=true]) render[data-theme=morpheus]:before,
+.mode-edit:not([data-mirror=true]) render[data-theme=morpheus] #markdown-render:before {
+  left: 50%;
+}
+@media (max-width: 768px) {
+  .mode-edit render[data-theme=morpheus]:before,
+  .mode-edit render[data-theme=morpheus] #markdown-render:before {
+    width: 100%;
+  }
+}
 /* fake cursor */
-.morpheus #render > *:nth-child(2):after {
+render[data-theme=morpheus] #markdown-render > *:nth-child(2):after {
   display: inline-block;
-  width: 0.5em;
+  width: 0.7rem;
   height: 1em;
-  background: #19c824;
+  background: var(--color);
   content: ' ';
   animation: 2s ease-in-out 0s infinite both morphblink;
 }
-
-.morpheus #render > *:first-child {
-  font-size: 3em;
+render[data-theme=morpheus] #markdown-render > *:first-child {
+  font-size: 2rem;
   font-weight: 100;
   margin-bottom: 0;
-  text-align: center;
+  text-align: left;
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
-  animation: 2s linear 0s normal both morphtypesim;
+  animation: 2s linear 1s normal both morphtypesim;
 }
-.morpheus #render > *:nth-child(2) {
+render[data-theme=morpheus] #markdown-render > *:nth-child(2) {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
-  animation: 2s linear 2s normal both morphtypesim;
+  animation: 2s linear 5s normal both morphtypesim;
 }
-.morpheus #render > *:nth-child(3) {
+render[data-theme=morpheus] #markdown-render > *:nth-child(3) {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
-  animation: 2s linear 4s normal both morphtypesim;
-}
-/***** CYBORG *****/
-/* Based off the default svelte style*/
-/*make first h1 into a big title*/
-.cyborg #render > h1:first-child {
-  text-align: center;
-  color: #ff3e00;
-  text-transform: uppercase;
-  font-size: 4em;
-  font-weight: 100;
-}
-.cyborg a {
-	color: var(--cobalt);
-	text-decoration: none;
+  animation: 3s linear 8s normal both morphtypesim;
 }
 
-.cyborg a:hover {
-	text-decoration: underline;
-}
-
-.cyborg a:visited {
-	color: rgb(0,80,160);
-}
-
-.cyborg label {
-	display: block;
-}
-/** End theme cyborg **/
-
+/* TODO: port this... we need a Comic Sans theme it's a must! */
 main.love-letter {
   background: pink;
 }
 .love-letter #render {
   font-family: "Comic Sans", monospace; /* The one and only */
+}
+
+/*------- THEME: Decent / Evershade (NEW!) */
+[data-theme=decent] {
+  --grah: rgb(47, 56, 62);
+  --rust: rgb(219, 121, 123);
+  --leaf: rgb(154, 178, 120);
+  --yell: rgb(203, 175, 120);
+  --rock: rgb(129, 142, 133);
+  --copp: rgb(208, 140, 109);
+  --lead: rgb(115, 168, 162);
+  --viol: rgb(205, 148, 176);
+  --slat: rgb(44, 50, 61);
+
+  --primary: var(--viol);
+  --background-color: var(--grah);
+  --color: #bbbba9;
+  --subtle: var(--rock);
+  --bleak: var(--slat);
+  --ca: var(--rust);
+  --h1-color: var(--primary);
+  --h2-color: var(--primary);
+  --h3-color:  var(--color);
+  --h4-color: var(--subtle);
+  --h5-color: var(--lead);
+  --hr-color: var(--background);
+  --code-background-color: var(--bleak);
+  --code-color: var(--subtle);
+  --strong-color: var(--subtle);
+  --font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu",
+    "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  /*--line-height: 1.5;
+  --font-weight: 400;
+  --font-size: 17px;*/
+  background-color: var(--background-color);
+}
+[data-theme=decent] a { color: var(--ca); }
+[data-theme=decent] h1,
+[data-theme=decent] h2,
+[data-theme=decent] h3,
+[data-theme=decent] h6 { font-weight: 300; }
+[data-theme=decent] h1:first-child {
+  margin-top: 2rem; font-size: 2.5rem;
+  text-align: unset;
+}
+[data-theme=decent] pre,
+[data-theme=decent] code,
+[data-theme=decent] kbd,
+[data-theme=decent] samp {
+  font-family: "DejaVu Sans Mono" "Menlo", "Consolas", "Roboto Mono", "Ubuntu Monospace",
+    "Noto Mono", "Oxygen Mono", "Liberation Mono", monospace,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+[data-theme=decent] em { color: var(--subtle); }
+[data-theme=decent] blockquote {
+  border-left: 5px solid var(--bleak);
+}
+[data-theme=decent] blockquote p {
+  color: var(--subtle);
+}
+[data-theme=decent] pre {
+  background-color: var(--bleak);
+  word-wrap: normal;
+  padding: 16px;
+  overflow: auto;
+  border-radius: 2px;
+  font-size: 0.8em;
+  line-height: 1.25;
+  padding: 1em;
+}
+[data-theme=decent] p strong { color: var(--strong-color); }
+[data-theme=decent] p code, render[data-theme=decent]  li code {
+  border-radius: 2px;
+  padding: 4px 6px;
+  margin: 0 1px;
+  background-color: var(--bleak);
+  color: var(--subtle);
+  font-size: 0.8em;
+  display: inline-block;
+}
+[data-theme=decent] hr {
+  border: none;
+  border-bottom: 2px dashed var(--hr-color);
+  margin-bottom: 5em; margin-top: 3em;
+}
+/*alt hr*/
+[data-theme=decent] hr {
+  border-bottom: 2px solid var(--hr-color);
+  max-width: 25vw; margin-left: 0;
+}
+[data-theme=decent] table { border: 1px solid var(--bleak); }
+[data-theme=decent] table thead { background-color: var(--bleak); font-size: 0.8em; }
+[data-theme=decent] table thead th { color: var(--primary); border: none; font-weight: bold; }
+[data-theme=decent] table th, table td { padding: 4px 6px; border: none;}
+[data-theme=decent] table td { color: var(--color); }
+[data-theme=decent] table tr:nth-child(even) td {
+  background-color: var(--bleak); color: var(--subtle); }
+[data-theme=decent] ico {
+  filter: sepia(90%) saturate(0%)
 }
 

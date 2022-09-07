@@ -2104,10 +2104,10 @@ magic-string@^0.25.3, magic-string@^0.25.7:
   dependencies:
     sourcemap-codec "^1.4.8"
 
-marked@^4.0.19:
-  version "4.0.19"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-4.0.19.tgz#d36198d1ac1255525153c351c68c75bc1d7aee46"
-  integrity sha512-rgQF/OxOiLcvgUAj1Q1tAf4Bgxn5h5JZTp04Fx4XUkVhs7B+7YA9JEWJhJpoO8eJt8MkZMwqLCNeNqj1bCREZQ==
+marked@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-4.1.0.tgz#3fc6e7485f21c1ca5d6ec4a39de820e146954796"
+  integrity sha512-+Z6KDjSPa6/723PQYyc1axYZpYYpDnECDaU6hkaf5gqBieBkMKYReL5hteF2QizhlMbgbo8umXl/clZ67+GlsA==
 
 memory-level@^1.0.0:
   version "1.0.0"
@@ -2238,10 +2238,10 @@ msgpackr-extract@^2.1.1:
     "@msgpackr-extract/msgpackr-extract-linux-x64" "2.1.2"
     "@msgpackr-extract/msgpackr-extract-win32-x64" "2.1.2"
 
-msgpackr@^1.7.0-alpha3:
-  version "1.7.0-alpha3"
-  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.7.0-alpha3.tgz#6afa9ef5e68ea11d2acc92a265659a9f737f36fa"
-  integrity sha512-HHIL1ioZF+i/jiaJSz1RiFtRT7d7lngaEnFL7lkUV0fueKbzm1YDDlm0LYslXlqCREBC68jmDrjCKpB/9oR+Ug==
+msgpackr@^1.7.0-alpha7:
+  version "1.7.0-alpha7"
+  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.7.0-alpha7.tgz#4c14e4933770610cf3a3865a9722f68b69e6d813"
+  integrity sha512-EGH7pCXTBdOrk45vSXzimfLQ8rUd8P1sZFYpjbk98M+SYr2VqKnw0mw7cqhbts/u6qDyjMRmKsDq/EyyxyR7dw==
   optionalDependencies:
     msgpackr-extract "^2.1.1"
 
@@ -2510,26 +2510,26 @@ piconet@^3.1.1:
   resolved "https://registry.yarnpkg.com/piconet/-/piconet-3.1.1.tgz#3a8c0774f29574ef53aebf90060e91a057fd0be3"
   integrity sha512-O8Kjyg1if/zyhguR0OLo3ZVEEaYMiTP4cK5F5H0V56OjntBkvU1YLz0qUW7WZWoZWZTGhULFWT1ZZqaDMrtipg==
 
-piconuro@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/piconuro/-/piconuro-1.0.0.tgz#6fd065c3c2758d04802cb8d841db2ec8076cd615"
-  integrity sha512-52Y3VWIlMV/RD6NyqmZ5XYgXhQi5R351JkCaaDYxd+SrwuU8Nc7dmvSRLUHv8GGFAlK+56jBjbVm76GiqnFauQ==
+piconuro@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/piconuro/-/piconuro-1.0.1.tgz#af510e9c5273277f5bd2e8901fbadf6516e69dd0"
+  integrity sha512-y1ofVOrZV5c9GYIn1wqs53JYq7JwCY9kU4UPFQ2dw8+H0lgAvnvNborJ4mtTpCfGOb2gQVWKy2vdpur2N1qelA==
 
 picorepo@^1.4.3:
   version "1.4.3"
   resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.3.tgz#6dadf616f7c42558195ea65e8da842e7ba02fc64"
   integrity sha512-0UpRfMYhqZ8iBQrEh1BaE0ICIfhxf8ttTHMb5uCLzp0V5kvmdcrcPm2LJne6iMYmBt8WYgwkRipKO3TMgBC8Ow==
 
-picostack@^1.5.4:
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.4.tgz#a5474d87a2db7a3c65e21ed403dae4bed99ec428"
-  integrity sha512-su94r3Muy1VWRjtlvLZ6/JwGL64sGsM5l8SDdZMLJ7wHifP3mXAKt/husolbZt8s8eVeJUhfgbZbdeTwM+oR+A==
+picostack@^1.5.5:
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.5.tgz#dacc95c7f6cdd6153b7bfe881f29f90e61bb60d9"
+  integrity sha512-fp911RGF/ps5xylnfYiWbWqLxeFDrjZLT1icIw0gNThMYQlSuE+CxfutGYOuMZzmHQl+1bkG45YJgeCWYid6PQ==
   dependencies:
     "@telamon/picostore" "^1.9.2"
-    msgpackr "^1.7.0-alpha3"
+    msgpackr "^1.7.0-alpha7"
     picofeed "^3.4.0"
     piconet "^3.1.1"
-    piconuro "^1.0.0"
+    piconuro "^1.0.1"
     picorepo "^1.4.3"
 
 pify@^4.0.1:
@@ -2670,11 +2670,6 @@ request@^2.88.0:
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-require-relative@^0.8.7:
-  version "0.8.7"
-  resolved "https://registry.yarnpkg.com/require-relative/-/require-relative-0.8.7.tgz#7999539fc9e047a37928fa196f8e1563dabd36de"
-  integrity sha512-AKGr4qvHiryxRb19m3PsLRGuKVAbJLUD7E6eOaHkfKhwc+vSgVOCY5xNvm9EkolBKTOf0GrQAZKLimOCz81Khg==
-
 resolve-from@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
@@ -2767,14 +2762,6 @@ rollup-plugin-node-polyfills@^0.2.1:
   dependencies:
     rollup-plugin-inject "^3.0.0"
 
-rollup-plugin-svelte@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-svelte/-/rollup-plugin-svelte-7.1.0.tgz#d45f2b92b1014be4eb46b55aa033fb9a9c65f04d"
-  integrity sha512-vopCUq3G+25sKjwF5VilIbiY6KCuMNHP1PFvx2Vr3REBNMDllKHFZN2B9jwwC+MqNc3UPKkjXnceLPEjTjXGXg==
-  dependencies:
-    require-relative "^0.8.7"
-    rollup-pluginutils "^2.8.2"
-
 rollup-plugin-terser@^7.0.2:
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/rollup-plugin-terser/-/rollup-plugin-terser-7.0.2.tgz#e8fbba4869981b2dc35ae7e8a502d5c6c04d324d"
@@ -2785,7 +2772,7 @@ rollup-plugin-terser@^7.0.2:
     serialize-javascript "^4.0.0"
     terser "^5.0.0"
 
-rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
+rollup-pluginutils@^2.8.1:
   version "2.8.2"
   resolved "https://registry.yarnpkg.com/rollup-pluginutils/-/rollup-pluginutils-2.8.2.tgz#72f2af0748b592364dbd3389e600e5a9444a351e"
   integrity sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==
@@ -2793,9 +2780,9 @@ rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
     estree-walker "^0.6.1"
 
 rollup@^2.78.1:
-  version "2.78.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.78.1.tgz#52fe3934d9c83cb4f7c4cb5fb75d88591be8648f"
-  integrity sha512-VeeCgtGi4P+o9hIg+xz4qQpRl6R401LWEXBmxYKOV4zlF82lyhgh2hTZnheFUbANE8l2A41F458iwj2vEYaXJg==
+  version "2.79.0"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.79.0.tgz#9177992c9f09eb58c5e56cbfa641607a12b57ce2"
+  integrity sha512-x4KsrCgwQ7ZJPcFA/SUu6QVcYlO7uRLfLAy0DSA4NS2eG8japdbpM50ToH7z4iObodRYOJ0soneF0iaQRJ6zhA==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -3267,11 +3254,6 @@ surge@^0.23.1:
     surge-ignore "0.2.0"
     tarr "1.1.0"
     url-parse-as-address "1.0.0"
-
-svelte@^3.49.0:
-  version "3.49.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.49.0.tgz#5baee3c672306de1070c3b7888fc2204e36a4029"
-  integrity sha512-+lmjic1pApJWDfPCpUUTc1m8azDqYCG1JN9YEngrx/hUyIcFJo6VZhj0A1Ai0wqoHcEIuQy+e9tk+4uDgdtsFA==
 
 svgo@^0.7.1:
   version "0.7.2"

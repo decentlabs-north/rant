@@ -6,7 +6,7 @@ import Kernel, { isDraftID } from './blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
 import { EMOJI_REGEXP } from './blockend/picocard.js'
-// const [$view, setView] = write('edit')
+const THEME_NAMES = ['dark', 'light', 'decent', 'morpheus', 'ghostwriter']
 const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
 const RT = {
@@ -49,11 +49,11 @@ Check out the **themes**.
 
 Happy Ranting! =)
 `.trim()
-
-const kernel = new Kernel(new BrowserLevel('rant.lvl', {
+const DB = new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
   keyEncoding: 'buffer'
-}))
+})
+const kernel = new Kernel(DB)
 window.k = kernel // sanity checking
 
 async function main () {
@@ -67,20 +67,44 @@ async function main () {
 
   /* Renderer */
   stitch(kernel.$rant(), 'markdown-render')
+  const $state = memo(gate(mute(kernel.$rant(), r => r.state)))
+  const $theme = memo(mute(kernel.$rant(), r => r.theme))
+  // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
+  nAttr('view-render', 'state', $state)
+  nAttr('view-render', 'theme', mute($theme, t => THEME_NAMES[t]))
+  nClick('r-btn-resume', () => setMode(true))
 
   /* Edit-view controls */
+  nAttr('view-editor', 'state', $state)
   nValue('markdown-area', mute(kernel.$rant(), r => r?.text), v => kernel.setText(v))
+  nDisabled('markdown-area', mute($state, s => s !== 'draft'))
   const $size = memo(gate(mute(kernel.$rant(), r => r.size)))
 
   nValue('edit-capacity-meter', mute($size, s => Math.ceil((s / 1024) * 100)))
   nText('edit-capacity-bytes', mute($size, s => `${s}`.padStart(4, '0')))
-  nClick('edit-back', () => navigate('d'))
-  nClick('edit-preview', () => setMode(!get($mode)))
-  nClick('edit-btn-publish', async () => {
-    const id = await kernel.commit()
-    console.log('Comitted', id.toString('hex'), get(kernel.$rant()))
-    setMode(false)
+  nClick('edit-back', () => {
+    navigate(get($state) === 'draft' ? 'd' : 'l')
   })
+  nClick('edit-preview', () => setMode(!get($mode)))
+  nClick('edit-publish', async () => {
+    const id = await kernel.commit()
+    const pickle = await kernel.pickle(id)
+    navigate(`r/${pickle}`)
+    setMode(false)
+    console.log('Comitted', id.toString('hex'), get(kernel.$rant()))
+  })
+  nClick('edit-fork', async () => {
+    const id = get(kernel.$current)
+    const [draft, parent] = await kernel.checkout(id, true)
+    console.log('Forked into', draft, parent)
+    navigate(`e/${draft}`)
+  })
+  nClick('edit-options', () => { nEl('edit-opts-dlg').open = true })
+  nClick('edit-opts-ok', () => { nEl('edit-opts-dlg').open = false })
+  nValue('edit-opt-theme',
+    $theme,
+    async v => kernel.setTheme(parseInt(v))
+  )
 
   /* Settings-view */
   const darkMode = kernel.config('dark-mode', false)
@@ -92,13 +116,20 @@ async function main () {
   nText('nfo-build', init(`__ENV__-__VERSION__-${'__COMMIT__'.substr(0, 8)}`))
   nText('nfo-version', init('__VERSION__'.replace(/^(\d+).+/, '$1')))
   nText('opt-pk', init(kernel.pk.toString('base64')))
+  nClick('opt-btn-reload', async () => {
+    await kernel.store.reload()
+    window.location.reload()
+  })
+
+  nClick('opt-btn-purge', async function purge () {
+    const msg = 'You are about to burn your passport and everything with it...\nyou sure about this?'
+    if (!window.confirm(msg)) return
+    await kernel.db.clear()
+    window.location.reload()
+  })
 
   /* Home-view controls */
-  const $drafts = mute(gate($view), async v => {
-    if (v !== 'home') return []
-    return await kernel.drafts()
-  })
-  stitch($drafts, 'saved-drafts')
+  stitch(kernel.$drafts(), 'saved-drafts')
   /* saved-view controls */
   stitch(kernel.$rants(), 'saved-rants')
 
@@ -145,6 +176,8 @@ Tonic.add(class MainMenu extends Tonic {
   }
 })
 
+// TODO: convert to vanilla html / will be less code and
+// easier to read with CSS.
 Tonic.add(class RenderCtrls extends Tonic {
   async click (ev) {
     if (Tonic.match(ev.target, '#btn-toggle')) {
@@ -166,7 +199,7 @@ Tonic.add(class RenderCtrls extends Tonic {
     const dateStr = new Date(rant.date).toLocaleString()
     const status = state === 'draft'
       ? this.html`
-        <small><code>DRAFT</code></small>
+        <sup><code>DRAFT</code></sup>
         <small>saved: ${dateStr}</small>
       `
       : this.html`
@@ -183,15 +216,14 @@ Tonic.add(class RenderCtrls extends Tonic {
         <!-- right -->
         ${state === 'draft'
           ? this.html`
-            <b role="button">Publish</b>
+            <!-- <b role="button">Publish</b> -->
           `
           : this.html`
-          <button class="btn-round"><ico>✉️</ico></button>
+          <button class="btn-round"><ico>📤</ico></button>
           `
         }
       </ctrls>
     `
-    // 📤
   }
 })
 
@@ -237,6 +269,7 @@ Tonic.add(class RantList extends Tonic {
     if (!el) return
 
     let id
+    // Handle create
     if (el.dataset.id === 'new') return createNew()
     else {
       id = isDraftID(el.dataset.id)
@@ -244,6 +277,15 @@ Tonic.add(class RantList extends Tonic {
         : Buffer.from(el.dataset.id, 'base64')
     }
 
+    // Handle delete
+    if (Tonic.match(ev.target, '.trash')) {
+      console.info('deleteRant', id)
+      await kernel.deleteRant(id)
+      // TODO: refresh view?
+      return
+    }
+
+    // Handle show
     await kernel.checkout(id)
     const r = get(kernel.$rant())
     if (r.state === 'draft') { // continue editing
@@ -275,15 +317,18 @@ Tonic.add(class RantList extends Tonic {
       ${newRant}
       ${(rants || []).map(rant => {
         return this.html`
-          <rant class="row xcenter"
+          <rant class="row xcenter space-between"
             data-id="${rant.id.toString('base64')}"
             data-state="${rant.state}">
-            <icon>${rant.icon}</icon>
-            <div class="col xstart">
-              <h6>${rant.title}</h6>
-              <small>${new Date(rant.date).toLocaleString()}</small>
-              <div class="sampl">${rant.excerpt}...</div>
+            <div class="row xcenter">
+              <icon>${rant.icon}</icon>
+              <div class="col xstart">
+                <h6>${rant.title}</h6>
+                <small>${new Date(rant.date).toLocaleString()}</small>
+                <div class="sampl">${rant.excerpt}...</div>
+              </div>
             </div>
+            <b role="button" class="btn-round trash"></b>
           </rant>
         `
       })}
@@ -356,6 +401,11 @@ export function nText (el, output) {
 export function nAttr (el, attr, output) {
   el = nEl(el)
   return output(v => { el.dataset[attr] = v })
+}
+
+export function nDisabled (el, $n) {
+  el = nEl(el)
+  return $n(c => { el.disabled = !!c })
 }
 
 // router.js

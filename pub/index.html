@@ -26,24 +26,29 @@
     <br/>
     Enjoy!<br/>
   </noscript>
-  <main id="main" data-mirror="true">
 
+  <main id="main" data-mirror="true">
+    <!----- DRAFTS ------------->
     <home class="west">
       <main-menu></main-menu>
       <div class="container hpad">
         <h3>Drafts</h3>
+        <p>These are your drafts, publish them in order
+        to share</p>
         <rant-list id="saved-drafts" data-create="true"></rant-list>
       </div>
     </home>
 
+    <!----- SAVED RANTS ------------->
     <saved class="west">
       <main-menu></main-menu>
-      <div class="hpad">
+      <div class="container hpad">
         <h3>Saved</h3>
         <rant-list id="saved-rants"></rant-list>
       </div>
     </saved>
 
+    <!----- SETTINGS ------------->
     <settings class="west">
       <main-menu></main-menu>
       <div class="hpad">
@@ -58,10 +63,12 @@
             Swap east &amp; west on big displays
           </label>
         </p>
-        <p>
-          Your signature
+        <div>
+          Public Key
           <pre><code id="opt-pk"></code></pre>
-        </p>
+        </div>
+        <button id="opt-btn-reload">Rebuild Cache</button>
+        <button id="opt-btn-purge">Purge Everything</button>
         <br/>
         <hr/>
         <sup><code>About</code></sup>
@@ -103,44 +110,84 @@
       </div>
     </settings>
 
+    <!----- DISCOVER/Swarm! ------------->
     <discover class="west">
       <main-menu></main-menu>
       <div class="hpad">
         <h3>Discover</h3>
-        <pre><code>Modem56 was left unplugged. Check back later</code></pre>
+        <pre><code>
+Modem56 was left unplugged.
+Check back later...
+
+      ~¤~
+    ___|_              _
+   /____/|___,,   ;___|R|
+  |_o_=_|/
+        </code></pre>
       </div>
     </discover>
 
-    <editor class="west col space-between">
-      <!-- Rant Menu -->
-      <nav class="row">
-        <button id="edit-back" data-toltip="Back"><ico>🔙</ico></button>
-        <button id="edit-preview" data-toltip="Preview"><ico>👁️</ico></button>
-        <details role="list">
-          <summary aria-haspopup="listbox" role="button" data-toltip="Options">
-            <ico>🎨</ico>
-          </summary>
-          <ul role="listbox">
-            <li><a>Encrypt</a></li>
-            <li><sub>Theme</sub></li>
-            <li><a>The Word</a></li>
-            <li><a>Rumor</a></li>
-            <li><a>Cyborg</a></li>
-            <li><a>Morpheus</a></li>
-            <li><a>Spooky</a></li>
-          </ul>
-        </details>
-        <button id="edit-btn-publish" data-tooltip="Publish"><ico>🔏</ico></button>
-      </nav>
+    <!----- EDITOR ------------->
+    <editor id="view-editor" class="west col space-between">
+      <main-menu></main-menu>
+      <div class="text-center no-draft">
+        <code>Rant is <strong>signed</strong>, <ico>🔓</ico>-fork to edit</code>
+        <hr/>
+      </div>
       <textarea id="markdown-area" placeholder="# Title"></textarea>
       <div class="row xend">
         <samp><span id="edit-capacity-bytes"></span>/1024</samp>
         <progress id="edit-capacity-meter" max=100></progress>
       </div>
+      <!-- Rant Menu -->
+      <nav class="row bottom">
+        <button id="edit-back" data-tooltip="Back"><ico>🔙</ico></button>
+        <button id="edit-preview" data-tooltip="Preview"><ico>👁️</ico></button>
+        <!-- draft ctrls -->
+        <button id="edit-options" data-tooltip="Options"><ico>🎨</ico></button>
+        <button id="edit-publish" data-tooltip="Publish"><ico>🔏</ico></button>
+        <!-- signed ctrls -->
+        <button id="edit-fork" data-tooltip="Fork"><ico>🔓</ico></button>
+        <button id="edit-share" data-tooltip="Share"><ico>📤</ico></button>
+        <dialog id="edit-opts-dlg">
+          <article>
+            <header>Rant Options</header>
+            <label for="edit-opt-theme">
+              Theme
+              <select name="edit-opt-theme" id="edit-opt-theme">
+                <option value="0">Rumor</option>
+                <option value="1">Word</option>
+                <option value="2">Evershade</option>
+                <option value="3">Morpheus (intro)</option>
+                <option value="4">Ghostwriter (intro)</option>
+              </select>
+            </label>
+            <label for="edit-opt-encryption">
+              Encryption
+              <select name="edit-opt-encryption" id="edit-opt-encryption">
+                <option value="0">none</option>
+                <option value="1">Keypad</option>
+                <option value="2">Passphrase</option>
+                <option value="3">Box</option>
+              </select>
+            </label>
+            <!--
+            <label for="edit-opt-location">
+              Attach Location
+              <input name="edit-opt-location" id="edit-opt-location" />
+            </label> -->
+            <footer><button id="edit-opts-ok">ok</button></footer>
+          </article>
+        </dialog>
+      </nav>
     </editor>
-    <render class="east">
+
+    <!----- RENDERER ------------->
+    <render class="east col space-between" id="view-render">
       <render-ctrls id="render-ctrls"></render-ctrls>
       <message-preview id="markdown-render" class="container"></message-preview>
+      <button id="r-btn-resume" class="btn-round"><ico>✏️</ico></button>
+      <div id="r-ghost-pad">&nbsp;</div>
     </render>
   </main>
 </body>

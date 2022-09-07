@@ -1,5 +1,6 @@
 import { SimpleKernel, Feed } from 'picostack'
-import { init, mute, write, combine, get, gate } from 'piconuro'
+import { memo, mute, write, combine, get, gate } from 'piconuro'
+import { dump } from 'picorepo/dot.js'
 import { pack, unpack, extractTitle, extractIcon, extractExcerpt } from './picocard.js'
 
 export const TYPE_RANT = 0
@@ -22,10 +23,21 @@ export default class Kernel extends SimpleKernel {
     const [date, setDate] = write(Date.now())
     // const [secret, setSecret] = write(rant.secret)
     // combine all outputs
-    this._draft = combine({ id: this._current, text, theme, encryption, date })
+    this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
+
+    const [$drafts, setDrafts] = write([])
+    this._nDrafts = memo($drafts)
     // Stash all inputs
-    this._w = { setText, setTheme, setEncryption, setDate }
+    this._w = { setText, setTheme, setEncryption, setDate, setDrafts }
     this._conf = {}
+  }
+
+  $drafts () { return this._nDrafts }
+
+  async boot () {
+    await super.boot()
+    // TODO: kernel.$drafts() is a hack, clean it up.
+    await this.drafts()
   }
 
   $rant () {
@@ -51,6 +63,7 @@ export default class Kernel extends SimpleKernel {
       const draft = unpack(value)
       drafts.push(this._mapRant({ id, ...draft }))
     }
+    this._w.setDrafts(drafts) // Fugly hack
     return drafts
   }
 
@@ -63,6 +76,8 @@ export default class Kernel extends SimpleKernel {
 
   async _saveDraft (defer = false) {
     if (defer) return this._saveLater()
+    if (this._sTimeout) clearTimeout(this._sTimeout)
+    delete this._sTimeout
     if (!this.isEditing) throw new Error('NoDraftEdited')
 
     if (!get(this._draft).text?.length) return
@@ -71,6 +86,7 @@ export default class Kernel extends SimpleKernel {
     const draft = get(this._draft)
     const content = pack(draft)
     await this._drafts.put(draft.id, content)
+    await this.drafts() // Reload drafts
   }
 
   _saveLater () {
@@ -83,30 +99,45 @@ export default class Kernel extends SimpleKernel {
     }, 3000)
   }
 
-  async checkout (rantId) {
+  async checkout (next, fork = false) {
+    if (fork && isDraftID(next)) throw new Error('DraftsCannotBeForked')
     const prev = get(this._current)
+    // Already checked out
+    if (!fork && isEqualID(next, prev)) return [prev, prev]
+
     if (isDraftID(prev)) {
       await this._saveDraft()
     }
 
-    if (rantId === null) {
-      rantId = 'draft:' + await this._inc('draft')
+    if (next === null) {
+      next = 'draft:' + await this._inc('draft')
       this._setDraft()
-    } else if (isDraftID(rantId)) {
-      const b = await this._drafts.get(rantId)
+    } else if (isDraftID(next)) {
+      const b = await this._drafts.get(next)
       if (!b) throw new Error('DraftNotFound')
       this._setDraft(unpack(b))
-    } else if (!this.store.state.rants[btok(rantId)]) throw new Error('UnknownRant')
-    this._setCurrent(rantId)
-    return prev
+    } else {
+      const rants = get(s => this.store.on('rants', s))
+      const r = rants[btok(next)]
+      if (!r) throw new Error('UnknownRant')
+      if (fork) {
+        next = 'draft:' + await this._inc('draft')
+        this._setDraft(r)
+      }
+    }
+    this._setCurrent(next)
+    return [next, prev]
+  }
+
+  get $current () {
+    return this._current
   }
 
   _mapRant (rant) {
     if (!rant) throw new Error('NoRant')
     // console.log('_mapRant()', rant)
     const c = get(this._current)
-    const isCurrent = (isDraftID(c) && c === rant.id) ||
-      (Buffer.isBuffer(c) && Buffer.isBuffer(rant.id) && c.equals(rant.id))
+    const isCurrent = isEqualID(c, rant.id)
     const isDraft = !rant.rev
     let size = rant.size
     if (isDraft) size = rant.text ? pack(rant).length : 0
@@ -166,7 +197,8 @@ export default class Kernel extends SimpleKernel {
     if (!modified.length) throw new Error('commit() failed: rejected by store')
 
     await this.checkout(id)
-    await this._drafts.del(current)
+    await this.deleteRant(current)
+    await this.drafts() // Reload drafts
     // this.rpc.shareBlocks(branch.slice(-1)) if Public
     return id
   }
@@ -214,6 +246,18 @@ export default class Kernel extends SimpleKernel {
     return id
   }
 
+  async deleteRant (id) {
+    if (isDraftID(id)) {
+      await this._drafts.del(id)
+      await this.drafts() // Reload drafts
+    } else {
+      // TODO: this.repo.rollbackChain(id)
+      // this.store.sig(GARBAGE_COLLECT, id)
+      dump(this.repo)
+    }
+  }
+
+  // TODO: consider backport to picostack, pretty nice feature.
   config (key, defaultValue) {
     if (typeof key !== 'string') throw new Error('Expected key to be string')
     if (!this._conf[key]) {
@@ -263,6 +307,16 @@ function Notebook (name = 'rants') {
 }
 
 export function btok (buffer) { return buffer.toString('hex') }
+// Don't ask, i seem to like footguns.
 export function isDraftID (id) {
   return typeof id === 'string' && id.startsWith('draft:')
+}
+
+export function isEqualID (a, b) {
+  return (isDraftID(a) && a === b) ||
+    (
+      Buffer.isBuffer(a) &&
+      Buffer.isBuffer(b) &&
+      a.equals(b)
+    )
 }

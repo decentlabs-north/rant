@@ -133,6 +133,31 @@ test('Persistent Config', async t => {
   t.equal(get($v), false)
 })
 
+test.only('Delete Rants', async t => {
+  const k = new Kernel(makeDB())
+  await k.boot()
+  await k.checkout(null)
+  await k.setText('# Signed Rant')
+  const rid = await k.commit()
+  await k.checkout(null)
+  await k.setText('# Draft Rant')
+  await k._saveDraft()
+
+  const did = get(k.$current)
+  let drafts = await k.drafts()
+  t.equal(drafts.length, 1)
+  let rants = get(k.$rants())
+  t.equal(rants.length, 1)
+
+  await k.deleteRant(did)
+  drafts = await k.drafts()
+  t.equal(drafts.length, 0)
+
+  await k.deleteRant(rid)
+  rants = get(k.$rants())
+  t.equal(rants.length, 0)
+})
+
 function makeDB () {
   return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
 }
