@@ -97,6 +97,7 @@ home { display: block; }
 .west { grid-area: west; }
 message-preview.container { max-width: 700px !important; }
 
+render { min-height: 100vh; }
 
 /* main { transition: grid-template-columns 1s; } */
 /* main.mode-show editor { overflow-x: hidden; width: 0; }*/
@@ -274,10 +275,7 @@ ico {
 pre.pksig { background: none !important; text-align: center; }
 
 /*---------------- THEME "light/dark" on dark/light fix ----*/
-render[data-theme=light] {
-  background-color: var(--background-color);
-}
-render[data-theme=dark] {
+render[data-theme] {
   background-color: var(--background-color);
 }
 
@@ -430,6 +428,13 @@ render[data-theme=morpheus] #markdown-render:before {
  );
 }
 
+/* TODO: define variables for an "absolute" harness to reduce
+ * dialog/modal full-render fx and so on.
+ * */
+.mode-show render[data-theme=morpheus]:before,
+.mode-show render[data-theme=morpheus] #markdown-render:before {
+  width: 100%;
+}
 .mode-edit:not([data-mirror=true]) render[data-theme=morpheus]:before,
 .mode-edit:not([data-mirror=true]) render[data-theme=morpheus] #markdown-render:before {
   left: 50%;
@@ -440,6 +445,7 @@ render[data-theme=morpheus] #markdown-render:before {
     width: 100%;
   }
 }
+
 /* fake cursor */
 render[data-theme=morpheus] #markdown-render > *:nth-child(2):after {
   display: inline-block;
@@ -499,9 +505,9 @@ main.love-letter {
   --bleak: var(--slat);
   --ca: var(--rust);
   --h1-color: var(--primary);
-  --h2-color: var(--primary);
-  --h3-color:  var(--color);
-  --h4-color: var(--subtle);
+  --h2-color: var(--lead);
+  --h3-color:  var(--leaf);
+  --h4-color: var(--yell);
   --h5-color: var(--lead);
   --hr-color: var(--background);
   --code-background-color: var(--bleak);
@@ -510,10 +516,6 @@ main.love-letter {
   --font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu",
     "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
-  /*--line-height: 1.5;
-  --font-weight: 400;
-  --font-size: 17px;*/
-  background-color: var(--background-color);
 }
 [data-theme=decent] a { color: var(--ca); }
 [data-theme=decent] h1,
@@ -524,14 +526,15 @@ main.love-letter {
   margin-top: 2rem; font-size: 2.5rem;
   text-align: unset;
 }
-[data-theme=decent] pre,
+/* Override monospace font */
+/*[data-theme=decent] pre,
 [data-theme=decent] code,
 [data-theme=decent] kbd,
 [data-theme=decent] samp {
-  font-family: "DejaVu Sans Mono" "Menlo", "Consolas", "Roboto Mono", "Ubuntu Monospace",
+  --font-family: "DejaVu Sans Mono" "Menlo", "Consolas", "Roboto Mono", "Ubuntu Monospace",
     "Noto Mono", "Oxygen Mono", "Liberation Mono", monospace,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
+}*/
 [data-theme=decent] em { color: var(--subtle); }
 [data-theme=decent] blockquote {
   border-left: 5px solid var(--bleak);
@@ -571,7 +574,7 @@ main.love-letter {
 }
 [data-theme=decent] table { border: 1px solid var(--bleak); }
 [data-theme=decent] table thead { background-color: var(--bleak); font-size: 0.8em; }
-[data-theme=decent] table thead th { color: var(--primary); border: none; font-weight: bold; }
+[data-theme=decent] table thead th { color: var(--leaf); border: none; font-weight: bold; }
 [data-theme=decent] table th, table td { padding: 4px 6px; border: none;}
 [data-theme=decent] table td { color: var(--color); }
 [data-theme=decent] table tr:nth-child(even) td {
