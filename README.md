@@ -1,8 +1,10 @@
 # 1k.rant
 
-> [Smallest markdown editor in the world](https://telamon.github.io/rant/)
+> [Smallest markdown editor in the world](http://fresh-fowl.surge.sh/)
 
 _This is my latest attempt at mastering the art of "Doing it Wrong"_
+
+### (Functional Alpha)(http://fresh-fowl.surge.sh/)
 
 I present to you a decentralized ultra-portable Markdown editor it's entire code base occupying a single file less than 256kB.
 
