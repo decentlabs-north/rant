@@ -21,6 +21,7 @@
 .grow3{ flex-grow: 3; }
 .grow4{ flex-grow: 4; }
 .text-center { text-align: center; }
+.block { display: block; }
 /* Reconfigure Pico-CSS */
 /* Deep-purple Light scheme (Default) */
 /* Can be forced with data-theme="light" */
@@ -92,6 +93,7 @@ main {
 
 render,
 message-preview,
+pitch,
 home { display: block; }
 .east { grid-area: east; }
 .west { grid-area: west; }
@@ -134,8 +136,10 @@ main:not([data-view=home]) home { display: none; }
 main:not([data-view=saved]) saved { display: none; }
 main:not([data-view=discover]) discover { display: none; }
 main:not([data-view=settings]) settings { display: none; }
+main:not([data-view=pitch]) pitch { display: none; }
+main[data-view=pitch] render { display: none; }
 /* TODO: redisign this part */
-main:not([data-view=edit]):not([data-view=pitch]):not([data-view=show]) editor { display: none; }
+main:not([data-view=edit]):not([data-view=show]) editor { display: none; }
 
 /* make preview look like it's atop the editor */
 main render {
@@ -211,6 +215,7 @@ message-preview > h2:first-child,
 message-preview > h3:first-child {
   text-align: center;
 }
+message-preview { overflow-x: hidden; }
 main { position: relative }
 home { position: sticky; }
 rant-list { display: block; }
@@ -265,7 +270,9 @@ ico {
 .mode-edit #r-btn-resume.btn-round,
   render:not([data-state=draft]) #r-btn-resume.btn-round,
   .mode-edit #r-ghost-pad,
-  render:not([data-state=draft]) #r-ghost-pad { display: none; }
+  render:not([data-state=draft]) #r-ghost-pad,
+  [data-view=pitch] #r-btn-resume
+  { display: none; }
 
 .imgmoji {
   font-size: 6rem;

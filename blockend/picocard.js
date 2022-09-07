@@ -1,6 +1,7 @@
 import lzutf8 from 'lzutf8'
 import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
+import { Feed } from 'picostack'
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
@@ -75,6 +76,12 @@ export function unpack (buffer, secret) {
     theme: card.l,
     page: card.s
   }
+}
+
+// Temporary solution for unpacking static content.
+export function unpackFeed (pickle, secret) {
+  const f = Feed.from(pickle)
+  return unpack(f.first.body, secret)
 }
 
 export function extractTitle (md) {
