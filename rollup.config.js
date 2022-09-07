@@ -40,8 +40,11 @@ export default {
     polyfills({ sourceMap: true, include: ['buffer'] }),
     !production && serve(),
     !production && livereload('pub/'),
-    production && terser(),
-    production && petrify()
+    production && terser({
+      keep_classnames: true,
+      keep_fnames: true
+    }),
+    production && petrify('./pub/index.html', './pub/build/index.html')
   ],
   watch: {
     clearScreen: false
@@ -74,16 +77,18 @@ function serve () {
 
 function petrify (input, output) {
   return {
+    name: 'petrify',
     writeBundle (opts, bundle) {
+      console.log('Casting Petrify(lv0)')
       let html = readFileSync(input).toString('utf8')
-
       // fugly inline css
       const cexp = /<link[^>]+href=['"]([^'"]+\.css)['"][^>]*>/
       let m
       while ((m = html.match(cexp))) {
-        const file = `public${m[1]}`
-        const css = crass.parse(readFileSync(file))
-          .optimize({ o1: true })
+        const file = `pub${m[1]}`
+        /* const css = crass.parse(readFileSync(file))
+          .optimize({ o1: true })*/
+        const css = readFileSync(file)
         console.log(`Inlining ${file}`)
         html = html.replace(m[0], `
           <!-- inline ${file} -->
@@ -98,10 +103,10 @@ function petrify (input, output) {
         const rexp = new RegExp(`<script[^>]+src=[^>]+${artifact.fileName}[^>]+>`)
         if (html.match(rexp)) {
           console.log('Inlining artifact', name)
-          const chunks = html.replace(rexp, '<script>¤¤¤PITA¤¤¤')
+          const chunks = html.replace(rexp, '<script type="module">¤¤¤PITA¤¤¤')
             .split('¤¤¤PITA¤¤¤')
-          const code = "window.addEventListener('DOMContentLoaded',ev => {\n" +
-                        artifact.code + '\n})'
+          const code = artifact.code /* "window.addEventListener('DOMContentLoaded', async ev => {\n" +
+                        artifact.code + '\n})'*/
           html = chunks[0] + code + chunks[1]
         }
       }

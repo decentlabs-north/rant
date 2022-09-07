@@ -437,7 +437,7 @@ function apply () { // parses location -> neurons.
   })
 }
 export function navigate (path) {
-  window.history.pushState(null, null, `/#${path}`.replace(/^#\/+/, '#/'))
+  window.history.pushState(null, null, `#${path}`.replace(/^#\/+/, '#/'))
   apply()
 }
 window.addEventListener('popstate', apply)
