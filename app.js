@@ -24,31 +24,10 @@ const $mode = mute(combine(_mode, $route), ([m, r]) => {
   if (!~['p', 'r', 'e'].indexOf(r.path)) return true
   return m
 })
-const PITCH = `
-## !☠️!  Unstoppable Information
+const HELP = `
 
-This app produces something like digital grafitti.
-The likelyhood of your words getting stuck
-on the internet **forever** are high.
-
-#### Resistent against takedowns
-> Every time the message is shared it is replicated in it's full form.
-
-### limitation: \`1 Kilo Byte\`
-
-It's about 1000 characters, but don't worry it's enough to vent some frustration.
-We provide compression and macros to generate maximum amount of entertainment.
-
-Bonus, wanna be cryptic? Got ya covered!
-
-> Select some words and long-tap/right-click
-> to **redact** them using inline encryption.
-
-Want to say something with a flair?
-Check out the **themes**.
-
-Rant Happy! =)
 `.trim()
+const PITCH = 'PIC0.K0.GFZu8O6IJ1_4DVdAZHQr32fJx8afn6MUbyyXz987iLAB0.ndP0fHvkF3AVYCDx79FHp-xDOvgW2ImG6R6yAeMMKU5KcRDpOACBG4efqDtGe7i4i_U0gdIf7hDKH0XSJ3s+BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQA3gAHoWIAoXTFA94xMAQQgRgaXVQKoDsDOAXA9gBywQwEYA2ApqAHIZrEoBQNAKgBYCWKouOoAxgE7G5U2SStVBpGA9n1CFmAa1IATZgHNmaXIVAqeuAGZ71zAHSg6TUrIWzGGDIrES0oAJ4YArj1AB3DD0Vs3syEWirEzujuXHI0GEiOpMxIVDxI4aAAVBl6fsQAbsQ8WVKkLCqMxnQgYABK1KwayewquEno3MSofigsWDQA6sQA5AXcuHx67iEuYrgK8ejEWGyYoIr1KgsYALbhLEgqjpKKGKLCzutYnQ5xoFiEAjk822x+jsz+d+NozNQANKBhGJdNFCigAUD8LhQUgAqAALSgdRDNhXHh6YhcNCEGYAfQAwoQPIo9HxiLjKjQAHygACiBR4Mx+uwSoF2KBQuDCSLYPXGxAc6h5oD492YXAEAqR8WRbEmIVAT22lPoGFA6GwrLQulQ21YKGYtzc7iGDgko1WXE6KDe+UKM3WeXFpFwsLuDzQStZ7M53LwHKl4h4HnKpiq1TAuMR_Sc7HwHmc4hdOAA_LjzCw2BwsMLcOqkioSOriIQ9PCuHENEkpQADRhobaEGuK4KkcSSCXxfClDCLByulzeRiFYhhgBixBLirJYjVJ28SCJuEFzldDj4Fc+xq84hD9blwe2rIr2yezgwelcHi8F7LOmY6+ofjQlRrb6hPRoXE8WnraGWABcAD0QFYJ4o4AB5+FajLGBWCJqjqL71o2NBvjWNDgIAPBuAKv7gDwf+ANDVDIzB6hoPxxABoA1pAoDQMEaoAEIuFQGE0AAkmgKJxgmoCQAADIJ3ASCCKSvF4tH9Bg9AAqA+DuBccRDM4vg8IySJcWwnR7rOoAFE0NosqS7joLoFFIJUgx3MGTrrNwOxYHwHKGvEa5stCwYrGqYRpGZpDbLgEGke4R64NsHhNBeiruBZ4bEVGoCMQpPiMC4Kbpem+K4CZiSadFrluiodgOKs3b2UgXCsKOiXJaSOzsGImKMEg4qaHcYJXFizAFAA3Fe7hjPE_AGjiawhTmMCMaAUWKAIeZJJgAF0IiCA1AAMrQiIAIo1Pi9jUDQiIACJkAAyiKmJ+AEh2gEdAAS9AonQuIALL7dsACsABswongWxjGOmxGMXEJkDK6SB5mVvAuFgPxcCmNAAOKUK4eYVgyAqEdSoCnSWmIRDspCqXCblEgc8IaH0NKrFkfCzVixRJkeJkFtKshpKAnQw3DLmVAl5yuOkpH3MQuzJAKAI2mpMwAQAFOmNCnbgMyGXsbNBOIDV6A8HwpmY+LDtE03JUmmQZMz1BZHQd3ZjMNSuj8BxwAAvAAlEAAChegKheAChbAChZMtCeDGRA7jAAKFzCA'
 const DB = new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
   keyEncoding: 'buffer'
@@ -60,7 +39,6 @@ async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
   // await kernel.store.reload()
-
   nAttr('main', 'view', $view)
   nClass('main', 'mode-edit', $mode)
   nClass('main', 'mode-show', mute($mode, m => !m))
@@ -164,6 +142,14 @@ async function main () {
     await kernel.saveDraft()
     console.info('Draft Saved!')
   })
+
+  const ver = '__VERSION__'.replace(/^(\d+\.\d+).+/, '$1')
+  const [v, setV] = await kernel.config('changelog', '')
+  if (v !== ver) {
+    console.info('First run: Importing pitch', ver)
+    await setV(ver)
+    navigate(`r/${PITCH}`)
+  }
 }
 
 async function createNew () {
@@ -305,7 +291,7 @@ Tonic.add(class MessagePreview extends Tonic {
     if (text === '' && state === 'draft') {
       nEl('render-ctrls').reRender({ state: 'pitch' })
       return this.html`
-        ${this.html([this.preprocess(PITCH)])}
+        ${this.html([this.preprocess(HELP)])}
         <button class="create">Create new rant</button>
       `
     }

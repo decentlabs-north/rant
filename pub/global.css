@@ -277,6 +277,9 @@ ico {
 }
 pre.pksig { background: none !important; text-align: center; }
 
+th[align=right], td[align=right] { text-align: right; }
+th[align=left], td[align=left] { text-align: left; }
+th[align=center], td[align=center] { text-align: center; }
 /*---------------- THEME "light/dark" on dark/light fix ----*/
 render[data-theme] {
   background-color: var(--background-color);
