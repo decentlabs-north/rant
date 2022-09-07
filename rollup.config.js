@@ -1,119 +1,104 @@
-import svelte from 'rollup-plugin-svelte'
-// import inject from '@rollup/plugin-inject'
-import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import polyfills from 'rollup-plugin-node-polyfills'
+import resolve from '@rollup/plugin-node-resolve'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
-import builtins from 'rollup-plugin-node-builtins'
-import globals from 'rollup-plugin-node-globals'
+import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { dirname } from 'path'
+import css from 'rollup-plugin-css-only'
 import crass from 'crass'
-import analyze from 'rollup-plugin-analyzer'
+import replace from '@rollup/plugin-replace'
+
+const version = JSON.parse(require('fs').readFileSync('./package.json')).version
+const commit = require('child_process')
+  .execSync('git rev-parse HEAD')
+  ?.toString('utf8').trim()
 
 const production = !process.env.ROLLUP_WATCH
-
-// On creating a pipeline for outputting html.
-// https://github.com/bdadam/rollup-plugin-html
-
 export default {
-  input: 'src/main.js',
+  input: 'app.js',
   output: {
-    sourcemap: true,
-    format: 'iife',
-    name: 'app',
-    file: 'public/build/bundle.js'
+    sourcemap: !production, // costs about ~2MB
+    format: 'es',
+    name: 'rant',
+    file: 'pub/build/bundle.js'
   },
   plugins: [
-    svelte({
-      // enable run-time checks when not in production
-      dev: !production,
-      // we'll extract any component CSS out into
-      // a separate file - better for performance
-      css: css => {
-        // TODO: merge with global.css and inject into head.
-        css.write('public/build/bundle.css')
-      }
+    css({ output: 'bundle.css', sourceMap: false }),
+    replace({
+      preventAssignment: true,
+      __ENV__: production ? 'production' : 'dev',
+      __VERSION__: version,
+      __COMMIT__: commit
     }),
-
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration -
-    // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       browser: true,
-      dedupe: ['svelte', 'sodium-universal'],
-      preferBuiltins: true // <-- If this refers to builtins below then yes.
+      dedupe: ['sodium-universal'],
+      preferBuiltins: false
     }),
-
-    commonjs({
-      namedExports: {
-        'lz-string': ['compressToUint8Array', 'decompressFromUint8Array'],
-        'lzutf8': ['compress', 'decompress']
-      }
-    }),
-
-    // These should probably be replaced by injecting
-    // https://github.com/feross/buffer
-    globals(),
-    builtins(),
-
-    // In dev mode, call `npm run start` once
-    // the bundle has been generated
+    commonjs(),
+    polyfills({ sourceMap: true, include: ['buffer'] }),
     !production && serve(),
-
-    // Watch the `public` directory and refresh the
-    // browser on changes when not in production
-    !production && livereload('public'),
-
-    production && analyze({ summaryOnly: true }),
-
-    // If we're building for production (npm run build
-    // instead of npm run dev), minify
-    production && terser({ output: { comments: false } }),
-
-    production && petrify('public/index.html', 'docs/index.html')
+    !production && livereload('pub/'),
+    production && terser({
+      // https://github.com/terser/terser#terser
+      keep_classnames: true,
+      keep_fnames: true
+    }),
+    production && petrify('./pub/index.html', './docs/index.html')
   ],
   watch: {
     clearScreen: false
   }
 }
 
-function serve() {
-  let started = false
-
+function serve () {
+  const port = process.env.PORT || 3000
+  let server
+  function toExit () {
+    if (server) server.kill(0)
+  }
   return {
-    writeBundle() {
-      if (!started) {
-        started = true
-
-        require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
+    writeBundle () {
+      if (server) return
+      server = require('child_process').spawn('npm',
+        [
+          'run', 'start', '--', '--dev', '--host 0.0.0.0', `--port ${port}`
+        ],
+        {
           stdio: ['ignore', 'inherit', 'inherit'],
           shell: true
         })
-      }
+
+      process.on('SIGTERM', toExit)
+      process.on('exit', toExit)
     }
   }
 }
 
-
-const { readFileSync, writeFileSync, mkdirSync } = require('fs')
-const { dirname } = require('path')
-function petrify (input, output) {
+function petrify (input, output, opts = {}) {
+  // https://github.com/rollup/rollup/blob/master/docs/05-plugin-development.md
   return {
+    name: 'petrify',
     writeBundle (opts, bundle) {
+      console.log('Casting Petrify(lv0)')
       let html = readFileSync(input).toString('utf8')
-
       // fugly inline css
-      const cexp = new RegExp(`<link[^>]+href=['"]([^'"]+\.css)['"][^>]*>`)
+      const cexp = /<link[^>]+href=['"]([^'"]+\.css)['"][^>]*>/
       let m
-      while (m = html.match(cexp)) {
-        const file = `public${m[1]}`
-        const css = crass.parse(readFileSync(file))
-          .optimize({ o1: true })
+      while ((m = html.match(cexp))) {
+        const file = `pub${m[1]}` // <-- hardcoded output?
         console.log(`Inlining ${file}`)
+        let css = readFileSync(file)
+        try {
+          css = crass.parse(css)
+            .optimize({ o1: true })
+        } catch (err) {
+          console.warn(`Optimizing ${file} failed: `, err.message)
+        }
         html = html.replace(m[0], `
-  <!-- inline ${file} -->
-  <style>${css.toString()}</style>
+          <!-- inline ${file} -->
+          <style>${css.toString()}</style>
         `)
       }
 
@@ -124,11 +109,12 @@ function petrify (input, output) {
         const rexp = new RegExp(`<script[^>]+src=[^>]+${artifact.fileName}[^>]+>`)
         if (html.match(rexp)) {
           console.log('Inlining artifact', name)
-          const chunks = html.replace(rexp, '<script>¤¤¤PITA¤¤¤')
+          // TODO: modifiy rexp to extract type attr
+          const chunks = html.replace(rexp, '<script type="module">¤¤¤PITA¤¤¤')
             .split('¤¤¤PITA¤¤¤')
-
-          const code = `window.addEventListener('DOMContentLoaded',ev => {\n` +
-                        artifact.code + `\n})`
+          // non-module
+          // const code = `window.addEventListener('DOMContentLoaded', async ev => {${artifact.code}})`
+          const code = artifact.code
           html = chunks[0] + code + chunks[1]
         }
       }

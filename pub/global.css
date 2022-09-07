@@ -1,0 +1,598 @@
+/* flexi.css */
+.row{display:flex; flex-direction: row;}
+.row-reverse{display:flex; flex-direction: row-reverse;}
+.col, .column{display:flex; flex-direction: column;}
+.column-reverse{display:flex; flex-direction: column-reverse;}
+.wrap{flex-wrap: wrap;}
+.wrap-reverse{flex-wrap: wrap-reverse;}
+.nowrap{flex-wrap: nowrap;}
+.space-around{ justify-content: space-around; }
+.space-between{ justify-content: space-between; }
+.start{ justify-content: flex-start; }
+.end{ justify-content: flex-end; }
+.center{ justify-content: center; }
+.xstart{ align-items: flex-start; }
+.xend{ align-items: flex-end; }
+.xcenter{ align-items: center; }
+.xbaseline{ align-items: baseline; }
+.xstrech { align-items: stretch; }
+.grow1{ flex-grow: 1; }
+.grow2{ flex-grow: 2; }
+.grow3{ flex-grow: 3; }
+.grow4{ flex-grow: 4; }
+.text-center { text-align: center; }
+.block { display: block; }
+/* Reconfigure Pico-CSS */
+/* Deep-purple Light scheme (Default) */
+/* Can be forced with data-theme="light" */
+[data-theme="light"],
+:root:not([data-theme="dark"]) {
+  --primary: #5e35b1;
+  --primary-hover: #512da8;
+  --primary-focus: rgba(94, 53, 177, 0.125);
+  --primary-inverse: #FFF;
+}
+
+/* Deep-purple Dark scheme (Auto) */
+/* Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: #5e35b1;
+    --primary-hover: #673ab7;
+    --primary-focus: rgba(94, 53, 177, 0.25);
+    --primary-inverse: #FFF;
+  }
+}
+
+/* Deep-purple Dark scheme (Forced) */
+/* Enabled if forced with data-theme="dark" */
+[data-theme="dark"] {
+  --primary: #5e35b1;
+  --primary-hover: #673ab7;
+  --primary-focus: rgba(94, 53, 177, 0.25);
+  --primary-inverse: #FFF;
+}
+
+/* Deep-purple (Common styles) */
+:root {
+  --form-element-active-border-color: var(--primary);
+  --form-element-focus-color: var(--primary-focus);
+  --switch-color: var(--primary-inverse);
+  --switch-checked-background-color: var(--primary);
+}
+/* global */
+:root {
+  --purp: #c678dd;
+  --red: #fb4934;
+  --bone: #e8d8b0;
+  --faded: #928374;
+  --slate: #83a598;
+  --coal: #2c323b;
+  --orange: #fe8019;
+  --moss: #98c379;
+  --grass: #8ec07c;
+  --cobalt: rgb(0,100,200);
+  /* geom */
+  --nav-height: 2em;
+}
+
+/* Global style */
+body {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+/* hsplit grid setup */
+main {
+  display: grid;
+  grid-template-columns: 50vw 50vw;
+  grid-template-rows: auto;
+  grid-template-areas: "west east";
+}
+
+render,
+message-preview,
+pitch,
+home { display: block; }
+.east { grid-area: east; }
+.west { grid-area: west; }
+message-preview.container { max-width: 700px !important; }
+
+render { min-height: 100vh; }
+
+/* main { transition: grid-template-columns 1s; } */
+/* main.mode-show editor { overflow-x: hidden; width: 0; }*/
+main[data-mirror=true] { grid-template-areas: "east west"; }
+main.mode-show:not([data-mirror=true]) { grid-template-columns: 0vw 100vw; }
+main.mode-show[data-mirror=true] { grid-template-columns: 100vw 0vw; }
+main.mode-show .west { display: none; }
+
+/* No Split  on .mode-edit - use full sceen */
+@media (max-width: 768px) {
+  main.mode-edit:not([data-mirror=true]) { grid-template-columns: 100vw 0vw; }
+  main.mode-edit[data-mirror=true] { grid-template-columns: 0vw 100vw; }
+  main.mode-edit render { display: none; }
+}
+/* Horizontal Split on mode-edit,
+ * patch fullscreen elements to use 50% */
+@media (min-width: 768px) {
+  main.mode-edit editor { /* Make editor sticky */
+    position: fixed; min-width: 50vw; top: 0;
+  }
+  main.mode-edit[data-mirror=true] editor { left: 50vw; }
+  main.mode-edit dialog { min-width: 50%; left: 0; right: 50%;}
+  main.mode-edit[data-mirror=true] dialog { left: 50%; right: 0; }
+}
+/* Picocss default breakpoints
+@media (min-width:576px) {}
+@media (min-width:768px) {}
+@media (min-width:992px) {}
+@media (min-width:1200px) {}
+*/
+
+/* routes */
+main:not([data-view=home]) home { display: none; }
+main:not([data-view=saved]) saved { display: none; }
+main:not([data-view=discover]) discover { display: none; }
+main:not([data-view=settings]) settings { display: none; }
+main:not([data-view=pitch]) pitch { display: none; }
+main[data-view=pitch] render { display: none; }
+/* TODO: redisign this part */
+main:not([data-view=edit]):not([data-view=show]) editor { display: none; }
+
+/* make preview look like it's atop the editor */
+main render {
+  box-shadow: -6px -25px 20px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+}
+
+/* Move V-padding from main to render-block */
+body > main { padding: 0; }
+render, .pad {
+  padding: var(--block-spacing-horizontal) var(--block-spacing-horizontal);
+}
+.hgap { margin: 0 var(--block-spacing-horizontal); }
+.vgap { margin: var(--block-spacing-vertical) 0; }
+.gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
+
+/* MainMenu button */
+render-ctrls { display: block; margin-bottom: var(--block-spacing-vertical); }
+
+.btn-round {
+  --size: 2em;
+  margin: 0;
+  display: inline-block;
+  width: var(--size);
+  height: var(--size);
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--primary);
+  box-shadow: 0 0 4px var(--primary);
+  font-weight: bold;
+  margin-right: var(--block-spacing-horizontal);
+  /* opacity: 0.7;*/
+}
+.btn-round:last-child { margin-right: unset; }
+
+/* Fix dropdown button look */
+nav button,
+nav [role=list] > [role=button],
+nav details[role="list"][open] summary
+{
+  /* height: calc(1rem * var(--line-height,1.5)); */
+  border-right: 1px solid #000;
+  border-radius: 0;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+nav details[role="list"] summary[role=button] { height: 100%; line-height: 2; }
+nav [role=list] { display: block; width: 100%; }
+nav.bottom button, nav.bottom [role=button] { margin-bottom: 0; }
+/* Fix pico-bug */
+[data-tooltip][role=button] { border-bottom: unset; cursor: pointer; }
+
+main editor { position: sticky; height: 100vh; }
+#markdown-area { /* area height is borked, maybe use contentEditable attribute instead */
+  height: 80%;
+  border-radius: 0;
+  border: none;
+  outline: none;
+  resize: none;
+}
+
+editor:not([data-state=draft]) #edit-options,
+editor:not([data-state=draft]) #edit-publish,
+editor:not([data-state=signed]) #edit-fork,
+editor:not([data-state=signed]) #edit-share,
+editor[data-state=draft] .no-draft
+{ display: none; }
+
+message-preview > h1:first-child,
+message-preview > h2:first-child,
+message-preview > h3:first-child {
+  text-align: center;
+}
+message-preview { overflow-x: hidden; }
+main { position: relative }
+home { position: sticky; }
+rant-list { display: block; }
+rant-list rant icon {
+  display: inline-block;
+  --size: 1.9em;
+  height: var(--size);
+  width: var(--size);
+  overflow: hidden;
+  text-align: center;
+  line-height: var(--size);
+  vertical-align: middle;
+  font-size: calc(var(--size) * 0.8);
+  border: 1px solid var(--primary);
+  margin-right: var(--block-spacing-horizontal);
+}
+rant-list rant .trash {
+  background-image: var(--icon-close);
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+rant-list rant h6, rant-list rant h4 { margin: 0; }
+rant-list rant .sample {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+rant-list rant {
+  border-bottom: 1px solid var(--primary);
+  padding-top: var(--block-spacing-horizontal);
+  padding-bottom: var(--block-spacing-horizontal);
+}
+rant-list rant:last-child { border-bottom: none; }
+rant-list rant[data-id=new] h6 { color: var(--primary); }
+
+/* Emoji Icons */
+ico {
+  display: inline;
+  filter: sepia(71%) saturate(300%) hue-rotate(217deg);
+}
+
+#r-btn-resume.btn-round {
+  --size: 3rem;
+  position: fixed;
+  background-color: var(--primary);
+  left: calc(50vw - 1.5rem);
+  top: calc(100vh - var(--block-spacing-vertical) - var(--size));
+  opacity: 0.9;
+}
+#r-ghost-pad { line-height: 3rem; }
+.mode-edit #r-btn-resume.btn-round,
+  render:not([data-state=draft]) #r-btn-resume.btn-round,
+  .mode-edit #r-ghost-pad,
+  render:not([data-state=draft]) #r-ghost-pad,
+  [data-view=pitch] #r-btn-resume
+  { display: none; }
+
+.imgmoji {
+  font-size: 6rem;
+  display: inline-block;
+}
+.imgmoji:only-child {
+  display: block;
+  text-align: center;
+}
+pre.pksig { background: none !important; text-align: center; }
+
+th[align=right], td[align=right] { text-align: right; }
+th[align=left], td[align=left] { text-align: left; }
+th[align=center], td[align=center] { text-align: center; }
+/*---------------- THEME "light/dark" on dark/light fix ----*/
+render[data-theme] {
+  background-color: var(--background-color);
+}
+
+/*-- THEME "ghostwriter" port of legacy-'spooky' ---*/
+render[data-theme=ghostwriter] {
+  --background-color: ghostwhite;
+  --color: black;
+  --h1-color: var(--color);
+  --h2-color: var(--color);
+  --h3-color: var(--color);
+  --h4-color: var(--color);
+  --h5-color: var(--color);
+  --code-background-color: var(--background-color);
+  --code-color: var(--color);
+  --font-family: "Times New Roman", serif;
+  background-color: var(--background-color)
+}
+render[data-theme=ghostwriter] render-ctrls,
+render[data-theme=ghostwriter] #markdown-render > * {
+  animation: 0.3s ease-in 6s normal backwards blurin;
+  font-family: var(--font-family);
+}
+render[data-theme=ghostwriter] #markdown-render > *:first-child {
+  font-family: "Courier", monospace;
+  font-size: 3em;
+  font-weight: 100;
+  margin-bottom: 0;
+  text-align: center;
+  text-transform: capitalize;
+  animation: 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) 0s 3 alternate backwards running blurin;
+}
+
+render[data-theme=ghostwriter] #markdown-render > *:nth-child(2) {
+  font-weight: normal;
+  margin-top: 0;
+  animation: 0.8s ease-in-out 2s 3 alternate backwards blurin;
+}
+render[data-theme=ghostwriter] #markdown-render > *:nth-child(3) {
+  animation: 5s linear 2.4s 1 both flicker;
+}
+
+@keyframes blurin {
+  0% {
+    -webkit-filter: blur(12px);
+    filter: blur(12px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0;
+  }
+  10%, 10.2%, 20%, 20.6%, 30%, 30.6%, 45%, 55.1%, 57%, 60.1%, 65%, 75.1%, 77%, 85.1%, 86% {
+    -webkit-filter: blur(24px);
+    filter: blur(24px);
+    opacity: 0;
+  }
+  10.1%, 20.1%, 30.1%, 30.5%, 45.1%, 50%, 55%, 57.1%, 60%, 65.1% {
+    -webkit-filter: blur(24px);
+    filter: blur(24px);
+    opacity: 0.7;
+  }
+  75%, 77.1%, 85%, 86.1%, 100% {
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/*-- THEME "morpheus" ---*/
+render[data-theme=morpheus] {
+  --background-color: black;
+  --color: #a0ff7e;
+  --primary: var(--color);
+  --h1-color: var(--color);
+  --h2-color: var(--color);
+  --h3-color: var(--color);
+  --h4-color: var(--color);
+  --h5-color: var(--color);
+  --code-background-color: var(--background-color);
+  --code-color: var(--color);
+  --font-family: monospace, "Courier";
+  background-color: var(--background-color);
+  --nav-height: 0;
+}
+render[data-theme=morpheus] render-ctrls,
+render[data-theme=morpheus] #markdown-render > * {
+  animation: 0.5s ease-in 10s normal backwards blurin;
+}
+render[data-theme=morpheus] #r-btn-resume {
+  background-color: #a0ff7e30;
+  border: none;
+}
+
+@keyframes morphsldwn {
+  0% {  top: 0; height: 100vh; }
+  100% {
+    top: var(--nav-height);
+    height: calc(100vh - var(--nav-height));
+  }
+}
+@keyframes morphblink {
+  0% { opacity: 0; }
+  49% { opacity: 0; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.6; }
+}
+@keyframes morphtypesim {
+  0% { width: 0; display: none; }
+  1% { width: 0; display: initial; }
+  100% { width: 100%; }
+}
+
+/* scanlines */
+render[data-theme=morpheus]:before,
+render[data-theme=morpheus] #markdown-render:before {
+  display: block;
+  position: fixed;
+  width: 50%;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  content: ' ';
+  z-index: 1;
+  background: repeating-linear-gradient(0deg,
+    rgba(8,15,9,0.0),
+    rgba(8,15,9,0.0) 2px,
+    rgba(255,255,255,0.2) 4px,
+    rgba(255,255,255,0.3) 7px,
+    rgba(8,15,9,0.0) 10px
+  );
+}
+render[data-theme=morpheus] render-ctrls,
+render[data-theme=morpheus] #r-btn-resume {
+  z-index: 20;
+}
+
+/* vignette */
+render[data-theme=morpheus] #markdown-render:before {
+ z-index: 16;
+ background: radial-gradient(
+   rgba(8, 15, 9, 0.0),
+   rgba(8, 15, 9, 1.0) 98%
+ );
+}
+
+/* TODO: define variables for an "absolute" harness to reduce
+ * dialog/modal full-render fx and so on.
+ * */
+.mode-show render[data-theme=morpheus]:before,
+.mode-show render[data-theme=morpheus] #markdown-render:before {
+  width: 100%;
+}
+.mode-edit:not([data-mirror=true]) render[data-theme=morpheus]:before,
+.mode-edit:not([data-mirror=true]) render[data-theme=morpheus] #markdown-render:before {
+  left: 50%;
+}
+@media (max-width: 768px) {
+  .mode-edit render[data-theme=morpheus]:before,
+  .mode-edit render[data-theme=morpheus] #markdown-render:before {
+    width: 100%;
+  }
+}
+
+/* fake cursor */
+render[data-theme=morpheus] #markdown-render > *:nth-child(2):after {
+  display: inline-block;
+  width: 0.7rem;
+  height: 1em;
+  background: var(--color);
+  content: ' ';
+  animation: 2s ease-in-out 0s infinite both morphblink;
+}
+render[data-theme=morpheus] #markdown-render > *:first-child {
+  font-size: 2rem;
+  font-weight: 100;
+  margin-bottom: 0;
+  text-align: left;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 2s linear 1s normal both morphtypesim;
+}
+render[data-theme=morpheus] #markdown-render > *:nth-child(2) {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 2s linear 5s normal both morphtypesim;
+}
+render[data-theme=morpheus] #markdown-render > *:nth-child(3) {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: 3s linear 8s normal both morphtypesim;
+}
+
+/* TODO: port this... we need a Comic Sans theme it's a must! */
+main.love-letter {
+  background: pink;
+}
+.love-letter #render {
+  font-family: "Comic Sans", monospace; /* The one and only */
+}
+
+/*------- THEME: Decent / Evershade (NEW!) */
+[data-theme=decent] {
+  --grah: rgb(47, 56, 62);
+  --rust: rgb(219, 121, 123);
+  --leaf: rgb(154, 178, 120);
+  --yell: rgb(203, 175, 120);
+  --rock: rgb(129, 142, 133);
+  --copp: rgb(208, 140, 109);
+  --lead: rgb(115, 168, 162);
+  --viol: rgb(205, 148, 176);
+  --slat: rgb(44, 50, 61);
+
+  --primary: var(--viol);
+  --background-color: var(--grah);
+  --color: #bbbba9;
+  --subtle: var(--rock);
+  --bleak: var(--slat);
+  --ca: var(--rust);
+  --h1-color: var(--primary);
+  --h2-color: var(--lead);
+  --h3-color:  var(--leaf);
+  --h4-color: var(--yell);
+  --h5-color: var(--lead);
+  --hr-color: var(--background);
+  --code-background-color: var(--bleak);
+  --code-color: var(--subtle);
+  --strong-color: var(--subtle);
+  --font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu",
+    "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+}
+[data-theme=decent] a { color: var(--ca); }
+[data-theme=decent] h1,
+[data-theme=decent] h2,
+[data-theme=decent] h3,
+[data-theme=decent] h6 { font-weight: 300; }
+[data-theme=decent] h1:first-child {
+  margin-top: 2rem; font-size: 2.5rem;
+  text-align: unset;
+}
+/* Override monospace font */
+/*[data-theme=decent] pre,
+[data-theme=decent] code,
+[data-theme=decent] kbd,
+[data-theme=decent] samp {
+  --font-family: "DejaVu Sans Mono" "Menlo", "Consolas", "Roboto Mono", "Ubuntu Monospace",
+    "Noto Mono", "Oxygen Mono", "Liberation Mono", monospace,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}*/
+[data-theme=decent] em { color: var(--subtle); }
+[data-theme=decent] blockquote {
+  border-left: 5px solid var(--bleak);
+}
+[data-theme=decent] blockquote p {
+  color: var(--subtle);
+}
+[data-theme=decent] pre {
+  background-color: var(--bleak);
+  word-wrap: normal;
+  padding: 16px;
+  overflow: auto;
+  border-radius: 2px;
+  font-size: 0.8em;
+  line-height: 1.25;
+  padding: 1em;
+}
+[data-theme=decent] p strong { color: var(--strong-color); }
+[data-theme=decent] p code, render[data-theme=decent]  li code {
+  border-radius: 2px;
+  padding: 4px 6px;
+  margin: 0 1px;
+  background-color: var(--bleak);
+  color: var(--subtle);
+  font-size: 0.8em;
+  display: inline-block;
+}
+[data-theme=decent] hr {
+  border: none;
+  border-bottom: 2px dashed var(--hr-color);
+  margin-bottom: 5em; margin-top: 3em;
+}
+/*alt hr*/
+[data-theme=decent] hr {
+  border-bottom: 2px solid var(--hr-color);
+  max-width: 25vw; margin-left: 0;
+}
+[data-theme=decent] table { border: 1px solid var(--bleak); }
+[data-theme=decent] table thead { background-color: var(--bleak); font-size: 0.8em; }
+[data-theme=decent] table thead th { color: var(--leaf); border: none; font-weight: bold; }
+[data-theme=decent] table th, table td { padding: 4px 6px; border: none;}
+[data-theme=decent] table td { color: var(--color); }
+[data-theme=decent] table tr:nth-child(even) td {
+  background-color: var(--bleak); color: var(--subtle); }
+[data-theme=decent] ico {
+  filter: sepia(90%) saturate(0%)
+}
+
