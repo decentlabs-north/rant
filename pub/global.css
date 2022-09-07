@@ -145,9 +145,12 @@ main render {
 
 /* Move V-padding from main to render-block */
 body > main { padding: 0; }
-render, .hpad {
+render, .pad {
   padding: var(--block-spacing-horizontal) var(--block-spacing-horizontal);
 }
+.hgap { margin: 0 var(--block-spacing-horizontal); }
+.vgap { margin: var(--block-spacing-vertical) 0; }
+.gap { margin: var(--block-spacing-vertical) var(--block-spacing-horizontal); }
 
 /* MainMenu button */
 render-ctrls { display: block; margin-bottom: var(--block-spacing-vertical); }

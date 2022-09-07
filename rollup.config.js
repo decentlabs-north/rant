@@ -45,7 +45,7 @@ export default {
       keep_classnames: true,
       keep_fnames: true
     }),
-    production && petrify('./pub/index.html', './pub/build/index.html'),
+    production && petrify('./pub/index.html', './docs/index.html')
   ],
   watch: {
     clearScreen: false

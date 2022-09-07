@@ -47,7 +47,7 @@ Bonus, wanna be cryptic? Got ya covered!
 Want to say something with a flair?
 Check out the **themes**.
 
-Happy Ranting! =)
+Rant Happy! =)
 `.trim()
 const DB = new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
@@ -99,6 +99,7 @@ async function main () {
     console.log('Forked into', draft, parent)
     navigate(`e/${draft}`)
   })
+  nClick('edit-share', shareDefault)
   nClick('edit-options', () => { nEl('edit-opts-dlg').open = true })
   nClick('edit-opts-ok', () => { nEl('edit-opts-dlg').open = false })
   nValue('edit-opt-theme',
@@ -107,7 +108,7 @@ async function main () {
   )
 
   /* Settings-view */
-  const darkMode = kernel.config('dark-mode', false)
+  const darkMode = kernel.config('dark-mode', true)
   nValue('opt-dark-mode', ...darkMode)
   nAttr(document.body, 'theme', mute(darkMode[0], m => m ? 'dark' : 'light'))
   const mirror = kernel.config('mirror', false)
@@ -130,6 +131,15 @@ async function main () {
 
   /* Home-view controls */
   stitch(kernel.$drafts(), 'saved-drafts')
+  kernel.$current(id => {
+    if (!isDraftID(id)) return
+    const el = nEl('btn-resume-draft')
+    el.href = `#e/${id}`
+  })
+  nHide('btn-resume-draft',
+    mute(kernel.$current, id => !isDraftID(id))
+  )
+
   /* saved-view controls */
   stitch(kernel.$rants(), 'saved-rants')
 
@@ -147,6 +157,7 @@ async function main () {
         return `NOOP(${RT[path]}, ${(id || '').substr(0, 24)})`
     }
   })(console.info)
+
   /* Clear pending draft save on leave */
   window.addEventListener('beforeunload', async () => {
     console.info('Saving Draft beforeunload')
@@ -160,6 +171,38 @@ async function createNew () {
   const r = get(kernel.$rant())
   navigate(`e/${r.id}`)
   setMode(true)
+}
+
+async function shareDefault () {
+  await navigatorShare()
+    .catch(err => {
+      console.warn('navigator.share() failed, trying clipboard', err)
+      return currentToClipboard()
+        .then(() => window.alert('Copied URL to clipboard'))
+    })
+}
+async function currentPickle () {
+  const current = get(kernel.$current)
+  if (isDraftID(current)) return false
+  const p = await kernel.pickle(current)
+  const url = new URL(window.location)
+  url.hash = 'r/' + p
+  return url.toString()
+}
+async function currentToClipboard () {
+  const url = await currentPickle()
+  if (url) await navigator.clipboard.writeText(url)
+}
+async function navigatorShare () {
+  const url = await currentPickle()
+  if (!url) return
+  const { title, excerpt } = get(kernel.$rant())
+  const shareData = {
+    title: `1k | ${title || 'Rant'}`,
+    text: excerpt,
+    url
+  }
+  return await navigator.share(shareData)
 }
 
 Tonic.add(class MainMenu extends Tonic {
@@ -181,13 +224,15 @@ Tonic.add(class MainMenu extends Tonic {
     `
   }
 })
-
 // TODO: convert to vanilla html / will be less code and
 // easier to read with CSS.
 Tonic.add(class RenderCtrls extends Tonic {
   async click (ev) {
     if (Tonic.match(ev.target, '#btn-toggle')) {
       setMode(!get($mode))
+    }
+    if (Tonic.match(ev.target, '.btn-export')) {
+      shareDefault()
     }
   }
 
@@ -225,7 +270,8 @@ Tonic.add(class RenderCtrls extends Tonic {
             <!-- <b role="button">Publish</b> -->
           `
           : this.html`
-          <button class="btn-round"><ico>📤</ico></button>
+          <!--<button class="btn-round"><ico>📤</ico></button>-->
+          <b role="button" class="outline secondary btn-export">share</b>
           `
         }
       </ctrls>
@@ -322,9 +368,11 @@ Tonic.add(class RantList extends Tonic {
     return this.html`
       ${newRant}
       ${(rants || []).map(rant => {
+        let id = rant.id
+        if (!isDraftID(rant.id)) id = id.toString('base64')
         return this.html`
           <rant class="row xcenter space-between"
-            data-id="${rant.id.toString('base64')}"
+            data-id="${id}"
             data-state="${rant.state}">
             <div class="row xcenter">
               <icon>${rant.icon}</icon>
@@ -412,6 +460,13 @@ export function nAttr (el, attr, output) {
 export function nDisabled (el, $n) {
   el = nEl(el)
   return $n(c => { el.disabled = !!c })
+}
+export function nHide (el, n) {
+  el = nEl(el)
+  return n(v => { el.style.display = v ? 'none' : null })
+}
+export function nShow (el, n) {
+  return nHide(el, mute(n, n => !n))
 }
 
 // router.js
