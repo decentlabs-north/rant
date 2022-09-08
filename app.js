@@ -27,7 +27,8 @@ const $mode = mute(combine(_mode, $view), ([m, v]) => {
   return m // fallback on user-controlled state
 })
 const CHEATSHEET = unpackFeed('PIC0.K0.GFZu8O6IJ1_4DVdAZHQr32fJx8afn6MUbyyXz987iLAB0.3Dq-Z9Oa8L6SiTU6LWCssrPRyPN_RPXC40XzrwQf2dHdWTWGyUpwzvFoMYzZ3_DTtXlvgl1EI+1Z+pGPCJcFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOw3gAHoWIAoXTFA44jIENoZWF0U2hlZXQKCiMjIE1hY3JvcwoKfCBleHByZXNzaW9uIHwgbmFtZXwgc3RhdHVzfAp8LcQBxgbIBy0tOnwKfGAh8J+TtyAhYHwgQmlnIEVtb2ppIFBpY3R1cmVzfCBkb25lxCZ7a2V5fWB8IEF1dGhvciBQdWJsaWMta2V5fCB0b2RvxSN0OmVwb2NoXHxmb3JtYXTEL0NvdW50ZG93bssnZzp1NjIycmQ4bXdwfWAgfCBFbWJlZCBHZW9oYXNofCBwbGFubmVkIMQtfn54b3I6cHdcfHJlZGFjdGVkfn7EM0lucGxhY2UgZW5jcnlwdOYA88s65AEZQmFzaWNzCiMjIyBUeXBvZ3JhcGh5CnzqASZ8cmVzdWx05gEexQQKfGAqKmJvbGQqKsRmICAgyA_EG19pdGFsaWNzX2B8IMkMxBl+flN0cmlrZSBUaHJvdWdo5gCk0hZ8CnwgQmFja3RpY2tzLcViYGNvZGVg5gCyIyBIZWFkaW5ncwpgYGBtYXJr5AE6CskXIDHkANfIDTLMMiAzxA7KDzTFD8oQNcYQyhE2xGPGdUxpc3TlAScjIyBVbm9yZGVyZWTtAIItIHN3aW1txDh3ZWFyCi0gcGFzc3BvcnTEG3VuZ2xhc3Nl5QC2xVMjIyBP00cxLiBNb25rZXkKMskKMy4gQmFuYW5hxT3EOlRhYmxlcwrNOnwgYWxpZ24gcmlnaHQgyA5sZWbKDWNlbnRlcuQCNegC3sQBOnw6yw7NDeUC_uQB4yAgyVjFUsYBxRttaWRkbGXFD8ksxAEwIHwgQ2HIK8YsygHNLEFCIHwgQUxQSEEgQkVUQcgseMks6AD4TGlua3MgJmFtcDsgSW1hZ_ABBFvEISB0ZXh0XShodHRwczovL2hvc3QudGxkKQohW2FsdCBpxDjXJC_FHS5wbmcpxXRfVE9ETzogYmxvY2sgcmVtb3RlxkBzIGZyb20gdW50cnVzdGVkIGHlA_RzLl_mAjBCxDJxdW90Ze0AoD4gVGhlIHRyZWUgd2FzIHRhbGxlciB0aGFuIGFueXRo5AI+c2hlCj4gaGFkIGV2ZXIgc2VlbiBiZWZvcmUuCj4KPiAtVGhleSBzYWlkIGl0xShixCN0aGVyZSBhIHdoaWxlLuoCukNvZGXmAI9zCuQBTcQZxAggIGNvbnN0IHggPSA0MssTb2xlLmxvZyh4KcgwoXoBoXgAoWwAoWTLQngxnEIYkAChcwo')
-// const PITCH = unpackFeed('PIC0.K0.GFZu8O6IJ1_4DVdAZHQr32fJx8afn6MUbyyXz987iLAB0.ndP0fHvkF3AVYCDx79FHp-xDOvgW2ImG6R6yAeMMKU5KcRDpOACBG4efqDtGe7i4i_U0gdIf7hDKH0XSJ3s+BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQA3gAHoWIAoXTFA94xMAQQgRgaXVQKoDsDOAXA9gBywQwEYA2ApqAHIZrEoBQNAKgBYCWKouOoAxgE7G5U2SStVBpGA9n1CFmAa1IATZgHNmaXIVAqeuAGZ71zAHSg6TUrIWzGGDIrES0oAJ4YArj1AB3DD0Vs3syEWirEzujuXHI0GEiOpMxIVDxI4aAAVBl6fsQAbsQ8WVKkLCqMxnQgYABK1KwayewquEno3MSofigsWDQA6sQA5AXcuHx67iEuYrgK8ejEWGyYoIr1KgsYALbhLEgqjpKKGKLCzutYnQ5xoFiEAjk822x+jsz+d+NozNQANKBhGJdNFCigAUD8LhQUgAqAALSgdRDNhXHh6YhcNCEGYAfQAwoQPIo9HxiLjKjQAHygACiBR4Mx+uwSoF2KBQuDCSLYPXGxAc6h5oD492YXAEAqR8WRbEmIVAT22lPoGFA6GwrLQulQ21YKGYtzc7iGDgko1WXE6KDe+UKM3WeXFpFwsLuDzQStZ7M53LwHKl4h4HnKpiq1TAuMR_Sc7HwHmc4hdOAA_LjzCw2BwsMLcOqkioSOriIQ9PCuHENEkpQADRhobaEGuK4KkcSSCXxfClDCLByulzeRiFYhhgBixBLirJYjVJ28SCJuEFzldDj4Fc+xq84hD9blwe2rIr2yezgwelcHi8F7LOmY6+ofjQlRrb6hPRoXE8WnraGWABcAD0QFYJ4o4AB5+FajLGBWCJqjqL71o2NBvjWNDgIAPBuAKv7gDwf+ANDVDIzB6hoPxxABoA1pAoDQMEaoAEIuFQGE0AAkmgKJxgmoCQAADIJ3ASCCKSvF4tH9Bg9AAqA+DuBccRDM4vg8IySJcWwnR7rOoAFE0NosqS7joLoFFIJUgx3MGTrrNwOxYHwHKGvEa5stCwYrGqYRpGZpDbLgEGke4R64NsHhNBeiruBZ4bEVGoCMQpPiMC4Kbpem+K4CZiSadFrluiodgOKs3b2UgXCsKOiXJaSOzsGImKMEg4qaHcYJXFizAFAA3Fe7hjPE_AGjiawhTmMCMaAUWKAIeZJJgAF0IiCA1AAMrQiIAIo1Pi9jUDQiIACJkAAyiKmJ+AEh2gEdAAS9AonQuIALL7dsACsABswongWxjGOmxGMXEJkDK6SB5mVvAuFgPxcCmNAAOKUK4eYVgyAqEdSoCnSWmIRDspCqXCblEgc8IaH0NKrFkfCzVixRJkeJkFtKshpKAnQw3DLmVAl5yuOkpH3MQuzJAKAI2mpMwAQAFOmNCnbgMyGXsbNBOIDV6A8HwpmY+LDtE03JUmmQZMz1BZHQd3ZjMNSuj8BxwAAvAAlEAAChegKheAChbAChZMtCeDGRA7jAAKFzCA')
+const PITCH = unpackFeed('PIC0.K0.xQLjkWClGDyYFYam0PBJa1I0UFpKa7AhS_TNdBO0wWMB0.MGnJgexXLCNKXt-r3TddbRsP6Vvy6LdeGcF8SK_f1ou7N2_fGnEEwjrdZLQ4TiG4smbEV7CS4m6DTlBkTJk0CQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEu3gAHoWIAoXTFAQwxACCECMDWYFCwFQBYEsDOJ0gIYgC4oB2AniAGYCuANlaQPoDCVA9hQCZkBOApt3SADlmebgAdsbAHSwAknhAB3ZpygYAxswC2oqtxG0QzMmSpFuAGhyE2ilDRBok2HiELDuGAG4pcARQBKGmwWIACq_gAyVjaivJwAtABM8bHcnA4KzprSsMCgESiaKHiwIAB8IADyhNwgANJ2zCAAQsQi8MjYeADkGAB+iQAMg4rKbBh4TUjcVKIgxKzkzGoUGMyEik7yWIWiynjYhHg5ADy4SDxkALwARMDcAPQ1CjcgnMy6twBGFHiThK81FRsGg0N8WGooDcyghOKRiicHtgyvAwIAeDcAwvtwIAAoXoCoXgAoWwAoWTLQngx2M+2QAChcwI')
+
 const DB = new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
   keyEncoding: 'buffer'
@@ -197,7 +198,7 @@ async function navigatorShare () {
   if (!url) return
   const { title, excerpt } = get(kernel.$rant())
   const shareData = {
-    title: `1k | ${title || 'Rant'}`,
+    title: `1k | ${title || 'Note'}`,
     text: excerpt,
     url
   }
@@ -299,20 +300,17 @@ Tonic.add(class MessagePreview extends Tonic {
 
   render () {
     // console.log('MP', this.props)
-    const { text, state, id } = this.props?.n || {}
+    const { text, state } = this.props?.n || {}
     if (text === '' && state !== 'draft') {
       return this.html`<code>Empty Casette</code>`
     }
 
-    if (state === 'pitch' || (state === 'draft' && !id)) {
+    if (this.props.id === 'pitch-render') {
       nEl('render-ctrls').reRender({ state: 'pitch' })
-      // Moved pitch to actual html, better SEO *shrug*
-      return ''
-      /*
+      // TODO: fix SEO for pitch.
       return this.html`
-        <button class="create">Create new rant</button>
         ${this.html([this.preprocess(PITCH.text)])}
-      ` */
+      `
     }
 
     nEl('render-ctrls').reRender({ state, rant: this.props.n })

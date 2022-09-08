@@ -3,8 +3,8 @@
 <head>
 	<meta charset='utf-8'>
 	<meta name='viewport' content='width=device-width,initial-scale=1'>
-	<title>1k</title>
-  <meta name="description" content="Unstoppable Notes">
+	<title>1k Notepad</title>
+  <meta name="description" content="Distraction free markdown editor">
 
 
   <link rel='icon' type='image/png' href='/favicon.png'>
@@ -70,7 +70,7 @@
           </label>
           <label for="opt-mirror">
             <input type="checkbox" role="switch" name="opt-mirror" id="opt-mirror" />
-            Swap east &amp; west on big displays
+            Mirror layout on Desktop
           </label>
         </p>
         <div>
@@ -207,49 +207,7 @@ Check back later...
     <!----- Pitch ------------->
     <pitch class="east pad">
       <render-ctrls state="pitch"></render-ctrls>
-      <div class="container">
-      <h2 class="text-center"><span class="imgmoji">1K</span>  Unstoppable Notes</h2>
-      <p>This app creates notes that are like digital graffiti. </p>
-      <p>The likelihood that your words will get stuck
-      on the internet <strong>forever</strong> are high.</p>
-      <a role="button" href="#e/new" class="block">Create new rant</a>
-      <h3>Resistant against censorship</h3>
-      <p>We've carefully taken steps to design something that does not depend on platforms or third parties, no trackers, no backends - it's perfectly <em>Cloudfree</em>.</p>
-      <blockquote>
-        <p>Every time the message is shared it is replicated in it's full form.</p>
-      </blockquote>
-      <p>To stop the transmission you'd have to censor every device and platform the message passed through. </p>
-      <h5><em>- What about the app?</em></h5>
-      <p>This app is a single self-contained <code>html</code> file that can be hosted anywhere.
-      Feel free to download it and record your thoughts from the comfort of your off-grid resort.</p>
-      <pre><code class="language-bash">curl https://pure.xorcery.co -o rant.html
-      </code></pre>
-      <p><span class="imgmoji">🏕️</span></p>
-      <h3>limitation: <code>ONE KILO BYTE</code></h3>
-      <p>It's about 1000 characters or 1 WoT,  but don't worry it's enough to vent some frustration.
-      We provide compression and macros to generate maximum amount of fun.</p>
-      <h5><em>- But why???</em></h5>
-      <p>Cause it's fun. period.</p>
-      <p>From a technical perspective; you can easily dump 1K into:</p>
-      <ul>
-        <li>URLs</li>
-        <li>QRCodes</li>
-        <li>DNS records</li>
-        <li>RFID tags</li>
-      </ul>
-      <p><em>The swarm is coming..</em></p>
-      <h3>Bonus</h3>
-      <p>Wanna be cryptic?
-      Got ya covered!</p>
-      <blockquote>
-        <p>Select some words and long-tap
-        to <strong>redact</strong> them using inline encryption.<br/>
-        <em>- not yet implemented, sorry :(</em></p>
-      </blockquote>
-      <p>Say something with a flair?
-      Check out the <strong>themes</strong></p>
-      <p>Happy Ranting! ✨</p>
-      </div>
+      <message-preview id="pitch-render" class="container grow4"></message-preview>
     </pitch>
   </main>
 </body>
