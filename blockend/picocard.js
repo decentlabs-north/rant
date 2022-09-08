@@ -111,3 +111,10 @@ export function extractExcerpt (md, len = 40) {
     .replace(/[\n#`*_[\]]/g, '') // Strip out md markup
     .trim()
 }
+
+// block-quote string template
+export function bq (str, ...tokens) {
+  str = [...str]
+  for (let i = tokens.length; i > 0; i--) str.splice(i, 0, tokens.pop())
+  return str.join('').split('\n').map(t => t.trim()).join('\n').trim()
+}

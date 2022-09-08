@@ -126,7 +126,16 @@ async function main () {
     // console.info('Route Change', path, id, q)
     switch (RT[path]) {
       case 'show': {
-        await kernel.import(id)
+        try {
+          await kernel.import(id)
+          const { title, excerpt } = get(kernel.$rant())
+          document.head.querySelector('title').text = title
+          document.head.querySelector('meta[name="description"]').content = excerpt
+        } catch (err) {
+          console.error('500', err)
+          window.alert(err)
+          navigate('/')
+        }
         return 'onroute imported() // => true|false TODO'
       }
       case 'edit':
@@ -136,11 +145,12 @@ async function main () {
           navigate(`e/${id}`)
           return 'onroute created new'
         }
-        await kernel.checkout(id)
-          .catch(err => {
-            console.error('404?', id, err)
-            navigate('/')
-          })
+        try {
+          await kernel.checkout(id)
+        } catch (err) {
+          console.error('404?', id, err)
+          navigate('/')
+        }
         return `onroute checkout(${id})`
       default:
         return `onroute noop(${RT[path]}, ${(id || '').substr(0, 24)})`
@@ -500,3 +510,6 @@ export function navigate (path) {
 window.addEventListener('popstate', apply)
 apply()
 await main()
+
+window.dump = () => kernel.inspect()
+  .catch(console.error.bind(null, 'kernel.inspect() error:'))

@@ -1,7 +1,14 @@
 import { SimpleKernel, Feed } from 'picostack'
 import { memo, mute, write, combine, get, gate } from 'piconuro'
-import { dump } from 'picorepo/dot.js'
-import { pack, unpack, extractTitle, extractIcon, extractExcerpt } from './picocard.js'
+import { inspect as dumpDot } from 'picorepo/dot.js'
+import {
+  pack,
+  unpack,
+  extractTitle,
+  extractIcon,
+  extractExcerpt,
+  bq
+} from './picocard.js'
 
 export const TYPE_RANT = 0
 
@@ -258,8 +265,39 @@ export default class Kernel extends SimpleKernel {
     } else {
       // TODO: this.repo.rollbackChain(id)
       // this.store.sig(GARBAGE_COLLECT, id)
-      dump(this.repo)
+      // dump(this.repo)
+      console.warn('Delete rant blocked by repo.rollback(detached) issue')
     }
+  }
+
+  async inspect (output) {
+    console.info('Inspecting Repo...')
+    const dot = await dumpDot(this.repo, {
+      blockLabel (block, { link }) {
+        const author = btok(block.key, 3)
+        const data = unpack(block.body)
+        const str = bq`
+            [${btok(block.sig, 3)}]
+            ${data.seq}:${author}
+          `
+        if (data.type !== TYPE_RANT) {
+          return bq`
+            ${str}
+            UnknownBlock
+          `
+        }
+        return bq`
+          ${str}
+          ${extractIcon(data.text)}
+          ${extractTitle(data.text)}
+          ${extractExcerpt(data.text, 12)}
+          🎨${data.theme} 🔒${data.encryption} 🗜️${data.compression}
+        `
+      }
+    })
+    console.info('$ xdot rant.dot')
+    console.log(dot)
+    return dot
   }
 
   // TODO: consider backport to picostack, pretty nice feature.
@@ -311,7 +349,16 @@ function Notebook (name = 'rants') {
   }
 }
 
-export function btok (buffer) { return buffer.toString('hex') }
+export function btok (b, length = -1) { // 'base64url' not supported in browser :'(
+  if (Buffer.isBuffer(b) && length > 0) b = b.slice(0, Math.min(length, b.length))
+  return b.toString('hex')
+}
+
+export function ktob (s) {
+  if (typeof s !== 'string') throw new Error('Expected string')
+  return Buffer.from(s, 'hex')
+}
+
 // Don't ask, i seem to like footguns.
 export function isDraftID (id) {
   return typeof id === 'string' && id.startsWith('draft:')
