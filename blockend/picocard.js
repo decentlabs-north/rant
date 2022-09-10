@@ -1,14 +1,35 @@
+/** This file contains
+ * our model 'Picocard' and all
+ * of the functions needed to work with it.
+ * It was originally called 'Rant',
+ * Then it became Postcard
+ * And now it's seems that Postcard is dead and Picocard/card
+ * is referenced in this file only. kernel uses rant&draft naming.
+ */
+import { marked } from 'marked'
+import Purify from 'dompurify'
 import lzutf8 from 'lzutf8'
 import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
 import { Feed } from 'picostack'
+
+export const THEMES = [
+  'dark',
+  'light',
+  'decent',
+  'morpheus',
+  'ghostwriter',
+  'disco'
+]
+
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
 function encrypt (message, secret) {}
 function decrypt (message, secret) {}
+
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
-export const EMOJI_REGEXP = /!([^!\n ]{1,8})!/
+export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
 
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
@@ -100,7 +121,7 @@ export function extractTitle (md) {
 export function extractIcon (md) {
   if (typeof md !== 'string' && !md.length) return
   const m = md.match(EMOJI_REGEXP)
-  if (m) return m[1].trim()
+  if (m) return m[2].trim()
 }
 
 export function extractExcerpt (md, len = 40) {
@@ -117,4 +138,50 @@ export function bq (str, ...tokens) {
   str = [...str]
   for (let i = tokens.length; i > 0; i--) str.splice(i, 0, tokens.pop())
   return str.join('').split('\n').map(t => t.trim()).join('\n').trim()
+}
+
+export function runMacros (text, card) {
+  if (typeof text !== 'string') throw new Error(`Expected text to be a string, got: ${typeof text}`)
+
+  // Make big emojis
+  const MODIFIERS = {
+    '.': '',
+    '~': 'wave',
+    '-': 'dash',
+    '/': 'sway',
+    '|': 'bounce',
+    L: 'acid',
+    F: 'flicker',
+    D: 'dance',
+    d: 'dig'
+  }
+  text = text.replace(
+    new RegExp(EMOJI_REGEXP, 'g'),
+    sub => {
+      const match = sub.match(EMOJI_REGEXP)
+      const mod = match[1]
+      const moji = match[2]
+      // console.log('MOJI match', _, '=> [', mod, ', ', moji, ']', sub, match)
+      const classes = mod.split('').map(m => MODIFIERS[m]).join(' ')
+      return `<bmoji class="${classes}">${moji}</bmoji>`
+    }
+  )
+
+  // Macros that use the card
+  if (!card) return text
+  // Show date-of note
+  text = text.replace(/\{\{DATE\}\}/gi, new Date(card.date))
+
+  return text
+}
+
+export function processText (text) {
+  // TODO: run purify in kernel#validators
+  text = text.replace(/\B(#{1,6})= ([^\n]+)/g, '$1 <div class="text-center">$2</div>')
+  // Preprocess
+  text = Purify.sanitize(
+    marked(text)
+  )
+  // Postprocess
+  return runMacros(text)
 }

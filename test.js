@@ -111,14 +111,14 @@ test('Drafts are saved', async t => {
   // back out
   const draft1 = await k.checkout(null)
   // use a simple local counter for unpublished notes.
-  t.equal(draft1, 'draft:0', 'checkout() returns previous id')
+  t.equal(draft1[1], 'draft:0', 'checkout() returns previous id')
   const drafts = await k.drafts()
   t.equal(drafts.length, 1)
   rant = get(k.$rant())
   t.equal(rant.text, '')
   await k.setText('All is not lost')
   const draft2 = await k.checkout(draft1)
-  t.equal(draft2, 'draft:1')
+  t.equal(draft2[1], 'draft:1')
   rant = get(k.$rant())
   t.equal(rant.state, 'draft')
   t.equal(rant.text, 'Peer Up!')
@@ -133,7 +133,7 @@ test('Persistent Config', async t => {
   t.equal(get($v), false)
 })
 
-test.only('Delete Rants', async t => {
+test('Delete Rants', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   await k.checkout(null)

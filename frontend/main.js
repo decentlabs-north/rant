@@ -1,12 +1,9 @@
-import { marked } from 'marked'
-import Purify from 'dompurify'
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { write, gate, nfo, mute, get, combine, init, memo } from 'piconuro'
-import Kernel, { isDraftID } from './blockend/k.js'
+import Kernel, { isDraftID } from '../blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
-import { EMOJI_REGEXP, unpackFeed } from './blockend/picocard.js'
-const THEME_NAMES = ['dark', 'light', 'decent', 'morpheus', 'ghostwriter']
+import { unpackFeed, processText, THEMES } from '../blockend/picocard.js'
 const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
 const RT = {
@@ -50,7 +47,7 @@ async function main () {
   const $theme = memo(mute(kernel.$rant(), r => r.theme))
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
-  nAttr('view-render', 'theme', mute($theme, t => THEME_NAMES[t]))
+  nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))
   nClick('r-btn-resume', () => setMode(true))
 
   /* Edit-view controls */
@@ -290,12 +287,8 @@ Tonic.add(class MessagePreview extends Tonic {
   }
 
   preprocess (text = '') {
-    // Make big emojis
-    text = text.replace(new RegExp(EMOJI_REGEXP, 'g'), '<span class="imgmoji">$1</span>')
-    // Show date-of note
-    text = text.replace(/\{\{DATE\}\}/gi, new Date(this.props.date))
-    // TODO: run purify in kernel
-    return Purify.sanitize(marked(text))
+    const rant = this.props
+    return processText(text, rant)
   }
 
   render () {
@@ -362,7 +355,7 @@ Tonic.add(class RantList extends Tonic {
       newRant = this.html`
         <rant data-id="new" class="row xcenter">
           <icon>🥚</icon>
-          <h4>New Rant</h4>
+          <h4>New Note</h4>
         </rant>
       `
     }

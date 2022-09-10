@@ -16,7 +16,7 @@ const commit = require('child_process')
 
 const production = !process.env.ROLLUP_WATCH
 export default {
-  input: 'app.js',
+  input: 'frontend/main.js',
   output: {
     sourcemap: !production, // costs about ~2MB
     format: 'es',
