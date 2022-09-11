@@ -153,10 +153,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@picocss/pico@^1.5.3":
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/@picocss/pico/-/pico-1.5.3.tgz#82d759f7fcaa17086a12ced8be2353197b2ddfaa"
-  integrity sha512-ZdZOxjlmj0BkpGpYo/ODgAcFpqIgpAACqEmIgpFtxHkam06ITfUfcj9+mPcd+Ti8Dh0KCSvHpmSnJA3+tOStlQ==
+"@picocss/pico@^1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@picocss/pico/-/pico-1.5.4.tgz#a08361b7590202c9be9049cf1862530a10af6173"
+  integrity sha512-uplAuZj4WIbMWZUJVgLrEuSypHBJizr+v72bE5j2VXR4fP8gs/6m4rKql+FX0S+3qhlC+dJRm5NyRPpl7gmHxA==
 
 "@polka/url@^1.0.0-next.20":
   version "1.0.0-next.21"
@@ -218,10 +218,10 @@
   resolved "https://registry.yarnpkg.com/@socketsupply/tonic/-/tonic-14.1.5.tgz#eb194b688f6b30214f275a9208dbb28b7d05d74f"
   integrity sha512-mObS/IRefcVPyYa6Ry8OdQbFzCpKFMWfihgTs3XOKF3va1oRcwedchjTUlNfcwtrG+mpKEO/ysW8Hf5m5B30TA==
 
-"@telamon/picostore@^1.9.2":
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.9.2.tgz#8285e390f9421b6b10d0f484df32fc40a64ec456"
-  integrity sha512-nEdzZbwvJWxc5Efucz438w+9lb/Kxih12j9K1AVYc1pT2aub79o0dYYv2L9pYZqWW2PaSOgKjnNlc2aZ0PCo2A==
+"@telamon/picostore@^1.9.3":
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/@telamon/picostore/-/picostore-1.9.3.tgz#cb01a9977f35657deccc56e161fdbe58bbf23e40"
+  integrity sha512-EWdHBQnRXFqmdBICrmBIWeLtqqblhmGRCM+xnlfd1ybntmII35iijAKVkkJNC1IP5Qxqc35au9mi+dCI5Dxuzw==
 
 "@types/estree@*":
   version "1.0.0"
@@ -2238,10 +2238,10 @@ msgpackr-extract@^2.1.1:
     "@msgpackr-extract/msgpackr-extract-linux-x64" "2.1.2"
     "@msgpackr-extract/msgpackr-extract-win32-x64" "2.1.2"
 
-msgpackr@^1.7.0-alpha7:
-  version "1.7.0-alpha7"
-  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.7.0-alpha7.tgz#4c14e4933770610cf3a3865a9722f68b69e6d813"
-  integrity sha512-EGH7pCXTBdOrk45vSXzimfLQ8rUd8P1sZFYpjbk98M+SYr2VqKnw0mw7cqhbts/u6qDyjMRmKsDq/EyyxyR7dw==
+msgpackr@^1.7.0-beta1:
+  version "1.7.0-beta1"
+  resolved "https://registry.yarnpkg.com/msgpackr/-/msgpackr-1.7.0-beta1.tgz#93b45f2ceb26c38c707df6601b60cdcde0eaf497"
+  integrity sha512-rctZ0l7P6XUbUEnGPkLzbuXQZ6XjMpRK0FuSJFyEbfH3NJ6JWN3etBJBjejXvZEFf3MaFhQkmoJHvzNgQwsvpw==
   optionalDependencies:
     msgpackr-extract "^2.1.1"
 
@@ -2515,22 +2515,22 @@ piconuro@^1.0.1:
   resolved "https://registry.yarnpkg.com/piconuro/-/piconuro-1.0.1.tgz#af510e9c5273277f5bd2e8901fbadf6516e69dd0"
   integrity sha512-y1ofVOrZV5c9GYIn1wqs53JYq7JwCY9kU4UPFQ2dw8+H0lgAvnvNborJ4mtTpCfGOb2gQVWKy2vdpur2N1qelA==
 
-picorepo@^1.4.3:
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.3.tgz#6dadf616f7c42558195ea65e8da842e7ba02fc64"
-  integrity sha512-0UpRfMYhqZ8iBQrEh1BaE0ICIfhxf8ttTHMb5uCLzp0V5kvmdcrcPm2LJne6iMYmBt8WYgwkRipKO3TMgBC8Ow==
+picorepo@^1.4.4:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.4.tgz#8ac20e53803b56f9621bc2fb45baa1010068a368"
+  integrity sha512-7OvKNIpyPwbhtQzgy0tyq89kRxHgyKfvO0drx1lsBfhjocwZaHbrZnIKuaLQKHgp8Eplo1d92tYzSOEgOK3xOw==
 
-picostack@^1.5.5:
-  version "1.5.5"
-  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.5.tgz#dacc95c7f6cdd6153b7bfe881f29f90e61bb60d9"
-  integrity sha512-fp911RGF/ps5xylnfYiWbWqLxeFDrjZLT1icIw0gNThMYQlSuE+CxfutGYOuMZzmHQl+1bkG45YJgeCWYid6PQ==
+picostack@^1.5.6:
+  version "1.5.6"
+  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.6.tgz#24a901c22acb886ea8459ca91ad56f11c73381a5"
+  integrity sha512-OluzUgMTLFaH/ruuGJjJIdmSksoLalqso+q1IsjhhHXB4eAH+zoQAqRKyZlD7GV3XWI3Xjn4EAOBCrangl5aSQ==
   dependencies:
-    "@telamon/picostore" "^1.9.2"
-    msgpackr "^1.7.0-alpha7"
+    "@telamon/picostore" "^1.9.3"
+    msgpackr "^1.7.0-beta1"
     picofeed "^3.4.0"
     piconet "^3.1.1"
     piconuro "^1.0.1"
-    picorepo "^1.4.3"
+    picorepo "^1.4.4"
 
 pify@^4.0.1:
   version "4.0.1"

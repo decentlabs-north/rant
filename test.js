@@ -117,7 +117,7 @@ test('Drafts are saved', async t => {
   rant = get(k.$rant())
   t.equal(rant.text, '')
   await k.setText('All is not lost')
-  const draft2 = await k.checkout(draft1)
+  const draft2 = await k.checkout(draft1[1])
   t.equal(draft2[1], 'draft:1')
   rant = get(k.$rant())
   t.equal(rant.state, 'draft')

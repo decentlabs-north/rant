@@ -1,5 +1,5 @@
 import { SimpleKernel, Feed } from 'picostack'
-import { memo, mute, write, combine, get, gate } from 'piconuro'
+import { memo, mute, write, combine, get } from 'piconuro'
 import { inspect as dumpDot } from 'picorepo/dot.js'
 import {
   pack,
@@ -112,6 +112,7 @@ export default class Kernel extends SimpleKernel {
   }
 
   async checkout (next, fork = false) {
+    if (!isDraftID(next) && !Buffer.isBuffer(next) && next !== null) throw new Error('Expected checkout(string|Buffer|null)')
     if (fork && isDraftID(next)) throw new Error('DraftsCannotBeForked')
     const prev = get(this._current)
     // Already checked out
@@ -193,7 +194,7 @@ export default class Kernel extends SimpleKernel {
     const current = get(this._current)
     if (current && Buffer.isBuffer(current)) {
       branch = await this.repo.resolveFeed(current)
-      // TODO: this.repo.rollback(current) // evict old if exists
+      // TODO: this.repo.rollback(current) // evict old if parent/draft id exists?
     }
     const rant = {
       type: TYPE_RANT,
@@ -263,15 +264,15 @@ export default class Kernel extends SimpleKernel {
       await this._drafts.del(id)
       await this.drafts() // Reload drafts
     } else {
-      // TODO: this.repo.rollbackChain(id)
-      // this.store.sig(GARBAGE_COLLECT, id)
-      // dump(this.repo)
-      console.warn('Delete rant blocked by repo.rollback(detached) issue')
+      await this.repo.rollback(id)
+      // TODO: benefit of mutable objects... but messy
+      // gotta sleep on this; belongs to store/garbage-collector design.
+      delete this.store.state.rants[btok(id)]
     }
   }
 
-  async inspect (output) {
-    console.info('Inspecting Repo...')
+  async inspect () {
+    // console.info('Inspecting Repo...')
     const dot = await dumpDot(this.repo, {
       blockLabel (block, { link }) {
         const author = btok(block.key, 3)
@@ -295,8 +296,8 @@ export default class Kernel extends SimpleKernel {
         `
       }
     })
-    console.info('$ xdot rant.dot')
-    console.log(dot)
+    // console.info('$ xdot rant.dot')
+    // console.log(dot)
     return dot
   }
 
