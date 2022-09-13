@@ -7,15 +7,20 @@ import {
   extractTitle,
   extractIcon,
   extractExcerpt,
-  bq
+  bq,
+  TYPE_RANT,
+  TYPE_TOMB
 } from './picocard.js'
 
-export const TYPE_RANT = 0
+// Backdoor my own shit.
+// SimpleKernel.decodeBlock = unpack
+SimpleKernel.encodeBlock = (type, seq, data) => pack({ type, ...data })
 
 export default class Kernel extends SimpleKernel {
   constructor (db) {
     super(db)
     this.repo.allowDetached = true
+    // this.store.mutexTimeout = 90000000 // TODO: rewrite mutex => WebLock
     this.store.register(Notebook())
     this._drafts = db.sublevel('drafts', { keyEncoding: 'utf8', valueEncoding: 'buffer' })
     // set up current ptr for checkout
@@ -187,7 +192,7 @@ export default class Kernel extends SimpleKernel {
     await this._saveDraft()
   }
 
-  async commit () { // TODO: use this.createBlock()
+  async commit () { // TODO: use this.createBlock() or support pre-encoded binary payloads
     if (!this.isEditing) throw new Error('EditMode not active')
     this._checkReady()
     let branch = new Feed()
@@ -263,12 +268,13 @@ export default class Kernel extends SimpleKernel {
     if (isDraftID(id)) {
       await this._drafts.del(id)
       await this.drafts() // Reload drafts
-    } else {
-      await this.repo.rollback(id)
-      // TODO: benefit of mutable objects... but messy
-      // gotta sleep on this; belongs to store/garbage-collector design.
-      delete this.store.state.rants[btok(id)]
-    }
+    } else if (Buffer.isBuffer(id)) {
+      const branch = await this.repo.resolveFeed(id)
+      if (!branch) throw new Error('RantNotFound')
+      return await this.createBlock(branch, TYPE_TOMB, { id })
+      // TODO: rollback to free up storage?
+      // await this.repo.rollback(id)
+    } else throw new Error('DeleteWhat?')
   }
 
   async inspect () {
@@ -302,6 +308,7 @@ export default class Kernel extends SimpleKernel {
   }
 
   // TODO: consider backport to picostack, pretty nice feature.
+  // this is very close to what i might need for picostore/async reducers.
   config (key, defaultValue) {
     if (typeof key !== 'string') throw new Error('Expected key to be string')
     if (!this._conf[key]) {
@@ -328,16 +335,34 @@ function Notebook (name = 'rants') {
   return {
     name,
     initialValue: {},
-    filter ({ block }) {
+    filter ({ block, parentBlock }) {
       const rant = unpack(block.body)
       const { type } = rant
-      if (type !== TYPE_RANT) return 'UnknownBlock'
-      if (block.body.length > 1024) return 'RantTooBig'
+      switch (type) {
+        case TYPE_RANT:
+          if (block.body.length > 1024) return 'RantTooBig'
+          break
+
+        case TYPE_TOMB: {
+          // Tombstones can only be placed by author.
+          if (!block.key.equals(parentBlock.key)) return 'NotYourRant'
+          const pData = unpack(parentBlock.body)
+          // Tombstone can only be appended to rants (once).
+          if (pData.type !== TYPE_RANT) return 'ExpectedParentToBeRant'
+        } break
+        default: return 'UnknownBlock'
+      }
       return false
     },
 
     reducer ({ state, block, CHAIN }) {
       const rant = unpack(block.body)
+      if (rant.type === TYPE_TOMB) {
+        delete state[btok(CHAIN)]
+        // TODO: enqueue GC? (30min to propagate tomb)
+        return state
+      }
+
       state[btok(CHAIN)] = {
         ...rant,
         id: CHAIN,

@@ -79,7 +79,8 @@
 /* Global style */
 body {
   width: 100vw;
-  min-height: 100vh;
+  min-height: 100vh; /*vh causes addressbar overlap */
+  /* min-height: calc(100vh - calc(100vh - 100%));*/
   background-color: var(--background-color);
 }
 
@@ -194,7 +195,10 @@ nav.bottom button, nav.bottom [role=button] { margin-bottom: 0; }
 /* Fix pico-bug */
 [data-tooltip][role=button] { border-bottom: unset; cursor: pointer; }
 
-main editor { position: sticky; height: 100vh; }
+main editor {
+  position: sticky;
+  height: 100vh; /* calc(100vh - 4rem);*/ /* TODO: Overlapping addressbar */
+}
 #markdown-area { /* area height is borked, maybe use contentEditable attribute instead */
   height: 80%;
   border-radius: 0;

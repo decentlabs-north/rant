@@ -13,6 +13,9 @@ import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
 import { Feed } from 'picostack'
 
+export const TYPE_RANT = 0
+export const TYPE_TOMB = 1
+
 export const THEMES = [
   'dark',
   'light',
@@ -34,6 +37,13 @@ export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
   const { date, page, theme, type } = props
+  if (type === TYPE_TOMB) { // Tombstone/Delete rant.
+    return mpack({
+      b: type,
+      i: props.id
+    })
+  } // else assume TYPE_RANT as we only have 2 blocktypes atm.
+
   if (typeof props.text !== 'string' || !props.text.length) throw new Error('Expected text')
 
   const text = props.text // Prepack transforms
@@ -70,6 +80,10 @@ export function pack (props, secret) {
 
 export function unpack (buffer, secret) {
   const card = munpack(buffer)
+  if (card.b === TYPE_TOMB) {
+    return { type: card.b, id: card.i }
+  } // assume TYPE_RANT
+
   const decompressors = [
     i => i.toString('utf8'),
     decompress,
