@@ -1,3 +1,8 @@
+/**
+ * This project uses pure CSS3 for easy theming
+ * and buildless styles.
+ */
+
 /* flexi.css */
 .row{display:flex; flex-direction: row;}
 .row-reverse{display:flex; flex-direction: row-reverse;}
@@ -22,45 +27,8 @@
 .grow4{ flex-grow: 4; }
 .text-center { text-align: center; }
 .block { display: block; }
-/* Reconfigure Pico-CSS */
-/* Deep-purple Light scheme (Default) */
-/* Can be forced with data-theme="light" */
-[data-theme="light"],
-:root:not([data-theme="dark"]) {
-  --primary: #5e35b1;
-  --primary-hover: #512da8;
-  --primary-focus: rgba(94, 53, 177, 0.125);
-  --primary-inverse: #FFF;
-}
 
-/* Deep-purple Dark scheme (Auto) */
-/* Automatically enabled if user has Dark mode enabled */
-@media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --primary: #5e35b1;
-    --primary-hover: #673ab7;
-    --primary-focus: rgba(94, 53, 177, 0.25);
-    --primary-inverse: #FFF;
-  }
-}
-
-/* Deep-purple Dark scheme (Forced) */
-/* Enabled if forced with data-theme="dark" */
-[data-theme="dark"] {
-  --primary: #5e35b1;
-  --primary-hover: #673ab7;
-  --primary-focus: rgba(94, 53, 177, 0.25);
-  --primary-inverse: #FFF;
-}
-
-/* Deep-purple (Common styles) */
-:root {
-  --form-element-active-border-color: var(--primary);
-  --form-element-focus-color: var(--primary-focus);
-  --switch-color: var(--primary-inverse);
-  --switch-checked-background-color: var(--primary);
-}
-/* global */
+/* global colors */
 :root {
   --purp: #c678dd;
   --red: #fb4934;
@@ -72,8 +40,45 @@
   --moss: #98c379;
   --grass: #8ec07c;
   --cobalt: rgb(0,100,200);
-  /* geom */
-  --nav-height: 2em;
+  --primary-root: #5e35b1;
+  --primary-inverse-root: #FFF;
+}
+
+
+/* Reconfigure Pico-CSS */
+[data-theme="light"],
+:root:not([data-theme="dark"]) {
+  --primary: var(--primary-root);
+  --primary-inverse: var(--primary-inverse-root);
+  --primary-hover: #512da8;
+  --primary-focus: rgba(94, 53, 177, 0.125);
+}
+
+/* Deep-purple Dark scheme (Auto) */
+/* Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: var(--primary-root);
+    --primary-inverse: var(--primary-inverse-root);
+    --primary-hover: #673ab7;
+    --primary-focus: rgba(94, 53, 177, 0.25);
+  }
+}
+
+/* Deep-purple Dark scheme (Forced) */
+[data-theme="dark"] {
+  --primary: var(--primary-root);
+  --primary-inverse: var(--primary-inverse-root);
+  --primary-hover: #673ab7;
+  --primary-focus: rgba(94, 53, 177, 0.25);
+}
+
+/* Deep-purple (Common styles) */
+:root {
+  --form-element-active-border-color: var(--primary);
+  --form-element-focus-color: var(--primary-focus);
+  --switch-color: var(--primary-inverse);
+  --switch-checked-background-color: var(--primary);
 }
 
 /* Global style */
@@ -408,10 +413,6 @@ pre.pksig { background: none !important; text-align: center; }
 th[align=right], td[align=right] { text-align: right; }
 th[align=left], td[align=left] { text-align: left; }
 th[align=center], td[align=center] { text-align: center; }
-/*---------------- THEME "light/dark" on dark/light fix ----*/
-render[data-theme] {
-  background-color: var(--background-color);
-}
 
 /*-- THEME "ghostwriter" port of legacy-'spooky' ---*/
 render[data-theme=ghostwriter] {
@@ -499,7 +500,6 @@ render[data-theme=morpheus] {
   --code-color: var(--color);
   --font-family: monospace, "Courier";
   background-color: var(--background-color);
-  --nav-height: 0;
 }
 render[data-theme=morpheus] render-ctrls,
 render[data-theme=morpheus] #markdown-render > * {
@@ -508,14 +508,6 @@ render[data-theme=morpheus] #markdown-render > * {
 render[data-theme=morpheus] #r-btn-resume {
   background-color: #a0ff7e30;
   border: none;
-}
-
-@keyframes morphsldwn {
-  0% {  top: 0; height: 100vh; }
-  100% {
-    top: var(--nav-height);
-    height: calc(100vh - var(--nav-height));
-  }
 }
 @keyframes morphblink {
   0% { opacity: 0; }
@@ -660,6 +652,8 @@ main.love-letter {
   margin-top: 2rem; font-size: 2.5rem;
   text-align: unset;
 }
+
+
 /* Override monospace font */
 /*[data-theme=decent] pre,
 [data-theme=decent] code,
@@ -764,4 +758,43 @@ main.love-letter {
    rgba(8, 15, 9, 0.0),
    rgba(8, 15, 9, 1.0) 98%
  );
+}
+
+/*---------------- THEME "light/dark" on dark/light fix ----*/
+render[data-theme] {
+  background-color: var(--background-color);
+}
+
+/* --- Apply our themeing to mermaid-graph */
+[data-theme] mermaid-graph {
+  /* Export variables that can be controlled by themes */
+  --graph-node-stroke: var(--primary);
+  --graph-node-fill: var(--code-background-color);
+  --graph-edge-stroke: var(--secondary);
+  --graph-edge-fill: none;
+  --graph-font-color: var(--color);
+
+  display: block;
+  background-color: var(--graph-background-color);
+  margin: var(--block-spacing-vertical) 0;
+}
+[data-theme] mermaid-graph .edgePath path {
+  stroke: var(--graph-edge-stroke) !important;
+  fill: var(--graph-edge-fill) !important;
+}
+[data-theme] mermaid-graph .edgePath marker > path {
+  stroke: var(--graph-edge-fill) !important;
+  fill: var(--graph-edge-stroke) !important;
+}
+[data-theme] mermaid-graph node circle,
+[data-theme] mermaid-graph .node ellipse,
+[data-theme] mermaid-graph .node polygon,
+[data-theme] mermaid-graph .node path,
+[data-theme] mermaid-graph .node rect {
+  stroke: var(--graph-node-stroke) !important;
+  fill: var(--graph-node-fill) !important;
+}
+[data-theme] mermaid-graph .label {
+  font-family: var(--font-family) !important;
+  color: var(--graph-font-color) !important;
 }

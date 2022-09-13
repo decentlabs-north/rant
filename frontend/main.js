@@ -4,6 +4,14 @@ import Kernel, { isDraftID } from '../blockend/k.js'
 import { BrowserLevel } from 'browser-level'
 import '@picocss/pico'
 import { unpackFeed, processText, THEMES } from '../blockend/picocard.js'
+
+// TODO: https://github.com/aMarCruz/rollup-plugin-jscc
+/* #if _MERMAID */
+import mermaid from 'mermaid'
+mermaid.initialize({ startOnLoad: false })
+window.mermaid = mermaid
+/* #endif */
+
 const [_mode, setMode] = write(false) // true: Show editor
 const [$route, _setRoute] = write()
 const RT = {
@@ -288,6 +296,7 @@ Tonic.add(class MessagePreview extends Tonic {
 
   preprocess (text = '') {
     const rant = this.props
+    // rant provided for macros such as Date&Key
     return processText(text, rant)
   }
 
@@ -307,8 +316,8 @@ Tonic.add(class MessagePreview extends Tonic {
     }
 
     nEl('render-ctrls').reRender({ state, rant: this.props.n })
-    const md = this.html([this.preprocess(text || CHEATSHEET.text)])
-    return md
+    const md = this.preprocess(text || CHEATSHEET.text)
+    return this.html([md])
   }
 })
 
@@ -386,6 +395,19 @@ Tonic.add(class RantList extends Tonic {
     `
   }
 })
+
+/* #if _MERMAID */
+Tonic.add(async function MermaidGraph () {
+  try {
+    const svg = await new Promise(resolve => {
+      mermaid.render('aGraph', this.innerText, resolve)
+    })
+    return this.html([svg])
+  } catch (err) {
+    return this.html`MERMAID SYNTAX ERROR: <pre><code>${err.message}</code></pre>`
+  }
+})
+/* #endif */
 
 // Stitch neuron to Tonic component
 export function stitch (n, el, dbg) {

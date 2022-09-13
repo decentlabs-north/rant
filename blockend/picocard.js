@@ -13,6 +13,18 @@ import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
 import { Feed } from 'picostack'
 
+/* #if _MERMAID */
+// Extend marked with mermaid support (+1MB bundle size)
+marked.use({
+  renderer: {
+    code (code, language) {
+      if (language !== 'mermaid') return false
+      return `<mermaid-graph>${code}</mermaid-graph>`
+    }
+  }
+})
+/* #endif */
+
 export const TYPE_RANT = 0
 export const TYPE_TOMB = 1
 
@@ -180,6 +192,7 @@ export function runMacros (text, card) {
       return `<bmoji class="${classes}">${moji}</bmoji>`
     }
   )
+  text = text.replace(/\B(#{1,6})= ([^\n]+)/g, '$1 <div class="text-center">$2</div>')
 
   // Macros that use the card
   if (!card) return text
@@ -190,12 +203,21 @@ export function runMacros (text, card) {
 }
 
 export function processText (text) {
+  text = Purify.sanitize(text) // presanitize / filter out custom elements
+
   // TODO: run purify in kernel#validators
-  text = text.replace(/\B(#{1,6})= ([^\n]+)/g, '$1 <div class="text-center">$2</div>')
+
   // Preprocess
-  text = Purify.sanitize(
-    marked(text)
-  )
-  // Postprocess
+  text = runMacros(text)
+
+  // Re-ranitize but allow our custom elements
+  text = Purify.sanitize(marked(text), {
+    ADD_TAGS: [
+      'bmoji',
+      /* #if _MERMAID */
+      'mermaid-graph'
+      /* #endif */
+    ]
+  })
   return runMacros(text)
 }

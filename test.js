@@ -1,7 +1,7 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from './blockend/k.js'
-import { pack, unpack, extractTitle, extractExcerpt, extractIcon } from './blockend/picocard.js'
+import { pack, unpack, extractTitle, extractExcerpt, extractIcon, processText } from './blockend/picocard.js'
 import { get } from 'piconuro'
 
 test('Describe flow', async t => {
@@ -16,6 +16,7 @@ test('Describe flow', async t => {
   await k.setText('# Hack\nworld is not hackable')
   await k.setTheme(1)
   await k.setText('# Hack\nworld is not hackable\nit is soft')
+
   rant = get(k.$rant())
   t.equal(rant.text, '# Hack\nworld is not hackable\nit is soft')
   t.equal(rant.theme, 1)
@@ -156,6 +157,10 @@ test('Delete Rants', async t => {
   await k.deleteRant(rid)
   rants = get(k.$rants())
   t.equal(rants.length, 0)
+})
+
+test.only('mermaid', async t => {
+  processText('# Test')
 })
 
 function makeDB () {
