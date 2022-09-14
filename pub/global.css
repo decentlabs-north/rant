@@ -798,3 +798,12 @@ render[data-theme] {
   font-family: var(--font-family) !important;
   color: var(--graph-font-color) !important;
 }
+[data-theme] mermaid-graph .edgeLabels .edgeLabel,
+[data-theme] mermaid-graph .edgeLabels .edgeLabel rect,
+[data-theme] mermaid-graph .edgeLabels .label {
+  background: none !important;
+  font-family: var(--font-family) !important;
+  color: var(--primary) !important;
+  fill: none !important;
+  stroke: none !important;
+}

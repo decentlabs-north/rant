@@ -404,7 +404,10 @@ Tonic.add(async function MermaidGraph () {
     })
     return this.html([svg])
   } catch (err) {
-    return this.html`MERMAID SYNTAX ERROR: <pre><code>${err.message}</code></pre>`
+    return this.html`
+      MERMAID SYNTAX ERROR:
+      <pre><code>${err.message || err.str}</code></pre>
+    `
   }
 })
 /* #endif */
