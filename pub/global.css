@@ -801,9 +801,9 @@ render[data-theme] {
 [data-theme] mermaid-graph .edgeLabels .edgeLabel,
 [data-theme] mermaid-graph .edgeLabels .edgeLabel rect,
 [data-theme] mermaid-graph .edgeLabels .label {
-  background: none !important;
+  background: var(--graph-node-fill) !important;
   font-family: var(--font-family) !important;
-  color: var(--primary) !important;
+  color: var(--graph-font-color) !important;
   fill: none !important;
   stroke: none !important;
 }

@@ -159,8 +159,23 @@ test('Delete Rants', async t => {
   t.equal(rants.length, 0)
 })
 
-test.only('mermaid', async t => {
-  processText('# Test')
+test('Delete others rants', async t => {
+  const a = new Kernel(makeDB())
+  await a.boot()
+  await a.checkout(null)
+  await a.setText('# Haha, you U cant delete me')
+  await a.commit()
+
+  const b = new Kernel(makeDB())
+  await b.boot()
+  const id = await b.import(await a.pickle())
+
+  let rants = get(b.$rants())
+  t.equal(rants.length, 1, 'Rant imported')
+
+  await b.deleteRant(id)
+  rants = get(b.$rants())
+  t.equal(rants.length, 0, 'Imported rant Deleted')
 })
 
 function makeDB () {

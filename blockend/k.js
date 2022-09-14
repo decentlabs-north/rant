@@ -21,7 +21,7 @@ export default class Kernel extends SimpleKernel {
     super(db)
     this.repo.allowDetached = true
     // this.store.mutexTimeout = 90000000 // TODO: rewrite mutex => WebLock
-    this.store.register(Notebook())
+    this.store.register(Notebook('rants', () => this.pk))
     this._drafts = db.sublevel('drafts', { keyEncoding: 'utf8', valueEncoding: 'buffer' })
     // set up current ptr for checkout
     const c = write()
@@ -76,13 +76,15 @@ export default class Kernel extends SimpleKernel {
       drafts.push(this._mapRant({ id, ...draft }))
     }
     this._w.setDrafts(drafts) // Fugly hack
-    return drafts
+    return drafts.sort((a, b) => b.date - a.date)
   }
 
   $rants () {
     return mute(
       s => this.store.on('rants', s),
-      rants => Object.values(rants).map(r => this._mapRant(r))
+      rants => Object.values(rants)
+        .map(r => this._mapRant(r))
+        .sort((a, b) => b.date - a.date)
     )
   }
 
@@ -265,6 +267,10 @@ export default class Kernel extends SimpleKernel {
   }
 
   async deleteRant (id) {
+    // Move away from note that's about to be deleted
+    const current = get(this._current)
+    if (isEqualID(id, current)) await this.checkout(null)
+
     if (isDraftID(id)) {
       await this._drafts.del(id)
       await this.drafts() // Reload drafts
@@ -303,7 +309,7 @@ export default class Kernel extends SimpleKernel {
       }
     })
     // console.info('$ xdot rant.dot')
-    // console.log(dot)
+    console.info(dot)
     return dot
   }
 
@@ -331,7 +337,17 @@ export default class Kernel extends SimpleKernel {
   }
 }
 
-function Notebook (name = 'rants') {
+function Notebook (name = 'rants', resolveLocalKey) {
+  // There's no clean solution in pico for injecting local identity ATM.
+  let _key = null
+  const localKey = () => {
+    if (_key) return _key
+    if (typeof resolveLocalKey === 'function') {
+      _key = resolveLocalKey()
+      if (!_key) throw new Error('RacingCondition? falsy localKey')
+      return _key
+    } else throw new Error('resolveLocalKey expected to be function')
+  }
   return {
     name,
     initialValue: {},
@@ -345,7 +361,11 @@ function Notebook (name = 'rants') {
 
         case TYPE_TOMB: {
           // Tombstones can only be placed by author.
-          if (!block.key.equals(parentBlock.key)) return 'NotYourRant'
+          if (!(
+            block.key.equals(parentBlock.key) ||
+            localKey()?.equals(block.key) // accept own
+          )) return 'NotYourRant'
+
           const pData = unpack(parentBlock.body)
           // Tombstone can only be appended to rants (once).
           if (pData.type !== TYPE_RANT) return 'ExpectedParentToBeRant'
