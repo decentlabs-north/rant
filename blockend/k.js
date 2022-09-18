@@ -22,6 +22,8 @@ export default class Kernel extends SimpleKernel {
     this.repo.allowDetached = true
     // this.store.mutexTimeout = 90000000 // TODO: rewrite mutex => WebLock
     this.store.register(Notebook('rants', () => this.pk))
+
+    this._conf = {}
     this._drafts = db.sublevel('drafts', { keyEncoding: 'utf8', valueEncoding: 'buffer' })
     // set up current ptr for checkout
     const c = write()
@@ -30,7 +32,7 @@ export default class Kernel extends SimpleKernel {
 
     // set up writable draft
     const [text, setText] = write('')
-    const [theme, setTheme] = write(0)
+    const [theme, setTheme] = this.config('lastUsedTheme', 0) // write(0)
     const [encryption, setEncryption] = write(0)
     const [date, setDate] = write(Date.now())
     // const [secret, setSecret] = write(rant.secret)
@@ -41,7 +43,6 @@ export default class Kernel extends SimpleKernel {
     this._nDrafts = memo($drafts)
     // Stash all inputs
     this._w = { setText, setTheme, setEncryption, setDate, setDrafts }
-    this._conf = {}
   }
 
   $drafts () { return this._nDrafts }
