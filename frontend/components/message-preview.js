@@ -23,7 +23,8 @@ Tonic.add(class MessagePreview extends Tonic {
 
   render () {
     // console.log('MP', this.props)
-    const { text, state } = this.props?.n || {}
+    const { text, state, pickle } = this.props?.n || {}
+    if (pickle) console.log('We have a pickle!', pickle)
     if (text === '' && state !== 'draft') {
       return this.html`<code>Empty Casette</code>`
     }

@@ -27,6 +27,7 @@ import './components/main-menu.js'
 import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
+import './components/qr-code.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
 /* #endif */
@@ -35,6 +36,7 @@ async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
   // await kernel.store.reload()
+
   nAttr('main', 'view', $view)
   nClass('main', 'mode-edit', $mode)
   nClass('main', 'mode-show', mute($mode, m => !m))
@@ -47,6 +49,23 @@ async function main () {
   nAttr('view-render', 'state', $state)
   nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))
   nClick('r-btn-resume', () => setMode(true))
+  /* QRCode */
+  const $qrCode = mute(
+    gate(mute(kernel.$rant(), r => r.id)),
+    async id => {
+      if (!id || isDraftID(id)) return ''
+      const url = new URL(window.location)
+      if (true) {
+        const p = await kernel.pickle(id)
+        url.hash = '#r/' + p
+      } else {
+        url.hash = `#f/topic/${id.toString('hex')}`
+        console.log(url.toString())
+      }
+      return url.toString()
+    }
+  )
+  stitch($qrCode, 'qr-pickle')
 
   /* Edit-view controls */
   nAttr('view-editor', 'state', $state)
@@ -65,7 +84,7 @@ async function main () {
     const pickle = await kernel.pickle(id)
     navigate(`r/${pickle}`)
     setMode(false)
-    console.log('Comitted', id.toString('hex'), get(kernel.$rant()))
+    console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
   })
   nClick('edit-fork', async () => {
     const id = get(kernel.$current)
@@ -159,9 +178,14 @@ async function main () {
     await kernel.saveDraft()
     console.info('Draft Saved!')
   })
+  setInterval(async () => {
+    try {
+      const evicted = await kernel.store.gc()
+      if (evicted.length) console.log('GC Expunged', evicted)
+    } catch (err) { console.error('GC Failed:', err) }
+  }, 3000)
 }
 await main()
-
 
 // Stitch neuron to Tonic component
 export function stitch (n, el, dbg) {

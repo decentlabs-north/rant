@@ -42,6 +42,8 @@
   --cobalt: rgb(0,100,200);
   --primary-root: #5e35b1;
   --primary-inverse-root: #FFF;
+  --qr-fg: var(--color);
+  --qr-bg: var(--background-color);
 }
 
 
@@ -71,6 +73,8 @@
   --primary-inverse: var(--primary-inverse-root);
   --primary-hover: #673ab7;
   --primary-focus: rgba(94, 53, 177, 0.25);
+  --qr-fg: var(--primary);
+  --qr-bg: var(--background-color);
 }
 
 /* Deep-purple (Common styles) */
@@ -499,6 +503,8 @@ render[data-theme=morpheus] {
   --code-background-color: var(--background-color);
   --code-color: var(--color);
   --font-family: monospace, "Courier";
+  --qr-fg: var(--background-color);
+  --qr-bg: var(--color);
   background-color: var(--background-color);
 }
 render[data-theme=morpheus] render-ctrls,
@@ -806,4 +812,10 @@ render[data-theme] {
   color: var(--graph-font-color) !important;
   fill: none !important;
   stroke: none !important;
+}
+[data-theme] qr-code svg path {
+  fill: var(--qr-fg) !important;
+}
+[data-theme] qr-code svg rect {
+  fill: var(--qr-bg) !important;
 }
