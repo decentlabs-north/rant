@@ -84,6 +84,7 @@ export default class Kernel extends SimpleKernel {
     return mute(
       s => this.store.on('rants', s),
       rants => Object.values(rants)
+        .filter(r => !r.entombed)
         .map(r => this._mapRant(r))
         .sort((a, b) => b.date - a.date)
     )
@@ -376,11 +377,13 @@ function Notebook (name = 'rants', resolveLocalKey) {
       return false
     },
 
-    reducer ({ state, block, CHAIN }) {
+    reducer ({ state, block, parentBlock, CHAIN, mark }) {
       const rant = unpack(block.body)
       if (rant.type === TYPE_TOMB) {
-        delete state[btok(CHAIN)]
-        // TODO: enqueue GC? (30min to propagate tomb)
+        state[btok(CHAIN)].entombed = true // soft delete
+        const propagateOwn = block.key.equals(parentBlock.key) &&
+          localKey()?.equals(block.key)
+        mark(CHAIN, propagateOwn ? Date.now() + 60 * 60000 : Date.now())
         return state
       }
 
@@ -389,9 +392,18 @@ function Notebook (name = 'rants', resolveLocalKey) {
         id: CHAIN,
         author: block.key,
         rev: block.sig,
-        size: block.body.length
+        size: block.body.length,
+        entombed: false
       }
       return { ...state }
+    },
+
+    sweep ({ state, CHAIN, mark, drop }) {
+      // TODO: not implemented
+      if (!state[btok(CHAIN)].entombed) throw new Error('MentalError: BuriedAlive')
+      drop()
+      delete state[btok(CHAIN)]
+      return state
     }
   }
 }
