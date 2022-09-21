@@ -5,7 +5,8 @@ import stdLibBrowser from 'node-stdlib-browser'
 import builtin from 'builtin-modules'
 import { writeFileSync } from 'node:fs'
 
-const production = process.env.NODE_ENV === 'production'
+const production = process.env.NODE_ENV === 'production' ||
+  !process.argv.find(i => /^--?w(atch)?$/.test(i))
 
 const config = {
   entryPoints: ['frontend/main.js'],

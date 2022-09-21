@@ -54,6 +54,8 @@
   --primary-inverse: var(--primary-inverse-root);
   --primary-hover: #512da8;
   --primary-focus: rgba(94, 53, 177, 0.125);
+  --qr-fg: var(--color);
+  --qr-bg: var(--background-color);
 }
 
 /* Deep-purple Dark scheme (Auto) */
@@ -648,6 +650,8 @@ main.love-letter {
   --font-family: system-ui, -apple-system, "Segoe UI", "Roboto", "Ubuntu",
     "Cantarell", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
+  --qr-bg: var(--background-color);
+  --qr-fg: var(--color);
 }
 [data-theme=decent] a { color: var(--ca); }
 [data-theme=decent] h1,
@@ -819,3 +823,4 @@ render[data-theme] {
 [data-theme] qr-code svg rect {
   fill: var(--qr-bg) !important;
 }
+qr-code svg { max-width: 100%; }

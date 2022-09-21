@@ -14,12 +14,8 @@ export class QrCode extends Tonic {
     const qr = new QR(0, level)
     qr.addData(data, 'Byte')
     qr.make()
-    // const imgURL = qr.createDataURL(size, margin)
-    // const tab = qr.createTableTag(size, margin)
     const svg = qr.createSvgTag(size, margin)
     return this.html`
-      <!--<img class="qr-code" alt="QRCode" src="{imgURL}" />-->
-      <!--<div>this.html([tab])</div>-->
       ${this.html([svg])}
     `
   }

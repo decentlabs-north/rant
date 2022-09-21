@@ -49,7 +49,9 @@ async function main () {
   nAttr('view-render', 'state', $state)
   nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))
   nClick('r-btn-resume', () => setMode(true))
-  /* QRCode */
+
+  /* Share Rant via QRCode */
+  /* TODO: Placement / UX
   const $qrCode = mute(
     gate(mute(kernel.$rant(), r => r.id)),
     async id => {
@@ -59,6 +61,10 @@ async function main () {
         const p = await kernel.pickle(id)
         url.hash = '#r/' + p
       } else {
+        // TODO: when swarm is active/ app is online
+        // we can show smaller QR-codes to transfer data peer-to-peer.
+        // TODO: research if we can add some additional info to speed
+        // up discovery. (list of current known peers)
         url.hash = `#f/topic/${id.toString('hex')}`
         console.log(url.toString())
       }
@@ -66,6 +72,7 @@ async function main () {
     }
   )
   stitch($qrCode, 'qr-pickle')
+  */
 
   /* Edit-view controls */
   nAttr('view-editor', 'state', $state)
