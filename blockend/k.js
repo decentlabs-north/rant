@@ -63,7 +63,7 @@ export default class Kernel extends SimpleKernel {
       mute(
         n,
         ([current, draft, rants]) =>
-          Buffer.isBuffer(current) ? rants[btok(current)] : draft
+          isRantID(current) ? rants[btok(current)] : draft
       ),
       this._mapRant.bind(this)
     )
@@ -121,7 +121,7 @@ export default class Kernel extends SimpleKernel {
   }
 
   async checkout (next, fork = false) {
-    if (!isDraftID(next) && !Buffer.isBuffer(next) && next !== null) throw new Error('Expected checkout(string|Buffer|null)')
+    if (!isDraftID(next) && !isRantID(next) && next !== null) throw new Error('Expected checkout(string|Buffer|null)')
     if (fork && isDraftID(next)) throw new Error('DraftsCannotBeForked')
     const prev = get(this._current)
     // Already checked out
@@ -196,12 +196,12 @@ export default class Kernel extends SimpleKernel {
     await this._saveDraft()
   }
 
-  async commit () { // TODO: use this.createBlock() or support pre-encoded binary payloads
+  async commit () {
     if (!this.isEditing) throw new Error('EditMode not active')
     this._checkReady()
     let branch = new Feed()
     const current = get(this._current)
-    if (current && Buffer.isBuffer(current)) {
+    if (isRantID(current)) {
       branch = await this.repo.resolveFeed(current)
       // TODO: this.repo.rollback(current) // evict old if parent/draft id exists?
     }
@@ -211,6 +211,7 @@ export default class Kernel extends SimpleKernel {
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
+    // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
     const data = pack(rant)
     branch.append(data, this._secret)
     const id = branch.last.sig
@@ -221,7 +222,7 @@ export default class Kernel extends SimpleKernel {
     await this.checkout(id)
     await this.deleteRant(current)
     await this.drafts() // Reload drafts
-    // this.rpc.shareBlocks(branch.slice(-1)) if Public
+    this.rpc.shareBlocks(branch) // TODO: if Public
     return id
   }
 
@@ -276,7 +277,7 @@ export default class Kernel extends SimpleKernel {
     if (isDraftID(id)) {
       await this._drafts.del(id)
       await this.drafts() // Reload drafts
-    } else if (Buffer.isBuffer(id)) {
+    } else if (isRantID(id)) {
       const branch = await this.repo.resolveFeed(id)
       if (!branch) throw new Error('RantNotFound')
       return await this.createBlock(branch, TYPE_TOMB, { id })
@@ -413,21 +414,26 @@ export function btok (b, length = -1) { // 'base64url' not supported in browser 
   return b.toString('hex')
 }
 
+/* // Cannot reverse slice byte, do we need it?
 export function ktob (s) {
   if (typeof s !== 'string') throw new Error('Expected string')
   return Buffer.from(s, 'hex')
 }
+*/
 
 // Don't ask, i seem to like footguns.
 export function isDraftID (id) {
   return typeof id === 'string' && id.startsWith('draft:')
 }
+export function isRantID (id) {
+  return Buffer.isBuffer(id) && id.length === Feed.SIGNATURE_SIZE
+}
 
 export function isEqualID (a, b) {
   return (isDraftID(a) && a === b) ||
     (
-      Buffer.isBuffer(a) &&
-      Buffer.isBuffer(b) &&
+      isRantID(a) &&
+      isRantID(b) &&
       a.equals(b)
     )
 }

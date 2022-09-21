@@ -1,8 +1,8 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from './blockend/k.js'
-import { pack, unpack, extractTitle, extractExcerpt, extractIcon, processText } from './blockend/picocard.js'
-import { get } from 'piconuro'
+import { pack, unpack, extractTitle, extractExcerpt, extractIcon } from './blockend/picocard.js'
+import { get, until } from 'piconuro'
 
 test('Describe flow', async t => {
   const k = new Kernel(makeDB())
@@ -176,6 +176,23 @@ test('Delete others rants', async t => {
   await b.deleteRant(id)
   rants = get(b.$rants())
   t.equal(rants.length, 0, 'Imported rant Deleted')
+})
+
+test('... modem time', async t => {
+  const a = new Kernel(makeDB())
+  await a.boot()
+  const b = new Kernel(makeDB())
+  await b.boot()
+  // Shit
+  a.spawnWire().open(b.spawnWire())
+  const text = 'This message was brought to you through the ether'
+  await a.checkout(null)
+  await a.setText(text)
+  await a.commit()
+
+  const rants = await until(b.$rants(), r => r.length)
+  t.equal(rants.length, 1, 'Rant imported')
+  t.equal(rants[0].text, text, 'Message transferred')
 })
 
 function makeDB () {

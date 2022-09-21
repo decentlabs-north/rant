@@ -185,6 +185,8 @@ async function main () {
     await kernel.saveDraft()
     console.info('Draft Saved!')
   })
+
+  // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release
   setInterval(async () => {
     try {
       const evicted = await kernel.store.gc()
