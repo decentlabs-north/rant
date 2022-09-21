@@ -1,6 +1,3 @@
 /node_modules/
-/public/build/
 /pub/build/
-
 .DS_Store
-.size-snapshot.json
