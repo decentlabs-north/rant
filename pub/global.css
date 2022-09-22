@@ -817,6 +817,9 @@ render[data-theme] {
   fill: none !important;
   stroke: none !important;
 }
+
+/* Let QR-codes follow theme colors */
+/* TODO: there's a bug, --qr-fg and --qr-bg vars */
 [data-theme] qr-code svg path {
   fill: var(--qr-fg) !important;
 }

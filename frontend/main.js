@@ -28,6 +28,7 @@ import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
+import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
 /* #endif */

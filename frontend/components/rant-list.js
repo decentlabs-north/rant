@@ -1,6 +1,6 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { get } from 'piconuro'
-import { isDraftID } from '../../blockend/k.js'
+import { isRantID } from '../../blockend/k.js'
 import {
   createNew,
   kernel,
@@ -61,7 +61,7 @@ Tonic.add(class RantList extends Tonic {
       ${newRant}
       ${(rants || []).map(rant => {
         let id = rant.id
-        if (!isDraftID(rant.id)) id = id.toString('base64')
+        if (isRantID(rant.id)) id = id.toString('base64')
         return this.html`
           <rant class="row xcenter space-between"
             data-id="${id}"

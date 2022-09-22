@@ -338,6 +338,18 @@ export default class Kernel extends SimpleKernel {
     }
     return this._conf[key]
   }
+
+  // TODO: picostack/SimpleKernel - When detached mode is active this
+  // should be default behaviour
+  async onquery () {
+    const feeds = []
+    const res = await this.repo.listFeeds()
+    for (const { value: chainId } of res) {
+      const feed = await this.repo.resolveFeed(chainId)
+      feeds.push(feed)
+    }
+    return feeds
+  }
 }
 
 function Notebook (name = 'rants', resolveLocalKey) {
