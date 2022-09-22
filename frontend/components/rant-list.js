@@ -1,6 +1,6 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { get } from 'piconuro'
-import { isRantID } from '../../blockend/k.js'
+import { isRantID, isDraftID } from '../../blockend/k.js'
 import {
   createNew,
   kernel,

@@ -1,27 +1,26 @@
-// const path = require('path')
 import esbuild from 'esbuild'
-import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
-import stdLibBrowser from 'node-stdlib-browser'
-import builtin from 'builtin-modules'
+// import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
+// import stdLibBrowser from 'node-stdlib-browser'
 import { writeFileSync } from 'node:fs'
 
 const production = process.env.NODE_ENV === 'production' ||
   !process.argv.find(i => /^--?w(atch)?$/.test(i))
 
+// $(npm bin)/esbuild frontend/main.js --platform=browser --format=esm --bundle --servedir=pub/ --serve=3000  --outfile=pub/build/bundle.js
+
 const config = {
   entryPoints: ['frontend/main.js'],
   outfile: 'pub/build/bundle.js',
-  // outdir: 'pub/build/',
-
   format: 'esm',
   platform: 'browser',
-  target: 'esnext',
   bundle: true,
-  treeShaking: false,
   minify: production,
+  keepNames: production, // required by Tonic
   sourcemap: production,
-  // keepNames: true, // required by Tonic
+  // watch: !production,
   metafile: true,
+  // target: 'esnext', // Enabled by default
+  // treeShaking: true, // Enabled by default when bundle.true
   // inject: [require.resolve('node-stdlib-browser/helpers/esbuild/shim')],
   inject: ['./node_modules/node-stdlib-browser/helpers/esbuild/shim.js'],
   define: {
@@ -30,12 +29,13 @@ const config = {
     Buffer: 'Buffer'
   },
   plugins: [
-    plugin(stdLibBrowser),
-    blankPlug()
+    // plugin(stdLibBrowser)
+    // blankPlug()
   ]
 }
 
 async function build () {
+  await buildModem('pub/build/modem.js')
   if (production) {
     const result = await esbuild.build(config)
     const text = await esbuild.analyzeMetafile(result.metafile)
@@ -50,7 +50,7 @@ async function build () {
       servedir: 'pub/',
       port,
       onRequest: ({ method, path, status, timeInMS }) =>
-        console.info(`[${status}] ${method} ${path} - ${timeInMS}`)
+        console.info(`[${status}] ${method} ${path} - ${timeInMS}ms`)
     }, config)
     console.log('Dev-server started port:', port)
     const toExit = async () => await server.stop()
@@ -60,9 +60,22 @@ async function build () {
 }
 build()
 
+async function buildModem (output, input = './node_modules/picostack/modem56.web.js') {
+  return await esbuild.build({
+    entryPoints: [input],
+    outfile: output,
+    format: 'iife',
+    platform: 'browser',
+    bundle: true,
+    minify: production
+  })
+}
+
+// Deprecated
+/*
+// import builtin from 'builtin-modules'
 function blankPlug () {
-  const builtinList = builtin.reduce((prev, val, index) => (index > 0 ? `${prev}|${val}` : val)) +
-      '|module_error'
+  const builtinList = builtin.reduce((prev, val, index) => (index > 0 ? `${prev}|${val}` : val))
   const builtinRegexp = new RegExp(`^(${builtinList})\\/?(.+)?`)
   return {
     name: 'blankimport',
@@ -74,18 +87,6 @@ function blankPlug () {
       build.onLoad({ filter: builtinRegexp, namespace: 'blankimport' }, async (args) => {
         const path = args.path.replace(/\/$/, '')
         const stub = Object.keys(await import(path)).reduce((p, c) => ({ ...p, [c]: '' }), {})
-        /**
-         * Operation steps:
-         * - Import the module server side so you're 100% sure it will resolve
-         *    NOTE: A module won't get completely imported twice unless its
-         *    import url changes, so the import is cached.
-         * - get the keys of the import. This will get the name of every
-         *   named export present in the built-in
-         * - Reduce the string array into an object with the initializer {},
-         *   each string is added as the key of the object with an empty string
-         *   so named imports will work but will just import a blank object.
-         * - Finally stringify the object and let esbuild handle the rest for you
-         */
         const contents = JSON.stringify(stub)
         return {
           contents,
@@ -95,3 +96,4 @@ function blankPlug () {
     }
   }
 }
+*/

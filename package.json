@@ -14,7 +14,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "crass": "^0.12.3",
-    "esbuild": "^0.15.7",
+    "esbuild": "^0.15.8",
     "memory-level": "^1.0.0",
     "node-stdlib-browser": "^1.2.0",
     "rollup": "^2.78.1",
@@ -25,7 +25,7 @@
     "sirv-cli": "^2.0.2",
     "standard": "^17.0.0",
     "surge": "^0.23.1",
-    "tape": "^5.6.0"
+    "tape": "^5.6.1"
   },
   "license": "AGPL-3.0-or-later",
   "dependencies": {
@@ -40,5 +40,8 @@
     "mermaid": "^9.1.7",
     "picostack": "^1.5.7",
     "qrcode-generator": "^1.4.4"
+  },
+  "resolutions": {
+    "picofeed": "3.4.1"
   }
 }

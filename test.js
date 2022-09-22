@@ -195,6 +195,27 @@ test('... modem time', async t => {
   t.equal(rants[0].text, text, 'Message transferred')
 })
 
+/**
+ * Todo: move secondary kernel code from frontend to
+  */
+test('glue', async t => {
+  const a = new Kernel(makeDB())
+  await a.boot()
+  const b = new Kernel(makeDB())
+  await b.boot()
+  // Shit
+  const text = 'This message was brought to you through the ether'
+  for (let i = 0; i < 10; i++) {
+    await a.checkout(null)
+    await a.setText(text)
+    await a.commit()
+  }
+
+  a.spawnWire().open(b.spawnWire())
+  const rants = await until(b.$rants(), r => r.length > 9)
+  t.equal(rants.length, 10, 'Rant imported')
+})
+
 function makeDB () {
   return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
 }

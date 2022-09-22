@@ -345,6 +345,10 @@ export default class Kernel extends SimpleKernel {
     const feeds = []
     const res = await this.repo.listFeeds()
     for (const { value: chainId } of res) {
+      if (!Buffer.isBuffer(chainId)) {
+        console.error('ChainId borked', chainId)
+        continue
+      }
       const feed = await this.repo.resolveFeed(chainId)
       feeds.push(feed)
     }
