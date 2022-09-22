@@ -17,7 +17,7 @@
     "esbuild": "^0.15.8",
     "memory-level": "^1.0.0",
     "node-stdlib-browser": "^1.2.0",
-    "rollup": "^2.78.1",
+    "rollup": "^2.79.1",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-node-polyfills": "^0.2.1",
@@ -38,10 +38,7 @@
     "lzutf8": "^0.6.3",
     "marked": "^4.1.0",
     "mermaid": "^9.1.7",
-    "picostack": "^1.5.7",
+    "picostack": "^1.5.8",
     "qrcode-generator": "^1.4.4"
-  },
-  "resolutions": {
-    "picofeed": "3.4.1"
   }
 }

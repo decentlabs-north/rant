@@ -20,7 +20,6 @@ export default class Kernel extends SimpleKernel {
   constructor (db) {
     super(db)
     this.repo.allowDetached = true
-    // this.store.mutexTimeout = 90000000 // TODO: rewrite mutex => WebLock
     this.store.register(Notebook('rants', () => this.pk))
 
     this._conf = {}
