@@ -1,3 +1,8 @@
+/*
+ * 1k Rant - Kernel
+ * @author Tony Ivanov
+ * @license AGPLv3
+ */
 import { SimpleKernel, Feed } from 'picostack'
 import { memo, mute, write, combine, get } from 'piconuro'
 import { inspect as dumpDot } from 'picorepo/dot.js'

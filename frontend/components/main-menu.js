@@ -10,10 +10,11 @@ Tonic.add(class MainMenu extends Tonic {
   }
 
   render () {
+    // 📝
     return this.html`
       <nav class="row">
-        <button data-route="d" data-toltip="Drafts"><ico>📝</ico></button>
-        <button data-route="l" data-toltip="Saved"><ico>📑</ico></button>
+        <button data-route="d" data-toltip="Drafts"><ico>📑</ico></button>
+        <button data-route="l" data-toltip="Saved"><ico>🌟</ico></button>
         <button data-route="n" data-toltip="Discover"><ico>🧭</ico></button>
         <button data-route="s" data-toltip="Settings"><ico>⚙️</ico></button>
       </nav>

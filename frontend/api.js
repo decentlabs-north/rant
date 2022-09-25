@@ -1,6 +1,6 @@
 import { BrowserLevel } from 'browser-level'
 import { write, mute, get, combine } from 'piconuro'
-import Kernel, { isDraftID } from '../blockend/k.js'
+import Kernel, { isDraftID } from '../blockend/kernel.js'
 
 const DB = new BrowserLevel('rant.lvl', {
   valueEncoding: 'buffer',
@@ -26,6 +26,7 @@ export const $mode = mute(combine(_mode, $view), ([m, v]) => {
   // Force west/editor area to be shown when in app sub-views.
   if (!~['pitch', 'show', 'edit'].indexOf(v)) return true
   if (v === 'pitch') return false // Force presentation mode.
+  console.log('$mode(m, v)')
   return m // fallback on user-controlled state
 })
 

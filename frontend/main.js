@@ -1,6 +1,6 @@
 import '@picocss/pico'
-import { gate, nfo, mute, get, init, memo } from 'piconuro'
-import { isDraftID } from '../blockend/k.js'
+import { gate, nfo, mute, get, init, memo, combine, write } from 'piconuro'
+import { isDraftID } from '../blockend/kernel.js'
 import { THEMES } from '../blockend/picocard.js'
 import {
   nAttr,
@@ -23,6 +23,7 @@ import {
   RoutingTable
 } from './api.js'
 
+import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
 import './components/rant-list.js'
@@ -43,9 +44,19 @@ async function main () {
   nClass('main', 'mode-show', mute($mode, m => !m))
 
   /* Renderer */
-  stitch(kernel.$rant(), 'markdown-render')
-  const $state = memo(gate(mute(kernel.$rant(), r => r.state)))
-  const $theme = memo(mute(kernel.$rant(), r => r.theme))
+  // const $rant = kernel.$rant()
+  /** Look away please, this is gonna be ugly */
+  const [$hack, setHack] = write()
+  window.____ = setHack
+  const $rant = mute(
+    combine(kernel.$rant(), $hack),
+    ([r, h]) => h || r
+  )
+  /* Ok. it's over. procceed and carry on */
+
+  stitch($rant, 'markdown-render')
+  const $state = memo(gate(mute($rant, r => r.state)))
+  const $theme = memo(mute($rant, r => r.theme))
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
   nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))

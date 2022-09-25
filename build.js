@@ -1,12 +1,10 @@
 import esbuild from 'esbuild'
-// import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
-// import stdLibBrowser from 'node-stdlib-browser'
+import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
+import stdLibBrowser from 'node-stdlib-browser'
 import { writeFileSync } from 'node:fs'
 
 const production = process.env.NODE_ENV === 'production' ||
   !process.argv.find(i => /^--?w(atch)?$/.test(i))
-
-// $(npm bin)/esbuild frontend/main.js --platform=browser --format=esm --bundle --servedir=pub/ --serve=3000  --outfile=pub/build/bundle.js
 
 const config = {
   entryPoints: ['frontend/main.js'],
@@ -16,34 +14,32 @@ const config = {
   bundle: true,
   minify: production,
   keepNames: production, // required by Tonic
-  sourcemap: production,
-  // watch: !production,
+  sourcemap: false, // production, It's huge.
   metafile: true,
-  // target: 'esnext', // Enabled by default
-  // treeShaking: true, // Enabled by default when bundle.true
-  // inject: [require.resolve('node-stdlib-browser/helpers/esbuild/shim')],
   inject: ['./node_modules/node-stdlib-browser/helpers/esbuild/shim.js'],
   define: {
     global: 'global',
     process: 'process',
     Buffer: 'Buffer'
   },
-  plugins: [
-    // plugin(stdLibBrowser)
-    // blankPlug()
-  ]
+  plugins: [plugin(stdLibBrowser)]
 }
 
 async function build () {
-  await buildModem('pub/build/modem.js')
   if (production) {
     const result = await esbuild.build(config)
-    const text = await esbuild.analyzeMetafile(result.metafile)
+    const text = await esbuild.analyzeMetafile(result.metafile, { verbose: false })
     console.log(text)
     writeFileSync(
       'pub/build/meta.json',
       JSON.stringify(result.metafile)
     )
+    console.log('=== End Result ===\n')
+    const { outputs } = result.metafile
+    for (const k in outputs) {
+      console.log(`${k} ${outputs[k].bytes}B`)
+    }
+    console.log('\n')
   } else {
     const port = 3000
     const server = await esbuild.serve({
@@ -60,16 +56,29 @@ async function build () {
 }
 build()
 
+// Sideload the modem the oldskool way since it requires
+// a heavy set of browserify transformations
+/* TODO: move this to picostack to migrate browserify -> esbuild
+import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
+import stdLibBrowser from 'node-stdlib-browser'
 async function buildModem (output, input = './node_modules/picostack/modem56.web.js') {
   return await esbuild.build({
     entryPoints: [input],
     outfile: output,
     format: 'iife',
     platform: 'browser',
-    bundle: true,
-    minify: production
+    bundle: false,
+    treeShaking: false,
+    inject: ['./node_modules/node-stdlib-browser/helpers/esbuild/shim.js'],
+    minify: false,
+    define: {
+      global: 'global',
+      Buffer: 'Buffer'
+    }
+    plugins: [plugin(stdLibBrowser)]
   })
 }
+*/
 
 // Deprecated
 /*

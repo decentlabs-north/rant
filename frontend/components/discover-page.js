@@ -1,12 +1,12 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { gate, combine, mute } from 'piconuro'
-import { kernel } from '../api.js'
-import Kernel, { isRantID, isEqualID } from '../../blockend/k.js'
-import dayjs from 'dayjs'
-import RelativeTime from 'dayjs/plugin/relativeTime'
-dayjs.extend(RelativeTime)
-const TOPIC = 'GLOBAL_RANT_WARNING'
+import { gate, combine, mute, get } from 'piconuro'
+import { kernel, setMode, $mode } from '../api.js'
+import Kernel, { isRantID, isEqualID, btok } from '../../blockend/kernel.js'
+import { processText, THEMES } from '../../blockend/picocard.js'
+import Modem56 from '../../../picostack/modem56.js'
+import dayjs from '../day.js'
 
+const TOPIC = 'GLOBAL_RANT_WARNING'
 /* Spin up a temporary kernel to avoid pollute local notebook */
 // TODO: Move subkernel into main-kernel/blockend
 class DualCoreTM extends Kernel {
@@ -22,15 +22,13 @@ class DualCoreTM extends Kernel {
 export class DiscoverPage extends Tonic {
   constructor () {
     super()
-    // TODO: fix modem *facepalm*
-    this.modem = new window.Modem56()
+    this.modem = new Modem56()
     this.db = kernel.db.sublevel('TMP', {
       keyEncoding: 'buffer',
       valueEncoding: 'buffer'
     })
     this.dcore = new DualCoreTM(this.db)
     this.isSwarming = false
-    window.subK = this.dcore
   }
 
   connected () {
@@ -60,6 +58,22 @@ export class DiscoverPage extends Tonic {
     }
   }
 
+  async click (ev) {
+    const el = Tonic.match(ev.target, 'rant[data-id]')
+    if (el) {
+      const id = Buffer.from(el.dataset.id, 'base64')
+      this.dcore.checkout(id)
+      window.____(get(this.dcore.$rant())) // look away
+      if (!this._____m) {
+        this._____m = $mode(editMode => {
+          console.log('Current Mode', editMode)
+          if (editMode) window.____(0) // look away
+        })
+      }
+      setMode(false)
+    }
+  }
+
   render () {
     const rants = this.props.rants || []
     const peers = this.props.peers || 0
@@ -71,27 +85,9 @@ export class DiscoverPage extends Tonic {
           <h5 aria-busy="true">Searching for peers...</h5>
         `
       }
-      window.dayjs = dayjs
       return rants.map(rant => {
-        let id = rant.id
-        if (isRantID(rant.id)) id = id.toString('base64')
         return this.html`
-          <rlist>
-            <rant class="row xcenter space-between"
-              data-id="${id}"
-              data-state="${rant.state}">
-              <div class="row xcenter">
-                <icon>${rant.icon}</icon>
-                <div class="col xstart">
-                  <h6>${rant.title}</h6>
-                  <small>${dayjs(rant.date).fromNow()}</small>
-                  <div class="sampl">${rant.excerpt}...</div>
-                </div>
-              </div>
-              <!-- picoshit rebirth -->
-              <b role="button" class="btn-round">💩</b>
-            </rant>
-          </rlist>
+          <rant-card rant=${rant}></rant-card>
         `
       })
     }
@@ -129,42 +125,47 @@ export class DiscoverPage extends Tonic {
   static stylesheet () {
     return `
       discover-page { display: block; }
-
-      <!-- TODO: make rant-list.js reusable to dedupe this css -->
-      rlist { display: block; }
-      rlist rant icon {
-        display: inline-block;
-        --size: 1.9em;
-        height: var(--size);
-        width: var(--size);
-        overflow: hidden;
-        text-align: center;
-        line-height: var(--size);
-        vertical-align: middle;
-        font-size: calc(var(--size) * 0.8);
-        border: 1px solid var(--primary);
-        margin-right: var(--block-spacing-horizontal);
-      }
-      rlist rant .trash {
-        background-image: var(--icon-close);
-        background-position: center center;
-        background-repeat: no-repeat;
-      }
-      rlist rant h6, rant-list rant h4 { margin: 0; }
-      rlist rant .sample {
-        display: block;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      rlist rant {
-        border-bottom: 1px solid var(--primary);
-        padding-top: var(--block-spacing-horizontal);
-        padding-bottom: var(--block-spacing-horizontal);
-      }
-      rlist rant:last-child { border-bottom: none; }
-      rlist rant[data-id=new] h6 { color: var(--primary); }
     `
   }
 }
 Tonic.add(DiscoverPage)
+
+// ------
+
+/**
+ * RantCard
+ * This is what a rant looks like in a feed.
+ * This component is **only** for rants, no drafts.
+ * TODO: move to own file if experiment successful.
+ */
+class RantCard extends Tonic {
+  render () {
+    const rant = this.props.rant
+    if (!isRantID(rant?.id)) return this.html`<error>Invalid rant</error>`
+
+    const id = btok(rant.id)
+    const text = this.html([processText(rant.text)])
+    return this.html`
+      <article class="rant" data-id="${id}" data-theme="${THEMES[rant.theme]}">
+        <div class="contents">
+          ${text}
+        </div>
+        <footer class="row space-between">
+          <!-- picoshit rebirth -->
+          <small>${dayjs(rant.date).fromNow()}</small>
+          <b role="button" class="btn-round">💩+4</b>
+        </foot>
+      </article>
+    `
+  }
+
+  static stylesheet () {
+    return `
+      article.rant .contents {
+        max-height: 400px;
+        overflow: hidden;
+      }
+    `
+  }
+}
+Tonic.add(RantCard)

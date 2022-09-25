@@ -5,15 +5,11 @@
 	<meta name='viewport' content='width=device-width,initial-scale=1'>
 	<title>1k Notepad</title>
   <meta name="description" content="Distraction free markdown editor">
-
-
+  <link rel="manifest" href="manifest.json" />
   <link rel='icon' type='image/png' href='/favicon.png'>
 	<link rel='stylesheet' href='/build/bundle.css'>
   <link rel='stylesheet' href='/global.css'>
-  <script src="modem56.web.js"></script>
 	<script type="module" async src='/build/bundle.js'></script>
-  <style>
-  </style>
 </head>
 <body data-theme="dark">
   <noscript>
@@ -29,6 +25,7 @@
   </noscript>
 
   <main id="main" data-mirror="true">
+    <install-button></install-button>
     <!----- DRAFTS ------------->
     <home class="west">
       <main-menu></main-menu>

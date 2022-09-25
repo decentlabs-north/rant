@@ -1,12 +1,14 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { get } from 'piconuro'
-import { isRantID, isDraftID } from '../../blockend/k.js'
+import { isRantID, isDraftID } from '../../blockend/kernel.js'
+import dayjs from '../day.js'
 import {
   createNew,
   kernel,
   setMode,
   navigate
 } from '../api.js'
+
 Tonic.add(class RantList extends Tonic {
   async click (ev) {
     const el = Tonic.match(ev.target, 'rant')
@@ -70,7 +72,7 @@ Tonic.add(class RantList extends Tonic {
               <icon>${rant.icon}</icon>
               <div class="col xstart">
                 <h6>${rant.title}</h6>
-                <small>${new Date(rant.date).toLocaleString()}</small>
+                <small>${dayjs(rant.date).fromNow()}</small>
                 <div class="sampl">${rant.excerpt}...</div>
               </div>
             </div>
