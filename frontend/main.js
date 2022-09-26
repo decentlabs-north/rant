@@ -131,7 +131,6 @@ async function main () {
   nClick('lock-button', async () => {
     const $secret = document.getElementById('KeyPadDisplay').value
     kernel.setSecret($secret)
-    console.log(get(kernel._nSecret))
     /**
      * Testing the encryption
      */
@@ -209,7 +208,15 @@ async function main () {
       case 'show': {
         try {
           await kernel.import(id)
-          const { title, excerpt } = get(kernel.$rant())
+          const { title, excerpt, encryption } = get(kernel.$rant())
+          console.log(encryption)
+          if (encryption === 'hidden') {
+            nEl('edit-keypad-dlg2').open = true
+          }
+          nClick('unlock-button', async () => {
+            const $secret = document.getElementById('KeyPadDisplay').value
+            kernel.setSecret($secret)
+          })
           document.head.querySelector('title').text = title
           document.head.querySelector('meta[name="description"]').content = excerpt
         } catch (err) {

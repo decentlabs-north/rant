@@ -47,15 +47,15 @@ const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
 function encrypt (message, secret) {
   console.log('Encryption Called')
-  const encodedString = CryptoJS.AES.encrypt(message, secret)
-  console.log(encodedString)
-  return encodedString
+  const ciphertext = CryptoJS.AES.encrypt(message, secret).toString()
+  return ciphertext
 }
+
 function decrypt (encoded, secret) {
   console.log('Decryption Called')
-  const decodedMessage = CryptoJS.AES.decrypt(encoded, secret)
-  console.log(decodedMessage)
-  return decodedMessage
+  const bytes = CryptoJS.AES.decrypt(encoded, secret)
+  const originalText = bytes.toString(CryptoJS.enc.Utf8)
+  return originalText
 }
 
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
@@ -90,7 +90,7 @@ export function pack (props, secret) {
   let x = encryption
   if (secret) {
     x = encryption
-    t = encrypt(t, secret)
+    t = encrypt(t.text, secret)
   }
 
   const card = {
@@ -117,12 +117,17 @@ export function unpack (buffer, secret) {
     decompressFromUint8Array
   ]
   let text
+  console.log(card.x)
   switch (card.x) {
     case 0:
+      console.log('no encryption')
       text = card.t
       break // plain yay!
     case 1: // keypad encryption
-      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
+      if (!secret) {
+        console.log('no secret provided')
+        text = card.t
+      } else { // if (!secret) throw new Error('ContentEncrypted')
         console.log('keypad encryption: trying to decrypt')
         text = decrypt(card.t, secret)
       }
@@ -142,6 +147,8 @@ export function unpack (buffer, secret) {
     default:
       throw new Error('UnknownEncryption')
   }
+  // const txt = decrypt(text, '1337')
+  console.log(text)
   text = decompressors[card.z](text)
   return {
     type: card.b,

@@ -36,7 +36,9 @@ Tonic.add(class RenderCtrls extends Tonic {
         <small>Author: ${rant.author.slice(0, 4).toString('hex')}</small>
         <small>Date: <span id="author-id">${dateStr}</span></small>
         ${/* Experimental implementation of secret */''}
+        <small>[Development] Encryption: <span id="secret-id">${rant.encryption.toString()}</span></small>
         <small>[Development] Secret: <span id="secret-id">${rant.secret}</span></small>
+
       `
     return this.html`
       <ctrls class="row space-between xcenter">

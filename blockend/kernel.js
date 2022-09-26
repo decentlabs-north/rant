@@ -215,21 +215,15 @@ export default class Kernel extends SimpleKernel {
   }
 
   async setSecret (secret) {
-    if (!this.isEditing) throw new Error('EditMode not active')
+    // if (!this.isEditing) throw new Error('EditMode not active')
     console.log('setting secret...')
     this._w.setSecret(secret)
-    await this._saveDraft()
+    if (this.isEditing) { await this._saveDraft() }
   }
 
   async encrypt (message, secret) {
     console.log('Encryption Called')
-
-    // Encrypt
     const ciphertext = CryptoJS.AES.encrypt(message, secret).toString()
-
-    // const encodedString = CryptoJS.AES.encrypt(message, secret)
-    // console.log(encodedString)
-    // return encodedString
     return ciphertext
   }
 
@@ -238,17 +232,6 @@ export default class Kernel extends SimpleKernel {
     const bytes = CryptoJS.AES.decrypt(encoded, secret)
     const originalText = bytes.toString(CryptoJS.enc.Utf8)
     return originalText
-  }
-
-  async makeid (length) {
-    let result = ''
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    const charactersLength = characters.length
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() *
- charactersLength))
-    }
-    return result
   }
 
   async commit () {
@@ -266,10 +249,12 @@ export default class Kernel extends SimpleKernel {
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
-    const xcrypo = await this.encrypt(rant.text, get(this._nSecret))
-    console.log(xcrypo)
+
+    // const xcrypo = await this.encrypt(rant.text, get(this._nSecret))
+    // console.log(xcrypo)
+
     // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
-    const data = pack(rant)
+    const data = pack(rant, get(this._nSecret))
     branch.append(data, this._secret)
     const id = branch.last.sig
 
@@ -469,7 +454,8 @@ function Notebook (name = 'rants', resolveLocalKey) {
         size: block.body.length,
         entombed: false,
         // Experimental implementation of secret
-        secret: 'test'
+        secret: 'test',
+        encryption: block.encryption ? block.encryption : 'hidden'
       }
       return { ...state }
     },
