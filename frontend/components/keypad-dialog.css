@@ -1,0 +1,24 @@
+.keypad{
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  width: fit-content;
+}
+.keypad button{
+  width: 100%;
+  margin: 0.1rem;
+}
+.keypad .row{
+  justify-content: space-around;
+}
+.BackspaceBtn{
+  width: auto !important;
+  margin: auto !important;
+  margin-bottom: 1rem !important;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+#KeyPadDisplay{
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
