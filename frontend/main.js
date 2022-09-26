@@ -58,6 +58,10 @@ async function main () {
   stitch($rant, 'markdown-render')
   const $state = memo(gate(mute($rant, r => r.state)))
   const $theme = memo(mute($rant, r => r.theme))
+
+  // EXPERIMENTAL ENCRYPTION IMPLEMENTATION
+  const $encryption = memo(mute($rant, r => r.encryption))
+
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
   nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))
@@ -99,13 +103,55 @@ async function main () {
     navigate(get($state) === 'draft' ? 'd' : 'l')
   })
   nClick('edit-preview', () => setMode(!get($mode)))
+  // nClick('lock-button', async () => {
+  //   const $secret = document.getElementById('KeyPadDisplay').value
+  //   kernel.setSecret($secret)
+  //   const id = await kernel.commit()
+  //   const pickle = await kernel.pickle(id)
+  //   navigate(`r/${pickle}`)
+  //   setMode(false)
+  //   console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+  // })
+
+  // Experimental implementation of secret START
   nClick('edit-publish', async () => {
+    const EncryptionLevel = get($encryption)
+    if (EncryptionLevel === 1) {
+      nEl('edit-keypad-dlg').open = true
+    } else {
+      const $secret = document.getElementById('KeyPadDisplay').value
+      kernel.setSecret($secret)
+      const id = await kernel.commit()
+      const pickle = await kernel.pickle(id)
+      navigate(`r/${pickle}`)
+      setMode(false)
+      console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+    }
+  })
+  nClick('lock-button', async () => {
+    const $secret = document.getElementById('KeyPadDisplay').value
+    kernel.setSecret($secret)
+    console.log(get(kernel._nSecret))
+    /**
+     * Testing the encryption
+     */
+    // const test = await kernel.encrypt('sample message', 'mySecret')
+    // console.log(test)
+    // console.log(await kernel.decrypt(test, 'mySecret'))
+
     const id = await kernel.commit()
     const pickle = await kernel.pickle(id)
     navigate(`r/${pickle}`)
     setMode(false)
     console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
   })
+
+  nValue('edit-opt-encryption',
+    $encryption,
+    async v => kernel.setEncryption(parseInt(v))
+  )
+  // Experimental implementation of secret END
+
   nClick('edit-fork', async () => {
     const id = get(kernel.$current)
     const [draft, parent] = await kernel.checkout(id, true)

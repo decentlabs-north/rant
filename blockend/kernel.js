@@ -17,6 +17,11 @@ import {
   TYPE_TOMB
 } from './picocard.js'
 
+/**
+ * Encryption imports
+ */
+const CryptoJS = require('crypto-js')
+
 // Backdoor my own shit.
 // SimpleKernel.decodeBlock = unpack
 SimpleKernel.encodeBlock = (type, seq, data) => pack({ type, ...data })
@@ -37,16 +42,17 @@ export default class Kernel extends SimpleKernel {
     // set up writable draft
     const [text, setText] = write('')
     const [theme, setTheme] = this.config('lastUsedTheme', 0) // write(0)
-    const [encryption, setEncryption] = write(0)
+    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0) // write(0)
     const [date, setDate] = write(Date.now())
-    // const [secret, setSecret] = write(rant.secret)
+    const [$secret, setSecret] = write('unsetSecret')
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
-
+    this._secret = get($secret)
+    this._nSecret = memo($secret)
     const [$drafts, setDrafts] = write([])
     this._nDrafts = memo($drafts)
     // Stash all inputs
-    this._w = { setText, setTheme, setEncryption, setDate, setDrafts }
+    this._w = { setText, setTheme, setEncryption, setDate, setDrafts, setSecret }
   }
 
   $drafts () { return this._nDrafts }
@@ -200,6 +206,49 @@ export default class Kernel extends SimpleKernel {
     await this._saveDraft()
   }
 
+  async setEncryption (encryption) {
+    if (!this.isEditing) throw new Error('EditMode not active')
+    this._w.setEncryption(encryption)
+    await this._saveDraft()
+  }
+
+  async setSecret (secret) {
+    if (!this.isEditing) throw new Error('EditMode not active')
+    console.log('setting secret...')
+    this._w.setSecret(secret)
+    await this._saveDraft()
+  }
+
+  async encrypt (message, secret) {
+    console.log('Encryption Called')
+
+    // Encrypt
+    const ciphertext = CryptoJS.AES.encrypt(message, secret).toString()
+
+    // const encodedString = CryptoJS.AES.encrypt(message, secret)
+    // console.log(encodedString)
+    // return encodedString
+    return ciphertext
+  }
+
+  async decrypt (encoded, secret) {
+    console.log('Decryption Called')
+    const bytes = CryptoJS.AES.decrypt(encoded, secret)
+    const originalText = bytes.toString(CryptoJS.enc.Utf8)
+    return originalText
+  }
+
+  async makeid (length) {
+    let result = ''
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    const charactersLength = characters.length
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() *
+ charactersLength))
+    }
+    return result
+  }
+
   async commit () {
     if (!this.isEditing) throw new Error('EditMode not active')
     this._checkReady()
@@ -215,9 +264,11 @@ export default class Kernel extends SimpleKernel {
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
+    const xcrypo = await this.encrypt(rant.text, get(this._nSecret))
+    console.log(xcrypo)
     // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
     const data = pack(rant)
-    branch.append(data, this._secret)
+    branch.append(data, this._secret2)
     const id = branch.last.sig
 
     const modified = await this.dispatch(branch, true)
@@ -414,7 +465,9 @@ function Notebook (name = 'rants', resolveLocalKey) {
         author: block.key,
         rev: block.sig,
         size: block.body.length,
-        entombed: false
+        entombed: false,
+        // Experimental implementation of secret
+        secret: 'test'
       }
       return { ...state }
     },

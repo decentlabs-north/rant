@@ -4,21 +4,29 @@
   padding: 1rem;
   width: fit-content;
 }
-.keypad button{
+.keypad .num-button{
   width: 100%;
-  margin: 0.1rem;
+  margin: 0.1rem !important;
+  /*margin-bottom: 0.1rem !important;*/
+  border-radius: 0;
+}
+.keypad .lock-button{
+  margin: 0.1rem !important;
 }
 .keypad .row{
   justify-content: space-around;
 }
-.BackspaceBtn{
+.keypad .backspace-button{
   width: auto !important;
   margin: auto !important;
   margin-bottom: 1rem !important;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 #KeyPadDisplay{
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+}
+.keypad-article{
+  overflow: hidden;
 }

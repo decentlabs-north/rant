@@ -28,7 +28,6 @@
     <install-button></install-button>
     <!----- DRAFTS ------------->
     <home class="west">
-      <keypad-dialog></keypad-dialog>
       <main-menu></main-menu>
       <div class="container pad">
         <div class="row space-between xstart">
@@ -148,6 +147,11 @@
         <!-- signed ctrls -->
         <button id="edit-fork" data-tooltip="Fork"><ico>🔓</ico></button>
         <button id="edit-share" data-tooltip="Share"><ico>📤</ico></button>
+        <dialog id="edit-keypad-dlg">
+          <article class="keypad-article">
+            <keypad-dialog></keypad-dialog>
+          </article>
+        </dialog>
         <dialog id="edit-opts-dlg">
           <article>
             <header>Note Options</header>

@@ -13,6 +13,11 @@ import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
 import { Feed } from 'picostack'
 
+/**
+ * Encryption imports
+ */
+const CryptoJS = require('crypto-js')
+
 /* #if _MERMAID */
 // Extend marked with mermaid support (+1MB bundle size)
 marked.use({
@@ -40,15 +45,25 @@ export const THEMES = [
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
-function encrypt (message, secret) {}
-function decrypt (message, secret) {}
+function encrypt (message, secret) {
+  console.log('Encryption Called')
+  const encodedString = CryptoJS.AES.encrypt(message, secret)
+  console.log(encodedString)
+  return encodedString
+}
+function decrypt (encoded, secret) {
+  console.log('Decryption Called')
+  const decodedMessage = CryptoJS.AES.decrypt(encoded, secret)
+  console.log(decodedMessage)
+  return decodedMessage
+}
 
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
 export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
 
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
-  const { date, page, theme, type } = props
+  const { date, page, theme, type, encryption } = props
   if (type === TYPE_TOMB) { // Tombstone/Delete rant.
     return mpack({
       b: type,
@@ -72,9 +87,9 @@ export function pack (props, secret) {
   // leave a note of what type of compression was used.
   const z = candidates.indexOf(winrar)
   let t = Buffer.from(winrar)
-  let x = 0
+  let x = encryption
   if (secret) {
-    x = 1
+    x = encryption
     t = encrypt(t, secret)
   }
 
@@ -106,9 +121,23 @@ export function unpack (buffer, secret) {
     case 0:
       text = card.t
       break // plain yay!
-    case 1: // secret_box encryption
-      if (!secret) throw new Error('ContentEncrypted')
-      text = decrypt(card.t, secret)
+    case 1: // keypad encryption
+      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
+        console.log('keypad encryption: trying to decrypt')
+        text = decrypt(card.t, secret)
+      }
+      break
+    case 2: // passphrase encryption
+      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
+        console.log('passphrase encryption: trying to decrypt')
+        text = decrypt(card.t, secret)
+      }
+      break
+    case 3: // box encryption
+      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
+        console.log('box encryption: trying to decrypt')
+        text = decrypt(card.t, secret)
+      }
       break
     default:
       throw new Error('UnknownEncryption')
