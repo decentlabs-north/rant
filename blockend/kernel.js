@@ -47,8 +47,10 @@ export default class Kernel extends SimpleKernel {
     const [$secret, setSecret] = write('unsetSecret')
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
-    this._secret = get($secret)
+
+    // this._secret = get($secret)
     this._nSecret = memo($secret)
+
     const [$drafts, setDrafts] = write([])
     this._nDrafts = memo($drafts)
     // Stash all inputs
@@ -268,7 +270,7 @@ export default class Kernel extends SimpleKernel {
     console.log(xcrypo)
     // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
     const data = pack(rant)
-    branch.append(data, this._secret2)
+    branch.append(data, this._secret)
     const id = branch.last.sig
 
     const modified = await this.dispatch(branch, true)
