@@ -14,8 +14,6 @@ Tonic.add(class KeypadDialog extends Tonic {
       // if backspace button is pressed
     } else if (e.target.accessKey === 'BackspaceBtn') {
       const NewVal = RemoveLastChar(KeyPadVal)
-      // Logging the new value after removal of last char
-      console.log(NewVal)
       KeyPad.value = NewVal
     }
   }
