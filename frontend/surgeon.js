@@ -1,6 +1,8 @@
 /* ------------ NuroSurgeon ------------ */
 /* Minimal functions to stitch neurons to DOM
-  * yeah pretty much jQuery reinvented but with recursion */
+* yeah pretty much jQuery reinvented...
+* TODO: overused in main.js, works but unfriendly, use components instead.
+*/
 export function nEl (el) {
   const o = el
   if (typeof el === 'string') el = document.getElementById(el)

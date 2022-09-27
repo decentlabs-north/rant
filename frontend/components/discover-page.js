@@ -7,8 +7,8 @@ import Modem56 from '../../../picostack/modem56.js'
 import dayjs from '../day.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'
-/* Spin up a temporary kernel to avoid pollute local notebook */
-// TODO: Move subkernel into main-kernel/blockend
+/* Spin up a disposable kernel to avoid pollute local notebook */
+// TODO: Move subkernel into blockend folder
 class DualCoreTM extends Kernel {
   async onquery (...args) {
     const tmpFeeds = await super.onquery(...args)

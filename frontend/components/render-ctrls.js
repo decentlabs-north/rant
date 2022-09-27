@@ -1,5 +1,6 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { $mode, setMode, navigate, shareDefault } from '../api.js'
+import { $mode, setMode, shareDefault } from '../api.js'
+import { navigate } from '../router.js'
 import { get } from 'piconuro'
 
 // TODO: convert to vanilla html / will be less code and
@@ -7,7 +8,7 @@ import { get } from 'piconuro'
 Tonic.add(class RenderCtrls extends Tonic {
   async click (ev) {
     if (Tonic.match(ev.target, '#btn-toggle')) {
-      if (this.props.state === 'pitch') navigate('d')
+      if (this.props.state === 'pitch') navigate('home')
       setMode(!get($mode))
     }
     if (Tonic.match(ev.target, '.btn-export')) {
