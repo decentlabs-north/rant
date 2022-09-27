@@ -21,6 +21,7 @@ Tonic.add(class KeypadDialog extends Tonic {
     // if number button is pressed
     if (e.target.accessKey === 'keyBtnUnlock') {
       KeyPadUnlock.value = KeyPadUnlockVal + e.target.value
+      if (KeyPadUnlock.placeholder !== '') KeyPadUnlock.placeholder = ''
       // if lock button is pressed
     } else if (e.target.accessKey === 'UnlockBtn') {
       // console.log(KeyPadVal)

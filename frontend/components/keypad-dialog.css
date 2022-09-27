@@ -27,6 +27,23 @@
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
+#KeyPadDisplayUnlock{
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+#KeyPadDisplayUnlock::placeholder {
+  color: #f14646;
+  opacity: 1;
+}
 .keypad-article{
   overflow: hidden;
+}
+.unlock-keypad-title{
+  display: flex;
+  transition: 0.2s;
+}
+.unlock-keypad-title span{
+  text-align: center;
+  margin: auto;
+  font-size: 1.5rem;
 }

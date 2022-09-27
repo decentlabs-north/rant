@@ -45,15 +45,14 @@ export const THEMES = [
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
+
 function encrypt (message, secret) {
-  console.log('Encryption Called')
-  const ciphertext = CryptoJS.AES.encrypt(message, secret).toString()
+  const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
   return ciphertext
 }
 
 function decrypt (encoded, secret) {
-  console.log('Decryption Called')
-  const bytes = CryptoJS.AES.decrypt(encoded, secret)
+  const bytes = CryptoJS.AES.decrypt(encoded, secret.toString())
   const originalText = bytes.toString(CryptoJS.enc.Utf8)
   return originalText
 }
@@ -88,9 +87,9 @@ export function pack (props, secret) {
   const z = candidates.indexOf(winrar)
   let t = Buffer.from(winrar)
   let x = encryption
-  if (secret) {
+  if (secret && encryption > 0) {
     x = encryption
-    t = encrypt(t.text, secret)
+    t = encrypt(text, secret)
   }
 
   const card = {
@@ -117,38 +116,34 @@ export function unpack (buffer, secret) {
     decompressFromUint8Array
   ]
   let text
-  console.log(card.x)
   switch (card.x) {
     case 0:
-      console.log('no encryption')
       text = card.t
       break // plain yay!
     case 1: // keypad encryption
       if (!secret) {
-        console.log('no secret provided')
+        // If no secret is provided during Unpack the text will bre in its encrypted state
         text = card.t
       } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.log('keypad encryption: trying to decrypt')
+        console.info('Decrypting KeyPad Encryption')
         text = decrypt(card.t, secret)
       }
       break
     case 2: // passphrase encryption
       if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.log('passphrase encryption: trying to decrypt')
+        console.error('Passphrase Encryption NYI')
         text = decrypt(card.t, secret)
       }
       break
     case 3: // box encryption
       if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.log('box encryption: trying to decrypt')
+        console.error('Box Encryption NYI')
         text = decrypt(card.t, secret)
       }
       break
     default:
       throw new Error('UnknownEncryption')
   }
-  // const txt = decrypt(text, '1337')
-  console.log(text)
   text = decompressors[card.z](text)
   return {
     type: card.b,

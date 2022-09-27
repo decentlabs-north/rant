@@ -152,11 +152,11 @@
             <keypad-dialog></keypad-dialog>
           </article>
         </dialog>
-        <dialog id="edit-keypad-dlg2">
+        <!-- <dialog id="edit-keypad-dlg2">
           <article class="keypad-article">
             <keypad-dialog post='false'></keypad-dialog>
           </article>
-        </dialog>
+        </dialog> -->
         <dialog id="edit-opts-dlg">
           <article>
             <header>Note Options</header>
@@ -194,6 +194,12 @@
     <!----- RENDERER ------------->
     <render class="east col space-between" id="view-render">
       <render-ctrls id="render-ctrls"></render-ctrls>
+      <dialog id="edit-keypad-dlg2">
+        <article class="keypad-article">
+          <div class="unlock-keypad-title" id="UnlockKeypadTitle"><span id="UnlockKeypadTitleSpan">Enter PIN</span></div>
+          <keypad-dialog post='false'></keypad-dialog>
+        </article>
+      </dialog>
       <message-preview id="markdown-render" class="container grow4"></message-preview>
       <button id="r-btn-resume" class="btn-round"><ico>✏️</ico></button>
       <div id="r-ghost-pad">&nbsp;</div>

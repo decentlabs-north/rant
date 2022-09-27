@@ -48,7 +48,6 @@ export default class Kernel extends SimpleKernel {
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
 
-    // this._secret = get($secret)
     this._nSecret = memo($secret)
 
     const [$drafts, setDrafts] = write([])
@@ -215,23 +214,26 @@ export default class Kernel extends SimpleKernel {
   }
 
   async setSecret (secret) {
-    // if (!this.isEditing) throw new Error('EditMode not active')
-    console.log('setting secret...')
     this._w.setSecret(secret)
     if (this.isEditing) { await this._saveDraft() }
   }
 
   async encrypt (message, secret) {
-    console.log('Encryption Called')
-    const ciphertext = CryptoJS.AES.encrypt(message, secret).toString()
+    const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
     return ciphertext
   }
 
   async decrypt (encoded, secret) {
-    console.log('Decryption Called')
-    const bytes = CryptoJS.AES.decrypt(encoded, secret)
+    const bytes = CryptoJS.AES.decrypt(encoded, secret.toString())
     const originalText = bytes.toString(CryptoJS.enc.Utf8)
-    return originalText
+    if (originalText === '') return false
+    else return originalText
+  }
+
+  async UnlockRant (secret) {
+    const { text } = get(this.$rant())
+    const decrypted = await this.decrypt(text, secret)
+    return decrypted
   }
 
   async commit () {
@@ -249,9 +251,6 @@ export default class Kernel extends SimpleKernel {
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
-
-    // const xcrypo = await this.encrypt(rant.text, get(this._nSecret))
-    // console.log(xcrypo)
 
     // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
     const data = pack(rant, get(this._nSecret))
@@ -453,9 +452,7 @@ function Notebook (name = 'rants', resolveLocalKey) {
         rev: block.sig,
         size: block.body.length,
         entombed: false,
-        // Experimental implementation of secret
-        secret: 'test',
-        encryption: block.encryption ? block.encryption : 'hidden'
+        encryption: rant.encryption
       }
       return { ...state }
     },

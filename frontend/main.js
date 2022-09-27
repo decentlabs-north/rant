@@ -58,8 +58,6 @@ async function main () {
   stitch($rant, 'markdown-render')
   const $state = memo(gate(mute($rant, r => r.state)))
   const $theme = memo(mute($rant, r => r.theme))
-
-  // EXPERIMENTAL ENCRYPTION IMPLEMENTATION
   const $encryption = memo(mute($rant, r => r.encryption))
 
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
@@ -103,24 +101,12 @@ async function main () {
     navigate(get($state) === 'draft' ? 'd' : 'l')
   })
   nClick('edit-preview', () => setMode(!get($mode)))
-  // nClick('lock-button', async () => {
-  //   const $secret = document.getElementById('KeyPadDisplay').value
-  //   kernel.setSecret($secret)
-  //   const id = await kernel.commit()
-  //   const pickle = await kernel.pickle(id)
-  //   navigate(`r/${pickle}`)
-  //   setMode(false)
-  //   console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
-  // })
 
-  // Experimental implementation of secret START
   nClick('edit-publish', async () => {
     const EncryptionLevel = get($encryption)
     if (EncryptionLevel === 1) {
       nEl('edit-keypad-dlg').open = true
     } else {
-      const $secret = document.getElementById('KeyPadDisplay').value
-      kernel.setSecret($secret)
       const id = await kernel.commit()
       const pickle = await kernel.pickle(id)
       navigate(`r/${pickle}`)
@@ -131,25 +117,18 @@ async function main () {
   nClick('lock-button', async () => {
     const $secret = document.getElementById('KeyPadDisplay').value
     kernel.setSecret($secret)
-    /**
-     * Testing the encryption
-     */
-    // const test = await kernel.encrypt('sample message', 'mySecret')
-    // console.log(test)
-    // console.log(await kernel.decrypt(test, 'mySecret'))
-
     const id = await kernel.commit()
     const pickle = await kernel.pickle(id)
     navigate(`r/${pickle}`)
     setMode(false)
     console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+    nEl('edit-keypad-dlg').open = false
   })
 
   nValue('edit-opt-encryption',
     $encryption,
     async v => kernel.setEncryption(parseInt(v))
   )
-  // Experimental implementation of secret END
 
   nClick('edit-fork', async () => {
     const id = get(kernel.$current)
@@ -208,15 +187,7 @@ async function main () {
       case 'show': {
         try {
           await kernel.import(id)
-          const { title, excerpt, encryption } = get(kernel.$rant())
-          console.log(encryption)
-          if (encryption === 'hidden') {
-            nEl('edit-keypad-dlg2').open = true
-          }
-          nClick('unlock-button', async () => {
-            const $secret = document.getElementById('KeyPadDisplay').value
-            kernel.setSecret($secret)
-          })
+          const { title, excerpt } = get(kernel.$rant())
           document.head.querySelector('title').text = title
           document.head.querySelector('meta[name="description"]').content = excerpt
         } catch (err) {
@@ -255,8 +226,8 @@ async function main () {
   // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release
   setInterval(async () => {
     try {
-      const evicted = await kernel.store.gc()
-      if (evicted.length) console.log('GC Expunged', evicted)
+      // const evicted = await kernel.store.gc()
+      // if (evicted.length) console.log('GC Expunged', evicted)
     } catch (err) { console.error('GC Failed:', err) }
   }, 3000)
 }
