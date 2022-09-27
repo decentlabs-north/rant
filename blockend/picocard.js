@@ -144,6 +144,14 @@ export function unpack (buffer, secret) {
     default:
       throw new Error('UnknownEncryption')
   }
+  /**
+   * BUG: Throws error 'TypeError: decodeCompressedData: 'ByteArray' or 'Buffer' input type was specified but input is not a Uint8Array or Buffer'
+   * when using KeyPad Encryption on Markdown formatted Rant
+   *
+   * TODO: Find out what is causing the error and fix it
+   * see if Decompression happends before or after Decryption
+   * find a workaround(might help to fully move encryption/decryption to the kernel)
+   */
   text = decompressors[card.z](text)
   return {
     type: card.b,
