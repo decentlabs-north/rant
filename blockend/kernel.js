@@ -230,7 +230,7 @@ export default class Kernel extends SimpleKernel {
     else return originalText
   }
 
-  async UnlockRant (secret) {
+  async unlockRant (secret) {
     const { text } = get(this.$rant())
     const decrypted = await this.decrypt(text, secret)
     return decrypted

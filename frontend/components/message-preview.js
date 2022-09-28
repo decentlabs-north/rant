@@ -36,7 +36,7 @@ Tonic.add(class MessagePreview extends Tonic {
     nEl('edit-keypad-dlg2').open = true
     nClick('unlock-button', async () => {
       const $secret = document.getElementById('KeyPadDisplayUnlock').value
-      const decryptedMessage = await kernel.UnlockRant($secret)
+      const decryptedMessage = await kernel.unlockRant($secret)
       if (!decryptedMessage) {
         document.getElementById('KeyPadDisplayUnlock').value = ''
         document.getElementById('KeyPadDisplayUnlock').placeholder = 'Incorrect PIN'
