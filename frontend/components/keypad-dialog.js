@@ -36,10 +36,10 @@ Tonic.add(class KeypadDialog extends Tonic {
     if (this.props.post === 'false') {
       return this.html`
       <div class='keypad'>
-      <div class='row'>
-      <input id='KeyPadDisplayUnlock' type='password' disabled/>
-      <button accessKey="BackspaceBtnUnlock" class='backspace-button'>⌫</button>
-      </div>
+        <div class='row'>
+          <input id='KeyPadDisplayUnlock' type='password' disabled/>
+          <button accessKey="BackspaceBtnUnlock" class='backspace-button'>⌫</button>
+        </div>
         <div class='row'>
           <button value='1' accessKey='keyBtnUnlock' class='num-button'>1</button>
           <button value='2' accessKey='keyBtnUnlock' class='num-button'>2</button>
@@ -63,10 +63,10 @@ Tonic.add(class KeypadDialog extends Tonic {
     } else {
       return this.html`
       <div class='keypad'>
-      <div class='row'>
-      <input id='KeyPadDisplay' type='password' disabled/>
-      <button accessKey="BackspaceBtn" class='backspace-button'>⌫</button>
-      </div>
+        <div class='row'>
+          <input id='KeyPadDisplay' type='password' disabled/>
+          <button accessKey="BackspaceBtn" class='backspace-button'>⌫</button>
+        </div>
         <div class='row'>
           <button value='1' accessKey='keyBtn' class='num-button'>1</button>
           <button value='2' accessKey='keyBtn' class='num-button'>2</button>

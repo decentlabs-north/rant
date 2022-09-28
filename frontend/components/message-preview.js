@@ -27,10 +27,6 @@ Tonic.add(class MessagePreview extends Tonic {
     return processText(text, rant)
   }
 
-  async sleep (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
   async unlockRant () {
     document.getElementById('KeyPadDisplayUnlock').placeholder = ''
     nEl('edit-keypad-dlg2').open = true
