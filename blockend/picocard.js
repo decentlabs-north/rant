@@ -54,8 +54,14 @@ export function encrypt (message, secret) {
 }
 
 export function decrypt (encoded, secret) {
-  const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
-  return originalText
+  /* ugly recursive Try Catch fix for 'Error: Malformed UTF-8 data' */
+  try {
+    const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
+    return originalText
+  } catch (err) {
+    console.error('DECRYPT ERROR: ', err.message)
+    return decrypt(encoded, secret) // TODO: either make some kind of Timeout when calling this function or try to fix the root of the problem
+  }
 }
 
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
