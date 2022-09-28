@@ -41,8 +41,8 @@ export default class Kernel extends SimpleKernel {
 
     // set up writable draft
     const [text, setText] = write('')
-    const [theme, setTheme] = this.config('lastUsedTheme', 0) // write(0)
-    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0) // write(0)
+    const [theme, setTheme] = this.config('lastUsedTheme', 0)
+    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
     const [date, setDate] = write(Date.now())
     const [$secret, setSecret] = write('unsetSecret')
     // combine all outputs
