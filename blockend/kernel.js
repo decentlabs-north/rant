@@ -40,7 +40,8 @@ export default class Kernel extends SimpleKernel {
     const [theme, setTheme] = this.config('lastUsedTheme', 0)
     const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
     const [date, setDate] = write(Date.now())
-    const [$secret, setSecret] = write('unsetSecret')
+    const [$secret, setSecret] = write('')
+
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
 
@@ -60,7 +61,7 @@ export default class Kernel extends SimpleKernel {
     await this.drafts()
   }
 
-  $rant () {
+  $rant (secret) {
     const n = combine(
       this._current,
       this._draft,
@@ -171,7 +172,18 @@ export default class Kernel extends SimpleKernel {
     let size = rant.size
     if (isDraft) size = rant.text ? pack(rant).length : 0
     // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
-
+    if (rant.encryption > 0) {
+      if (get(this._nSecret) !== '') {
+        let decryptedText
+        switch (rant.encryption) {
+          case 1:
+            rant.secret = get(this._nSecret)
+            decryptedText = decrypt(rant.text, rant.secret)
+            if (decryptedText !== '') { rant.text = decryptedText }
+            break
+        }
+      }
+    }
     const state = isDraft ? 'draft' : 'signed'
 
     return {
@@ -214,11 +226,11 @@ export default class Kernel extends SimpleKernel {
     if (this.isEditing) { await this._saveDraft() }
   }
 
-  async unlockRant (secret) {
-    const { text } = get(this.$rant())
-    const decrypted = await decrypt(text, secret)
-    return decrypted
-  }
+  // async unlockRant (secret) {
+  //   const { text } = get(this.$rant())
+  //   const decrypted = await decrypt(text, secret)
+  //   return decrypted
+  // }
 
   async commit () {
     if (!this.isEditing) throw new Error('EditMode not active')

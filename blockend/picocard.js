@@ -54,8 +54,7 @@ export function encrypt (message, secret) {
 }
 
 export function decrypt (encoded, secret) {
-  const bytes = CryptoJS.AES.decrypt(encoded, secret.toString())
-  const originalText = bytes.toString(CryptoJS.enc.Utf8)
+  const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
   return originalText
 }
 
@@ -124,23 +123,12 @@ export function unpack (buffer, secret) {
       break // plain yay!
     case 1: // keypad encryption
       if (!secret) {
-        // If no secret is provided during Unpack the text will bre in its encrypted state
+        // If no secret is provided during Unpack the text will be in its encrypted state
         text = card.t
       } else { // if (!secret) throw new Error('ContentEncrypted')
         console.info('Decrypting KeyPad Encryption')
-        text = decrypt(card.t, secret)
-      }
-      break
-    case 2: // passphrase encryption
-      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.error('Passphrase Encryption NYI')
-        text = decrypt(card.t, secret)
-      }
-      break
-    case 3: // box encryption
-      if (!secret) { text = card.t } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.error('Box Encryption NYI')
-        text = decrypt(card.t, secret)
+        // text = decrypt(card.t, secret)
+        text = card.t
       }
       break
     default:
