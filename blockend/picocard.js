@@ -16,7 +16,9 @@ import { Feed } from 'picostack'
 /**
  * Encryption imports
  */
-const CryptoJS = require('crypto-js')
+import CryptoJS from 'crypto-js'
+
+// const CryptoJS = require('crypto-js')
 
 /* #if _MERMAID */
 // Extend marked with mermaid support (+1MB bundle size)
@@ -46,12 +48,12 @@ export const THEMES = [
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
 
-function encrypt (message, secret) {
+export function encrypt (message, secret) {
   const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
   return ciphertext
 }
 
-function decrypt (encoded, secret) {
+export function decrypt (encoded, secret) {
   const bytes = CryptoJS.AES.decrypt(encoded, secret.toString())
   const originalText = bytes.toString(CryptoJS.enc.Utf8)
   return originalText

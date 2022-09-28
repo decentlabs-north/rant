@@ -14,13 +14,9 @@ import {
   extractExcerpt,
   bq,
   TYPE_RANT,
-  TYPE_TOMB
+  TYPE_TOMB,
+  decrypt
 } from './picocard.js'
-
-/**
- * Encryption imports
- */
-const CryptoJS = require('crypto-js')
 
 // Backdoor my own shit.
 // SimpleKernel.decodeBlock = unpack
@@ -218,21 +214,9 @@ export default class Kernel extends SimpleKernel {
     if (this.isEditing) { await this._saveDraft() }
   }
 
-  async encrypt (message, secret) {
-    const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
-    return ciphertext
-  }
-
-  async decrypt (encoded, secret) {
-    const bytes = CryptoJS.AES.decrypt(encoded, secret.toString())
-    const originalText = bytes.toString(CryptoJS.enc.Utf8)
-    if (originalText === '') return false
-    else return originalText
-  }
-
   async unlockRant (secret) {
     const { text } = get(this.$rant())
-    const decrypted = await this.decrypt(text, secret)
+    const decrypted = await decrypt(text, secret)
     return decrypted
   }
 
