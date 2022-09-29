@@ -174,13 +174,16 @@ export default class Kernel extends SimpleKernel {
     // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
     if (rant.encryption > 0) {
       if (get(this._nSecret) !== '') {
+        const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 10)
         let decryptedText
         switch (rant.encryption) {
           case 1:
             rant.secret = get(this._nSecret)
-            decryptedText = decrypt(rant.text, rant.secret)
+            decryptedText = decrypt(rant.text, rant.secret, decryptTimeout)
             if (decryptedText !== '') { rant.text = decryptedText }
             break
+          default:
+            throw new Error('UnknownEncryption')
         }
       }
     }

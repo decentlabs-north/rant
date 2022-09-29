@@ -53,14 +53,17 @@ export function encrypt (message, secret) {
   return ciphertext
 }
 
-export function decrypt (encoded, secret) {
+export function decrypt (encoded, secret, timeout) {
   /* ugly recursive Try Catch fix for 'Error: Malformed UTF-8 data' */
+  if (Date.now() >= timeout) {
+    throw new Error('Decryption Timed Out')
+  }
   try {
     const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
     return originalText
   } catch (err) {
     console.error('DECRYPT ERROR: ', err.message)
-    return decrypt(encoded, secret) // TODO: either make some kind of Timeout when calling this function or try to fix the root of the problem
+    return decrypt(encoded, secret, timeout)
   }
 }
 

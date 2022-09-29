@@ -66,8 +66,9 @@ test('Encrypt Rant', async t => {
 //   const encrypted = encrypt(message, secret)
 //   console.log('Encrypted: ', encrypted)
 
-//   const decrypted = decrypt(encrypted, secret)
+//   const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 10)
 
+//   const decrypted = await decrypt(encrypted, secret, decryptTimeout)
 //   console.log('Decrypted: ', decrypted)
 //   t.equal(decrypted, message)
 // })
