@@ -23,7 +23,7 @@ import {
   navigate,
   $route
 } from './router.js'
-
+// import './components/router-view.js' // WIP;
 import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
@@ -154,6 +154,7 @@ async function main () {
   mute(gate($route), async ({ path, id, q }) => {
     // console.info('Route Change', path, id, q)
     switch (path) {
+      case 'r':
       case 'show': {
         try {
           await kernel.import(id)
@@ -167,6 +168,8 @@ async function main () {
         }
         return 'onroute imported() // => true|false TODO'
       }
+
+      case 'e':
       case 'edit':
         if (id === 'new') {
           const [id] = await kernel.checkout(null)
@@ -181,6 +184,11 @@ async function main () {
           navigate('/')
         }
         return `onroute checkout(${id})`
+
+      case 'pitch':
+        // no on-route logic - silent reroute
+        break
+
       default:
         return `onroute 404 - route not found (${path}, ${(id || '').substr(0, 24)})`
     }

@@ -5,7 +5,7 @@ export const [$route, _setRoute] = write({})
 /*
 export const RoutingTable = {
   p: 'pitch',
-  r: 'show',
+  r: 'show', Actually Import-via-URL; Keep for legacy
   e: 'edit',
   d: 'home', // drafts
   l: 'saved',
@@ -16,28 +16,41 @@ export const RoutingTable = {
 export const $page = mute($route, r => r?.path || 'pitch')
 
 /**
- * Parses location.hash for path, id, query and updates $route
+ * Native parses location.hash for path, id, query and updates $route.
+ * Hash-based routing picked for privacy, cause the hash component,
+ * is never sent by browser to the static server the app is hosted on.
+ * Good: anonymize analytics, Bad: No way to SSR/SEO :'(
  */
 export function apply () {
-  const hash = window.location.hash
-  if (hash === '') {
-    // Empty hash, empty redirect to first page
-    return _setRoute({ path: 'pitch', id: undefined, q: new URLSearchParams() })
-  }
+  const { origin, hash } = window.location
+  // Replace window.pathname with window.hash
+  const virt = new URL(origin + '/' + hash.replace(/^#\/?/, ''))
+  // console.log('VirtualURL', virt)
 
-  // TODO: breaks on chrome/win.
-  const virt = new URL(hash.replace(/^#\/?/, 'x:'))
-  const [path, id] = virt.pathname.split('/')
-  const search = new URLSearchParams(virt.search)
+  // Naive approach "/path/:id", "/nested/deep/paths/:id" not supported
+  let path = 'pitch'
+  let id
+  const match = virt.pathname.match(/^\/([^/]+)(?:\/(.+))?/)
+  if (match) {
+    path = match[1]
+    id = match[2]
+  }
+  path = path.toLowerCase() // Make paths case-insensitive
+
   const q = {}
   let searchEmpty = true
-  for (const [k, v] of search.entries()) {
-    q[k] = v
-    searchEmpty = undefined
+  // Parse search-params unless we have a binary rant in the url
+  // TODO: reverse-footgun. why parse them at all?
+  if (path !== 'r') {
+    const search = new URLSearchParams(virt.search)
+    for (const [k, v] of search.entries()) {
+      q[k] = v
+      searchEmpty = undefined
+    }
   }
-  // console.log('Route:', path.toLowerCase(), 'id:', id, 'query:', searchEmpty && q)
+  console.log('_setRoute():', path.toLowerCase(), 'id:', id, 'query:', searchEmpty && q)
   _setRoute({
-    path: path.toLowerCase(),
+    path,
     id,
     q: searchEmpty && q
   })
