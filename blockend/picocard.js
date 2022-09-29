@@ -62,7 +62,8 @@ export function decrypt (encoded, secret, timeout) {
     const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
     return originalText
   } catch (err) {
-    console.error('DECRYPT ERROR: ', err.message)
+    // throw new Error(err.message)
+    // console.error('DECRYPT ERROR: ', err.message)
     return decrypt(encoded, secret, timeout)
   }
 }

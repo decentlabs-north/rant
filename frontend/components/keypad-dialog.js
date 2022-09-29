@@ -1,6 +1,10 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import './keypad-dialog.css'
+import { write, next, get } from 'piconuro'
+import { nEl, nClick } from '../surgeon.js'
+import { encrypt, decrypt } from '../encryption.js'
 
+const [$secret, setSecret] = write('')
 Tonic.add(class KeypadDialog extends Tonic {
   click (e) {
     const KeyPad = document.getElementById('KeyPadDisplay')
@@ -26,6 +30,7 @@ Tonic.add(class KeypadDialog extends Tonic {
     } else if (e.target.accessKey === 'UnlockBtn') {
       // console.log(KeyPadVal)
       // if backspace button is pressed
+      setSecret(KeyPadUnlockVal)
     } else if (e.target.accessKey === 'BackspaceBtnUnlock') {
       const NewVal = RemoveLastChar(KeyPadUnlockVal)
       KeyPadUnlock.value = NewVal
@@ -99,4 +104,90 @@ function RemoveLastChar (value) {
 
 export async function Keypad () {
   console.log('KeyPad Triggered')
+}
+
+// async function promptPINold (Incorrect) {
+//   const [$secret, setSecret] = write('')
+//   document.getElementById('KeyPadDisplayUnlock').placeholder = ''
+
+//   if (Incorrect) {
+//     document.getElementById('KeyPadDisplayUnlock').value = ''
+//     document.getElementById('KeyPadDisplayUnlock').placeholder = 'Incorrect PIN'
+//   }
+
+//   nEl('edit-keypad-dlg2').open = true
+//   nClick('unlock-button', async () => {
+//     const value = document.getElementById('KeyPadDisplayUnlock').value
+//     setSecret(value)
+//     document.getElementById('KeyPadDisplayUnlock').value = ''
+//     nEl('edit-keypad-dlg2').open = false
+//   })
+//   const returnValue = await next($secret)
+//   console.log('[keypad-dialog] returnValue:', returnValue)
+//   return returnValue
+// }
+
+function showKeypad () {
+  nEl('edit-keypad-dlg2').open = true
+}
+function hideKeypad () {
+  document.getElementById('KeyPadDisplayUnlock').placeholder = ''
+  document.getElementById('KeyPadDisplayUnlock').value = ''
+  nEl('edit-keypad-dlg2').open = false
+}
+
+async function tryDecrypt (message, secret) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(decrypt(message, secret) !== '')
+    }, 1000)
+  })
+
+  // const unlocked = (await decrypt(message, secret) !== '')
+  // return unlocked
+}
+
+async function waitForInput (text) {
+  const x = await next($secret)
+  const unlock = await decrypt(text, x)
+  console.log('UNLOCK: ', unlock)
+  if (unlock !== '') { return x } else {
+    waitForInput(text)
+  }
+}
+
+export async function promptPIN (text) {
+  showKeypad()
+  // const [$secret, setSecret] = write('')
+  // nClick('unlock-button', async () => {
+  //   const value = document.getElementById('KeyPadDisplayUnlock').value
+  //   setSecret(value)
+  //   document.getElementById('KeyPadDisplayUnlock').value = ''
+  // })
+
+  const PIN = await waitForInput(text)
+
+  hideKeypad()
+
+  return PIN
+
+  // while (true) {
+  //   const x = get($secret)
+  //   // const unlocked = (await decrypt(text, x) !== '')
+  //   console.log('trying to unlock')
+  //   console.log('text: ', text)
+  //   console.log('secret: ', get($secret))
+  //   const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 20)
+  //   const unlocked = (await decrypt(text, get($secret), decryptTimeout) !== '')
+  //   console.log('unlocked?', unlocked)
+  //   if (unlocked) {
+  //     hideKeypad()
+  //     return x
+  //   } else {
+  //     console.error('incorrect PIN')
+  //     document.getElementById('KeyPadDisplayUnlock').value = ''
+  //     document.getElementById('KeyPadDisplayUnlock').placeholder = 'Incorrect PIN'
+  //     await next($secret)
+  //   }
+  // }
 }

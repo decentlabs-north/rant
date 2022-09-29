@@ -4,7 +4,7 @@
  * @license AGPLv3
  */
 import { SimpleKernel, Feed } from 'picostack'
-import { memo, mute, write, combine, get } from 'piconuro'
+import { memo, mute, write, combine, get, next } from 'piconuro'
 import { inspect as dumpDot } from 'picorepo/dot.js'
 import {
   pack,
@@ -41,6 +41,10 @@ export default class Kernel extends SimpleKernel {
     const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
     const [date, setDate] = write(Date.now())
     const [$secret, setSecret] = write('')
+    /** Trying to create a global state hook to make the entire render process awaitable */
+    const [$unlockState, setUnlockState] = write(false)
+
+    this._unlockState = memo($unlockState)
 
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
@@ -50,7 +54,7 @@ export default class Kernel extends SimpleKernel {
     const [$drafts, setDrafts] = write([])
     this._nDrafts = memo($drafts)
     // Stash all inputs
-    this._w = { setText, setTheme, setEncryption, setDate, setDrafts, setSecret }
+    this._w = { setText, setTheme, setEncryption, setDate, setDrafts, setSecret, setUnlockState }
   }
 
   $drafts () { return this._nDrafts }
@@ -173,13 +177,16 @@ export default class Kernel extends SimpleKernel {
     if (isDraft) size = rant.text ? pack(rant).length : 0
     // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
     if (rant.encryption > 0) {
+      console.info('[_mapRant] rant is encrypted')
       if (get(this._nSecret) !== '') {
+        console.info('[_mapRant] recived secret: ', (get(this._nSecret)))
         const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 10)
         let decryptedText
         switch (rant.encryption) {
           case 1:
             rant.secret = get(this._nSecret)
             decryptedText = decrypt(rant.text, rant.secret, decryptTimeout)
+            console.info('[_mapRant]: decryptedText: ', decryptedText)
             if (decryptedText !== '') { rant.text = decryptedText }
             break
           default:
@@ -228,6 +235,18 @@ export default class Kernel extends SimpleKernel {
     this._w.setSecret(secret)
     if (this.isEditing) { await this._saveDraft() }
   }
+
+  /* Remove if not used */
+  async setUnlockState (val) {
+    this._w.setUnlockState(val)
+  }
+
+  /* Remove if not used */
+  async getUnlockState () {
+    const state = await next(this._unlockState)
+    return state
+  }
+  /* Remove if not used */
 
   // async unlockRant (secret) {
   //   const { text } = get(this.$rant())
