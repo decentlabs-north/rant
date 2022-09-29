@@ -13,13 +13,6 @@ import lzString from 'lz-string'
 import { pack as mpack, unpack as munpack } from 'msgpackr'
 import { Feed } from 'picostack'
 
-/**
- * Encryption imports
- */
-import CryptoJS from 'crypto-js'
-
-// const CryptoJS = require('crypto-js')
-
 /* #if _MERMAID */
 // Extend marked with mermaid support (+1MB bundle size)
 marked.use({
@@ -47,26 +40,6 @@ export const THEMES = [
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
-
-export function encrypt (message, secret) {
-  const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
-  return ciphertext
-}
-
-export function decrypt (encoded, secret, timeout) {
-  /* ugly recursive Try Catch fix for 'Error: Malformed UTF-8 data' */
-  if (Date.now() >= timeout) {
-    throw new Error('Decryption Timed Out')
-  }
-  try {
-    const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
-    return originalText
-  } catch (err) {
-    // throw new Error(err.message)
-    // console.error('DECRYPT ERROR: ', err.message)
-    return decrypt(encoded, secret, timeout)
-  }
-}
 
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
 export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
@@ -96,12 +69,8 @@ export function pack (props, secret) {
   const winrar = [...candidates].sort((a, b) => a.length > b.length)[0]
   // leave a note of what type of compression was used.
   const z = candidates.indexOf(winrar)
-  let t = Buffer.from(winrar)
-  let x = encryption
-  if (secret && encryption > 0) {
-    x = encryption
-    t = encrypt(text, secret)
-  }
+  const t = Buffer.from(winrar)
+  const x = encryption // Moved encryption to '/frontend/encryption.js'
 
   const card = {
     b: type || 0,
@@ -131,27 +100,12 @@ export function unpack (buffer, secret) {
     case 0:
       text = card.t
       break // plain yay!
-    case 1: // keypad encryption
-      if (!secret) {
-        // If no secret is provided during Unpack the text will be in its encrypted state
-        text = card.t
-      } else { // if (!secret) throw new Error('ContentEncrypted')
-        console.info('Decrypting KeyPad Encryption')
-        // text = decrypt(card.t, secret)
-        text = card.t
-      }
+    case 1: // Moved decryption to '/frontend/encryption.js'
+      text = card.t
       break
     default:
       throw new Error('UnknownEncryption')
   }
-  /**
-   * BUG: Throws error 'TypeError: decodeCompressedData: 'ByteArray' or 'Buffer' input type was specified but input is not a Uint8Array or Buffer'
-   * when using KeyPad Encryption on Markdown formatted Rant
-   *
-   * TODO: Find out what is causing the error and fix it
-   * see if Decompression happends before or after Decryption
-   * find a workaround(might help to fully move encryption/decryption to the kernel)
-   */
   text = decompressors[card.z](text)
   return {
     type: card.b,

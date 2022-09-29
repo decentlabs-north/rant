@@ -1,21 +1,32 @@
 import CryptoJS from 'crypto-js'
 
 export async function encrypt (message, secret) {
-  const ciphertext = CryptoJS.AES.encrypt(message, secret.toString()).toString()
+  const key = await crypt(secret)
+  const ciphertext = CryptoJS.AES.encrypt(message, key).toString()
   return ciphertext
 }
 
-export async function decrypt (encoded, secret, timeout) {
-  /* ugly recursive Try Catch fix for 'Error: Malformed UTF-8 data' */
-  if (Date.now() >= timeout) {
-    throw new Error('Decryption Timed Out')
-  }
-  try {
-    const originalText = CryptoJS.AES.decrypt(encoded, secret.toString()).toString(CryptoJS.enc.Utf8)
-    return originalText
-  } catch (err) {
-    throw new Error(err.message)
-    // console.error('DECRYPT ERROR: ', err)
-    // return await decrypt(encoded, secret, timeout)
-  }
+export async function decrypt (encoded, secret) {
+  const key = await crypt(secret)
+  const originalText = CryptoJS.AES.decrypt(encoded, key).toString(CryptoJS.enc.Utf8)
+  return originalText
+}
+/* non async versions */
+export function _encrypt (message, secret) {
+  const key = _crypt(secret)
+  const ciphertext = CryptoJS.AES.encrypt(message, key).toString()
+  return ciphertext
+}
+
+export function _decrypt (encoded, secret) {
+  const key = _crypt(secret)
+  const originalText = CryptoJS.AES.decrypt(encoded, key).toString(CryptoJS.enc.Utf8)
+  return originalText
+}
+
+async function crypt (input) {
+  return window.btoa((encodeURIComponent(input)))
+}
+function _crypt (input) {
+  return window.btoa((encodeURIComponent(input)))
 }

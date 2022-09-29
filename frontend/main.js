@@ -61,6 +61,7 @@ async function main () {
   const $state = memo(gate(mute($rant, r => r.state)))
   const $theme = memo(mute($rant, r => r.theme))
   const $encryption = memo(mute($rant, r => r.encryption))
+  const $encrypted = memo(mute($rant, r => r.encrypted))
 
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
@@ -105,8 +106,9 @@ async function main () {
   nClick('edit-preview', () => setMode(!get($mode)))
 
   nClick('edit-publish', async () => {
-    const EncryptionLevel = get($encryption)
-    if (EncryptionLevel === 1) {
+    const encryptionLevel = get($encryption)
+    const isEncrypted = get($encrypted)
+    if (encryptionLevel === 1 && !isEncrypted) {
       nEl('edit-keypad-dlg').open = true
     } else {
       const id = await kernel.commit()
@@ -115,16 +117,6 @@ async function main () {
       setMode(false)
       console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
     }
-  })
-  nClick('lock-button', async () => {
-    const $secret = document.getElementById('KeyPadDisplay').value
-    kernel.setSecret($secret)
-    const id = await kernel.commit()
-    const pickle = await kernel.pickle(id)
-    navigate(`r/${pickle}`)
-    setMode(false)
-    console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
-    nEl('edit-keypad-dlg').open = false
   })
 
   nValue('edit-opt-encryption',
