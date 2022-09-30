@@ -40,15 +40,13 @@ export const THEMES = [
 // const { encrypt, decrypt } = require('cryptology')
 const { compress, decompress } = lzutf8
 const { compressToUint8Array, decompressFromUint8Array } = lzString
-function encrypt (message, secret) {}
-function decrypt (message, secret) {}
 
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
 export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
 
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
-  const { date, page, theme, type } = props
+  const { date, page, theme, type, encryption } = props
   if (type === TYPE_TOMB) { // Tombstone/Delete rant.
     return mpack({
       b: type,
@@ -71,12 +69,8 @@ export function pack (props, secret) {
   const winrar = [...candidates].sort((a, b) => a.length > b.length)[0]
   // leave a note of what type of compression was used.
   const z = candidates.indexOf(winrar)
-  let t = Buffer.from(winrar)
-  let x = 0
-  if (secret) {
-    x = 1
-    t = encrypt(t, secret)
-  }
+  const t = Buffer.from(winrar)
+  const x = encryption // Moved encryption to '/frontend/encryption.js'
 
   const card = {
     b: type || 0,
@@ -106,9 +100,8 @@ export function unpack (buffer, secret) {
     case 0:
       text = card.t
       break // plain yay!
-    case 1: // secret_box encryption
-      if (!secret) throw new Error('ContentEncrypted')
-      text = decrypt(card.t, secret)
+    case 1: // Moved decryption to '/frontend/encryption.js'
+      text = card.t
       break
     default:
       throw new Error('UnknownEncryption')

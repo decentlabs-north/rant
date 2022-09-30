@@ -17,6 +17,8 @@ import {
   TYPE_TOMB
 } from './picocard.js'
 
+import { encrypt } from '../frontend/encryption.js'
+
 // Backdoor my own shit.
 // SimpleKernel.decodeBlock = unpack
 SimpleKernel.encodeBlock = (type, seq, data) => pack({ type, ...data })
@@ -36,17 +38,22 @@ export default class Kernel extends SimpleKernel {
 
     // set up writable draft
     const [text, setText] = write('')
-    const [theme, setTheme] = this.config('lastUsedTheme', 0) // write(0)
-    const [encryption, setEncryption] = write(0)
+    const [theme, setTheme] = this.config('lastUsedTheme', 0)
+    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
     const [date, setDate] = write(Date.now())
-    // const [secret, setSecret] = write(rant.secret)
+    const [$secret, setSecret] = write('')
+    /** Trying to create a global state hook to make the entire render process awaitable */
+    const [encrypted, setEncrypted] = write(false)
+
     // combine all outputs
-    this._draft = memo(combine({ id: this._current, text, theme, encryption, date }))
+    this._draft = memo(combine({ id: this._current, text, theme, encryption, date, encrypted }))
+
+    this._nSecret = memo($secret)
 
     const [$drafts, setDrafts] = write([])
     this._nDrafts = memo($drafts)
     // Stash all inputs
-    this._w = { setText, setTheme, setEncryption, setDate, setDrafts }
+    this._w = { setText, setTheme, setEncryption, setDate, setDrafts, setSecret, setEncrypted }
   }
 
   $drafts () { return this._nDrafts }
@@ -57,7 +64,7 @@ export default class Kernel extends SimpleKernel {
     await this.drafts()
   }
 
-  $rant () {
+  $rant (secret) {
     const n = combine(
       this._current,
       this._draft,
@@ -200,6 +207,24 @@ export default class Kernel extends SimpleKernel {
     await this._saveDraft()
   }
 
+  async setEncryption (encryption) {
+    if (!this.isEditing) throw new Error('EditMode not active')
+    this._w.setEncryption(encryption)
+    await this._saveDraft()
+  }
+
+  async setSecret (secret) {
+    this._w.setSecret(secret)
+    if (this.isEditing) { await this._saveDraft() }
+  }
+
+  async encryptMessage (secret) {
+    const encrypted = await encrypt(get(this._draft).text, secret)
+    console.info('encrypted: ', encrypted)
+    this._w.setText(encrypted)
+    this._w.setEncrypted(true)
+  }
+
   async commit () {
     if (!this.isEditing) throw new Error('EditMode not active')
     this._checkReady()
@@ -215,8 +240,9 @@ export default class Kernel extends SimpleKernel {
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
+
     // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
-    const data = pack(rant)
+    const data = pack(rant, get(this._nSecret))
     branch.append(data, this._secret)
     const id = branch.last.sig
 
@@ -414,7 +440,8 @@ function Notebook (name = 'rants', resolveLocalKey) {
         author: block.key,
         rev: block.sig,
         size: block.body.length,
-        entombed: false
+        entombed: false,
+        encryption: rant.encryption
       }
       return { ...state }
     },
