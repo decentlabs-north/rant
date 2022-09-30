@@ -49,63 +49,41 @@ Tonic.add(class KeypadDialog extends Tonic {
    * TODO: dedupe to avoid messy looking code
    */
   render () {
-    if (this.props.post === 'false') {
-      return this.html`
-      <div class='keypad'>
-        <div class='row'>
-          <input id='KeyPadDisplayUnlock' type='password' disabled/>
-          <button accessKey="BackspaceBtnUnlock" class='backspace-button'>⌫</button>
-        </div>
-        <div class='row'>
-          <button value='1' accessKey='keyBtnUnlock' class='num-button'>1</button>
-          <button value='2' accessKey='keyBtnUnlock' class='num-button'>2</button>
-          <button value='3' accessKey='keyBtnUnlock' class='num-button'>3</button>
-        </div>
-        <div class='row'>
-          <button value='4' accessKey='keyBtnUnlock' class='num-button'>4</button>
-          <button value='5' accessKey='keyBtnUnlock' class='num-button'>5</button>
-          <button value='6' accessKey='keyBtnUnlock' class='num-button'>6</button>
-        </div>
-        <div class='row'>
-          <button value='7' accessKey='keyBtnUnlock' class='num-button'>7</button>
-          <button value='8' accessKey='keyBtnUnlock' class='num-button'>8</button>
-          <button value='9' accessKey='keyBtnUnlock' class='num-button'>9</button>
-        </div>
-        <div class='row'>
-          <button accessKey='UnlockBtn' class='lock-button' id='unlock-button'>Unlock</button>
-        </div>
-      </div>
-    `
-    } else {
-      return this.html`
-
-      <div class='keypad'>
-      <button accessKey='closeBtn' class='close-btn'>X</button>
-        <div class='row'>
-          <input id='KeyPadDisplay' type='password' disabled/>
-          <button accessKey="BackspaceBtn" class='backspace-button'>⌫</button>
-        </div>
-        <div class='row'>
-          <button value='1' accessKey='keyBtn' class='num-button'>1</button>
-          <button value='2' accessKey='keyBtn' class='num-button'>2</button>
-          <button value='3' accessKey='keyBtn' class='num-button'>3</button>
-        </div>
-        <div class='row'>
-          <button value='4' accessKey='keyBtn' class='num-button'>4</button>
-          <button value='5' accessKey='keyBtn' class='num-button'>5</button>
-          <button value='6' accessKey='keyBtn' class='num-button'>6</button>
-        </div>
-        <div class='row'>
-          <button value='7' accessKey='keyBtn' class='num-button'>7</button>
-          <button value='8' accessKey='keyBtn' class='num-button'>8</button>
-          <button value='9' accessKey='keyBtn' class='num-button'>9</button>
-        </div>
-        <div class='row'>
-          <button accessKey='lockBtn' class='lock-button' id='lock-button'>Lock</button>
-        </div>
-      </div>
-    `
+    const b = this.props.post === 'false'
+    const KeypadClass = {
+      ...(b ? { display: 'KeyPadDisplayUnlock' } : { display: 'KeyPadDisplay' }),
+      ...(b ? { backspace: 'BackspaceBtnUnlock' } : { backspace: 'BackspaceBtn' }),
+      ...(b ? { number: 'keyBtnUnlock' } : { number: 'keyBtn' }),
+      ...(b ? { lock: 'UnlockBtn' } : { lock: 'lockBtn' }),
+      ...(b ? { lockID: 'unlock-button' } : { lockID: 'lock-button' }),
+      ...(b ? { lockText: 'Unlock' } : { lockText: 'Lock' })
     }
+    return this.html`
+      <div class='keypad'>
+        <div class='row'>
+          <input id='${KeypadClass.display}' type='password' disabled/>
+          <button accessKey="${KeypadClass.backspace}" class='backspace-button'>⌫</button>
+        </div>
+        <div class='row'>
+          <button value='1' accessKey='${KeypadClass.number}' class='num-button'>1</button>
+          <button value='2' accessKey='${KeypadClass.number}' class='num-button'>2</button>
+          <button value='3' accessKey='${KeypadClass.number}' class='num-button'>3</button>
+        </div>
+        <div class='row'>
+          <button value='4' accessKey='${KeypadClass.number}' class='num-button'>4</button>
+          <button value='5' accessKey='${KeypadClass.number}' class='num-button'>5</button>
+          <button value='6' accessKey='${KeypadClass.number}' class='num-button'>6</button>
+        </div>
+        <div class='row'>
+          <button value='7' accessKey='${KeypadClass.number}' class='num-button'>7</button>
+          <button value='8' accessKey='${KeypadClass.number}' class='num-button'>8</button>
+          <button value='9' accessKey='${KeypadClass.number}' class='num-button'>9</button>
+        </div>
+        <div class='row'>
+          <button accessKey='${KeypadClass.lock}' class='lock-button' id='${KeypadClass.lockID}'>${KeypadClass.lockText}</button>
+        </div>
+      </div>
+    `
   }
 })
 
