@@ -8,7 +8,6 @@
 .keypad .num-button{
   width: 100%;
   margin: 0.1rem !important;
-  /*margin-bottom: 0.1rem !important;*/
   border-radius: 0;
 }
 .keypad .lock-button{
@@ -49,17 +48,24 @@
   font-size: 1.5rem;
 }
 
+.close-unlock{
+  top: -100px;
+}
+.close-lock{
+  top: -60px;
+}
 .close-btn{
-  width: fit-content;
-  height: fit-content;
-  padding: 0;
-  display: block;
   position: absolute;
-  top: -2.8rem;
-  left: -1rem;
+  width: fit-content;
   background-color:rgba(1, 1, 1, 0);
-  border-color:rgba(1, 1, 1, 0);
-  outline: none;
+  border: none;
+  box-shadow: inset -3px -3px 15px rgba(0, 0, 0, 0.1);
+  border-bottom-right-radius: 1.8rem;
+  left: -30px;
+}
+.close-btn:hover{
+  background-color:#e75e5e;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
 }
 .close-btn:focus{
   box-shadow: none;

@@ -15,7 +15,7 @@ Tonic.add(class KeypadDialog extends Tonic {
     const KeyPadUnlock = document.getElementById('KeyPadDisplayUnlock')
     const KeyPadUnlockVal = document.getElementById('KeyPadDisplayUnlock').value
 
-    switch (e.target.accessKey) {
+    switch (e.target.accessKey) { // TODO: add mode switch that allows usage of the same "<keypad-dialog>" for multiple purposes
       case 'keyBtn':
         KeyPad.value = KeyPadVal + e.target.value
         break
@@ -27,7 +27,8 @@ Tonic.add(class KeypadDialog extends Tonic {
         KeyPad.value = RemoveLastChar(KeyPadVal)
         break
       case 'closeBtn':
-        nEl('edit-keypad-dlg').open = false
+        if (nEl('edit-keypad-dlg').open) nEl('edit-keypad-dlg').open = false
+        else if (nEl('edit-keypad-dlg2').open) nEl('edit-keypad-dlg2').open = false
         break
       /* Unlock KeyPad */
       case 'keyBtnUnlock':
@@ -45,18 +46,25 @@ Tonic.add(class KeypadDialog extends Tonic {
     }
   }
 
-  /**
-   * TODO: dedupe to avoid messy looking code
-   */
   render () {
     const b = this.props.post === 'false'
+
     const KeypadClass = {
       ...(b ? { display: 'KeyPadDisplayUnlock' } : { display: 'KeyPadDisplay' }),
       ...(b ? { backspace: 'BackspaceBtnUnlock' } : { backspace: 'BackspaceBtn' }),
       ...(b ? { number: 'keyBtnUnlock' } : { number: 'keyBtn' }),
       ...(b ? { lock: 'UnlockBtn' } : { lock: 'lockBtn' }),
       ...(b ? { lockID: 'unlock-button' } : { lockID: 'lock-button' }),
-      ...(b ? { lockText: 'Unlock' } : { lockText: 'Lock' })
+      ...(b ? { lockText: 'Unlock' } : { lockText: 'Lock' }),
+      ...(b ? { close: 'close-unlock' } : { close: 'close-lock' })
+    }
+    const buttonArr = []
+    for (let i = 1; i < 10; i++) { buttonArr.push(this.html(`<button value='${i}' accessKey='${KeypadClass.number}' class='num-button'>${i}</button>`)) }
+    const rowArr = []
+    for (let i = 0; i < 3; i++) {
+      const s = i < 1 ? 0 : i * 3 // Super Advanced Mathematics :)
+      const e = i < 1 ? 3 : i * 3 + 3 // TODO: simplify the button factory
+      rowArr.push(this.html(`<div class='row'>${buttonArr.slice(s, e).join('')}</div>`))
     }
     return this.html`
       <div class='keypad'>
@@ -64,24 +72,11 @@ Tonic.add(class KeypadDialog extends Tonic {
           <input id='${KeypadClass.display}' type='password' disabled/>
           <button accessKey="${KeypadClass.backspace}" class='backspace-button'>⌫</button>
         </div>
-        <div class='row'>
-          <button value='1' accessKey='${KeypadClass.number}' class='num-button'>1</button>
-          <button value='2' accessKey='${KeypadClass.number}' class='num-button'>2</button>
-          <button value='3' accessKey='${KeypadClass.number}' class='num-button'>3</button>
-        </div>
-        <div class='row'>
-          <button value='4' accessKey='${KeypadClass.number}' class='num-button'>4</button>
-          <button value='5' accessKey='${KeypadClass.number}' class='num-button'>5</button>
-          <button value='6' accessKey='${KeypadClass.number}' class='num-button'>6</button>
-        </div>
-        <div class='row'>
-          <button value='7' accessKey='${KeypadClass.number}' class='num-button'>7</button>
-          <button value='8' accessKey='${KeypadClass.number}' class='num-button'>8</button>
-          <button value='9' accessKey='${KeypadClass.number}' class='num-button'>9</button>
-        </div>
+        ${rowArr}
         <div class='row'>
           <button accessKey='${KeypadClass.lock}' class='lock-button' id='${KeypadClass.lockID}'>${KeypadClass.lockText}</button>
         </div>
+        <button accessKey='closeBtn' class='close-btn ${KeypadClass.close}'>Close</button>
       </div>
     `
   }
