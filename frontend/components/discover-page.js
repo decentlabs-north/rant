@@ -3,7 +3,7 @@ import { gate, combine, mute, get } from 'piconuro'
 import { kernel, setMode, $mode } from '../api.js'
 import Kernel, { isRantID, isEqualID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
-import Modem56 from '../../../picostack/modem56.js'
+import Modem56 from 'picostack/modem56.js'
 import dayjs from '../day.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'

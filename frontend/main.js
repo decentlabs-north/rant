@@ -30,10 +30,13 @@ import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
+import './components/keypad-dialog.js'
 import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
 /* #endif */
+
+/* KeyPad async await promptPIN */
 
 async function main () {
   await kernel.boot()
@@ -50,6 +53,9 @@ async function main () {
   stitch($rant, 'markdown-render')
   const $state = memo(gate(mute($rant, r => r.state)))
   const $theme = memo(mute($rant, r => r.theme))
+  const $encryption = memo(mute($rant, r => r.encryption))
+  const $encrypted = memo(mute($rant, r => r.encrypted))
+
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
   nAttr('view-render', 'theme', mute($theme, t => THEMES[t]))
@@ -93,13 +99,26 @@ async function main () {
     navigate(get($state) === 'draft' ? 'home' : 'saved')
   })
   nClick('edit-preview', () => setMode(!get($mode)))
+
   nClick('edit-publish', async () => {
-    const id = await kernel.commit()
-    const pickle = await kernel.pickle(id)
-    navigate(`r/${pickle}`)
-    setMode(false)
-    console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+    const encryptionLevel = get($encryption)
+    const isEncrypted = get($encrypted)
+    if (encryptionLevel === 1 && !isEncrypted) {
+      nEl('edit-keypad-dlg').open = true
+    } else {
+      const id = await kernel.commit()
+      const pickle = await kernel.pickle(id)
+      navigate(`r/${pickle}`)
+      setMode(false)
+      console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+    }
   })
+
+  nValue('edit-opt-encryption',
+    $encryption,
+    async v => kernel.setEncryption(parseInt(v))
+  )
+
   nClick('edit-fork', async () => {
     const id = get(kernel.$current)
     const [draft, parent] = await kernel.checkout(id, true)
@@ -205,8 +224,8 @@ async function main () {
   // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release
   setInterval(async () => {
     try {
-      const evicted = await kernel.store.gc()
-      if (evicted.length) console.log('GC Expunged', evicted)
+      // const evicted = await kernel.store.gc()
+      // if (evicted.length) console.log('GC Expunged', evicted)
     } catch (err) { console.error('GC Failed:', err) }
   }, 3000)
 }

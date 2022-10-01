@@ -7,6 +7,7 @@
     "dev": "node build.js -w",
     "start": "node build.js -w",
     "test": "tape test.js",
+    "testkeypad": "tape keypadtest.js",
     "debug": "node inspect $(npm bin)/tape test.js"
   },
   "devDependencies": {
@@ -21,6 +22,7 @@
     "@picocss/pico": "^1.5.5",
     "@socketsupply/tonic": "^14.1.5",
     "browser-level": "^1.0.1",
+    "crypto-js": "^4.1.1",
     "dayjs": "^1.11.5",
     "dompurify": "^2.4.0",
     "hypercore-protocol": "^8.0.7",
