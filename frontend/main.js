@@ -141,7 +141,7 @@ async function main () {
   kernel.$current(id => {
     if (!isDraftID(id)) return
     const el = nEl('btn-resume-draft')
-    el.href = `#e/${id}`
+    el.href = `#edit/${id}`
   })
   nHide('btn-resume-draft',
     mute(kernel.$current, id => !isDraftID(id))
@@ -186,6 +186,7 @@ async function main () {
         return `onroute checkout(${id})`
 
       case 'pitch':
+      case 'home':
         // no on-route logic - silent reroute
         break
 

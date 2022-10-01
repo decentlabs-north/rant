@@ -48,7 +48,7 @@ export function apply () {
       searchEmpty = undefined
     }
   }
-  console.log('_setRoute():', path.toLowerCase(), 'id:', id, 'query:', searchEmpty && q)
+  // console.log('_setRoute():', path.toLowerCase(), 'id:', id, 'query:', searchEmpty && q)
   _setRoute({
     path,
     id,
