@@ -1,6 +1,7 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { processText, unpackFeed } from '../../blockend/picocard.js'
-import { kernel, setMode, navigate } from '../api.js'
+import { kernel, setMode } from '../api.js'
+import { navigate } from '../router.js'
 import { nEl } from '../surgeon.js'
 import { promptPIN } from './keypad-dialog.js'
 import { get } from 'piconuro'
@@ -14,7 +15,7 @@ Tonic.add(class MessagePreview extends Tonic {
     console.log('Button clicked')
     const [id] = await kernel.checkout(null)
     setMode(true)
-    navigate(`e/${id}`)
+    navigate(`edit/${id}`)
   }
 
   preprocess (text = '') {

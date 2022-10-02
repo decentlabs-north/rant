@@ -1,5 +1,5 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { navigate } from '../api.js'
+import { navigate } from '../router.js'
 
 Tonic.add(class MainMenu extends Tonic {
   click (ev) {
@@ -13,10 +13,10 @@ Tonic.add(class MainMenu extends Tonic {
     // 📝
     return this.html`
       <nav class="row">
-        <button data-route="d" data-toltip="Drafts"><ico>📑</ico></button>
-        <button data-route="l" data-toltip="Saved"><ico>🌟</ico></button>
-        <button data-route="n" data-toltip="Discover"><ico>🧭</ico></button>
-        <button data-route="s" data-toltip="Settings"><ico>⚙️</ico></button>
+        <button data-route="home" data-toltip="Drafts"><ico>📑</ico></button>
+        <button data-route="saved" data-toltip="Saved"><ico>🌟</ico></button>
+        <button data-route="discover" data-toltip="Discover"><ico>🧭</ico></button>
+        <button data-route="settings" data-toltip="Settings"><ico>⚙️</ico></button>
       </nav>
     `
   }

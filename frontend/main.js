@@ -1,5 +1,5 @@
 import '@picocss/pico'
-import { gate, nfo, mute, get, init, memo, combine, write } from 'piconuro'
+import { gate, nfo, mute, get, init, memo } from 'piconuro'
 import { isDraftID } from '../blockend/kernel.js'
 import { THEMES } from '../blockend/picocard.js'
 import {
@@ -14,15 +14,16 @@ import {
 } from './surgeon.js'
 import {
   kernel,
-  $view,
   $mode,
   setMode,
-  shareDefault,
-  navigate,
-  $route,
-  RoutingTable
+  shareDefault
 } from './api.js'
 
+import {
+  navigate,
+  $route
+} from './router.js'
+// import './components/router-view.js' // WIP;
 import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
@@ -42,20 +43,12 @@ async function main () {
     .then(console.info('Kernel booted'))
   // await kernel.store.reload()
 
-  nAttr('main', 'view', $view)
+  nAttr('main', 'view', mute($route, r => r?.path))
   nClass('main', 'mode-edit', $mode)
   nClass('main', 'mode-show', mute($mode, m => !m))
 
   /* Renderer */
-  // const $rant = kernel.$rant()
-  /** Look away please, this is gonna be ugly */
-  const [$hack, setHack] = write()
-  window.____ = setHack
-  const $rant = mute(
-    combine(kernel.$rant(), $hack),
-    ([r, h]) => h || r
-  )
-  /* Ok. it's over. procceed and carry on */
+  const $rant = kernel.$rant()
 
   stitch($rant, 'markdown-render')
   const $state = memo(gate(mute($rant, r => r.state)))
@@ -73,7 +66,9 @@ async function main () {
   const $qrCode = mute(
     gate(mute(kernel.$rant(), r => r.id)),
     async id => {
+      // Drafts can't be shared
       if (!id || isDraftID(id)) return ''
+
       const url = new URL(window.location)
       if (true) {
         const p = await kernel.pickle(id)
@@ -101,7 +96,7 @@ async function main () {
   nValue('edit-capacity-meter', mute($size, s => Math.ceil((s / 1024) * 100)))
   nText('edit-capacity-bytes', mute($size, s => `${s}`.padStart(4, '0')))
   nClick('edit-back', () => {
-    navigate(get($state) === 'draft' ? 'd' : 'l')
+    navigate(get($state) === 'draft' ? 'home' : 'saved')
   })
   nClick('edit-preview', () => setMode(!get($mode)))
 
@@ -128,7 +123,7 @@ async function main () {
     const id = get(kernel.$current)
     const [draft, parent] = await kernel.checkout(id, true)
     console.log('Forked into', draft, parent)
-    navigate(`e/${draft}`)
+    navigate(`edit/${draft}`)
   })
   nClick('edit-share', shareDefault)
   nClick('edit-options', () => { nEl('edit-opts-dlg').open = true })
@@ -165,7 +160,7 @@ async function main () {
   kernel.$current(id => {
     if (!isDraftID(id)) return
     const el = nEl('btn-resume-draft')
-    el.href = `#e/${id}`
+    el.href = `#edit/${id}`
   })
   nHide('btn-resume-draft',
     mute(kernel.$current, id => !isDraftID(id))
@@ -174,10 +169,11 @@ async function main () {
   /* saved-view controls */
   stitch(kernel.$rants(), 'saved-rants')
 
-  /* On Route change */
+  /* On Route change  TODO: move to component */
   mute(gate($route), async ({ path, id, q }) => {
     // console.info('Route Change', path, id, q)
-    switch (RoutingTable[path]) {
+    switch (path) {
+      case 'r':
       case 'show': {
         try {
           await kernel.import(id)
@@ -191,11 +187,13 @@ async function main () {
         }
         return 'onroute imported() // => true|false TODO'
       }
+
+      case 'e':
       case 'edit':
         if (id === 'new') {
           const [id] = await kernel.checkout(null)
           setMode(true)
-          navigate(`e/${id}`)
+          navigate(`edit/${id}`)
           return 'onroute created new'
         }
         try {
@@ -205,8 +203,14 @@ async function main () {
           navigate('/')
         }
         return `onroute checkout(${id})`
+
+      case 'pitch':
+      case 'home':
+        // no on-route logic - silent reroute
+        break
+
       default:
-        return `onroute noop(${RoutingTable[path]}, ${(id || '').substr(0, 24)})`
+        return `onroute 404 - route not found (${path}, ${(id || '').substr(0, 24)})`
     }
   })(console.info)
 
