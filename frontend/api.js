@@ -18,12 +18,14 @@ export const kernel = new Kernel(DB)
 
 const [_mode, _setMode] = write(false) // true: Show editor
 export const setMode = _setMode
+
+/* Force edit-mode off */
 export const $mode = mute(combine(_mode, $page), ([m, page]) => {
   // TODO: rethink this logic, probably depend on k.$current()
 
   // Force west/editor area to be shown when in app sub-views.
   if (!['pitch', 'show', 'edit'].find(p => p === page)) return true
-  // Force presentation mode.
+  // Force presentation mode on frontpage.
   if (page === 'pitch') return false
   // Fallback on user-controlled state
   return m
