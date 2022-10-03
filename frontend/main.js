@@ -31,6 +31,7 @@ import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
 import './components/keypad-dialog.js'
+import './components/emoji-input.js'
 import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
@@ -91,6 +92,7 @@ async function main () {
   nAttr('view-editor', 'state', $state)
   nValue('markdown-area', mute(kernel.$rant(), r => r?.text), v => kernel.setText(v))
   nDisabled('markdown-area', mute($state, s => s !== 'draft'))
+  nHide('emoji-button', mute($state, s => s !== 'draft'))
   const $size = memo(gate(mute(kernel.$rant(), r => r.size)))
 
   nValue('edit-capacity-meter', mute($size, s => Math.ceil((s / 1024) * 100)))

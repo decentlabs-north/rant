@@ -30,6 +30,7 @@
     "lzutf8": "^0.6.3",
     "marked": "^4.1.0",
     "mermaid": "^9.1.7",
+    "picmo": "^5.7.1",
     "picostack": "^1.5.8",
     "qrcode-generator": "^1.4.4"
   },

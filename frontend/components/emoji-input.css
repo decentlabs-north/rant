@@ -1,0 +1,73 @@
+.pickerContainer{
+  display: none;
+  transform: translateX(480px);
+}
+.pickerContainer .searchField{
+  height: 1.5rem !important;
+  margin-bottom: 0 !important;
+}
+.pickerContainer .categoryTab, .pickerContainer .categoryTab button, .pickerContainer .clearSearchButton{
+  margin-bottom: 0;
+}
+
+#clearRecentBtn:hover{
+  cursor: pointer;
+  color: #597aa6d2;
+}
+
+.emoji-box{
+  display: flex;
+  flex-flow: row-reverse;
+}
+.emoji-button{
+width: fit-content;
+}
+
+.emoji-show{
+  display: flex;
+  animation: openPicker 0.1s ease-in forwards;
+}
+
+.emoji-btn-animation{
+ animation: openButton 0.1s ease-in forwards;
+}
+
+.emoji-btn-closed{
+  animation: closeButton 0.1s ease-in forwards;
+ }
+
+.emoji-closed{
+  animation: closePicker 0.1s ease-in;
+}
+
+@keyframes openPicker {
+  from {transform: translateX(480px);}
+  to {transform: translateX(0);}
+}
+
+@keyframes openButton {
+  from {transform: translate(480px, 452px);}
+  to {transform: translate(0, 0);}
+}
+
+@keyframes closePicker {
+  from {transform: translateX(0);}
+  to {transform: translateX(480px);}
+}
+
+@keyframes closeButton {
+  from {transform: translate(0, 0);}
+  to {transform: translate(480px, 452px);}
+}
+
+
+/*Textarea Transition*/
+
+#markdown-area {
+  transition: height 0.1s;
+  -webkit-transition: height 0.1s;
+}
+
+.md-area-small{
+  height: 25% !important;
+}
