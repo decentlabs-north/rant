@@ -3,11 +3,11 @@ import { get } from 'piconuro'
 import { isRantID, isDraftID } from '../../blockend/kernel.js'
 import dayjs from '../day.js'
 import {
-  createNew,
+  createNewDraft,
   kernel,
-  setMode,
-  navigate
+  setMode
 } from '../api.js'
+import { navigate } from '../router.js'
 
 Tonic.add(class RantList extends Tonic {
   async click (ev) {
@@ -16,7 +16,7 @@ Tonic.add(class RantList extends Tonic {
 
     let id
     // Handle create
-    if (el.dataset.id === 'new') return createNew()
+    if (el.dataset.id === 'new') return createNewDraft()
     else {
       id = isDraftID(el.dataset.id)
         ? el.dataset.id
@@ -35,7 +35,7 @@ Tonic.add(class RantList extends Tonic {
     await kernel.checkout(id)
     const r = get(kernel.$rant())
     if (r.state === 'draft') { // continue editing
-      navigate(`e/${r.id}`)
+      navigate(`edit/${r.id}`)
       setMode(true)
     } else if (r.state === 'signed') {
       const pickle = await kernel.pickle(id)
