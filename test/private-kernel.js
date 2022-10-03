@@ -17,20 +17,20 @@ test('Describe flow', async t => {
   // Create new Rant
   await k.checkout(null) // makes new.
   let rant = get(k.$rant())
-  t.equal(rant.id, 'draft:0')
-  t.equal(rant.state, 'draft')
+  t.equal(rant.id, 'draft:0', 'generates draft id')
+  t.equal(rant.state, 'draft', 'rant is in state "draft"')
   await k.setText('# Hack\nworld is not hackable')
   await k.setTheme(1)
   await k.setText('# Hack\nworld is not hackable\nit is soft')
 
   rant = get(k.$rant())
-  t.equal(rant.text, '# Hack\nworld is not hackable\nit is soft')
-  t.equal(rant.theme, 1)
+  t.equal(rant.text, '# Hack\nworld is not hackable\nit is soft', 'update text works')
+  t.equal(rant.theme, 1, 'setting theme works')
   const id = await k.commit()
   rant = get(k.$rant())
-  t.equal(rant.state, 'signed')
-  t.ok(rant.author)
-  t.equal(get(k.$rants()).length, 1)
+  t.equal(rant.state, 'signed', 'rant state changed to signed')
+  t.ok(rant.author, 'has author pk')
+  t.equal(get(k.$rants()).length, 1, '1 rant in the list')
   const url = await k.pickle()
   t.ok(url)
 
@@ -38,11 +38,11 @@ test('Describe flow', async t => {
   await k2.boot()
   // When loading from hash
   const impId = await k2.import(`https://xor.cry/${url}`) // dispatch(Feed.from(hash))
-  t.ok(id.equals(impId))
+  t.ok(id.equals(impId), 'id is same')
   rant = get(k2.$rant()) // imported
-  t.equal(rant.title, 'Hack')
+  t.equal(rant.title, 'Hack', 'title Imported')
   t.ok(rant.decrypted, 'Not encrypted')
-  t.equal(rant.state, 'signed')
+  t.equal(rant.state, 'signed', 'state is "signed"')
   // Enjoy rant.text
 })
 
