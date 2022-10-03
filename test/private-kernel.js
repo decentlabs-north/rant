@@ -1,7 +1,13 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
-import Kernel from './blockend/k.js'
-import { pack, unpack, extractTitle, extractExcerpt, extractIcon } from './blockend/picocard.js'
+import Kernel from '../blockend/kernel.js'
+import {
+  pack,
+  unpack,
+  extractTitle,
+  extractExcerpt,
+  extractIcon
+} from '../blockend/picocard.js'
 import { get, until } from 'piconuro'
 
 test('Describe flow', async t => {

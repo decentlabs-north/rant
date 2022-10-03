@@ -1,12 +1,11 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
-import Kernel from './blockend/kernel.js'
-import { encrypt, decrypt } from './blockend/picocard.js'
-import { get, until } from 'piconuro'
+import Kernel from '../blockend/kernel.js'
+// import { encrypt, decrypt } from '../blockend/picocard.js'
+import { get } from 'piconuro'
 
 test('Encrypt Rant', async t => {
   const message = 'sample message'
-  const messageMD = '# Hack\nworld is not hackable\nit is soft'
   const k = new Kernel(makeDB())
   await k.boot()
   const $secret = '1337'

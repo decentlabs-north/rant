@@ -1,11 +1,15 @@
 import esbuild from 'esbuild'
 import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
 import stdLibBrowser from 'node-stdlib-browser'
-import { writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 
 /* TODO: Choose some tradeoff for live reload & css-injection
  * https://github.com/evanw/esbuild/issues/802
  */
+
+const version = JSON.parse(readFileSync('./package.json')).version
+const commit = execSync('git rev-parse HEAD')?.toString('utf8').trim()
 
 const production = process.env.NODE_ENV === 'production' ||
   !process.argv.find(i => /^--?w(atch)?$/.test(i))
@@ -26,7 +30,16 @@ const config = {
     process: 'process',
     Buffer: 'Buffer'
   },
-  plugins: [plugin(stdLibBrowser)]
+  plugins: [
+    plugin(stdLibBrowser)
+    /* esbuild-plugin-replace is broken.
+    replace({
+      __ENV__: `${production ? 'production' : 'dev'}`,
+      __VERSION__: `${version}`,
+      __COMMIT__: `${commit}`,
+    })
+    */
+  ]
 }
 
 async function build () {
@@ -45,7 +58,7 @@ async function build () {
     */
 
     // print summary
-    console.log('=== Build Summary ===\n')
+    console.log(`=== Build Summary ===\nv${version}`, commit)
     const { outputs } = result.metafile
     for (const k in outputs) {
       console.log(`${k} ${outputs[k].bytes}B`)
