@@ -4,24 +4,21 @@ import Kernel from '../blockend/kernel.js'
 // import { encrypt, decrypt } from '../blockend/picocard.js'
 import { get } from 'piconuro'
 
-test('Encrypt Rant', async t => {
+test.only('Encrypt Rant', async t => {
   const message = 'sample message'
+  const secret = '1337'
   const k = new Kernel(makeDB())
   await k.boot()
-  const $secret = '1337'
-  k.setSecret($secret)
-  t.notOk(get(k.$rant()).id) // current -> undefined
-  // Create new Rant
+  // Create and Encrypt
   await k.checkout(null) // makes new.
   let rant = get(k.$rant())
-  t.equal(rant.id, 'draft:0')
-  t.equal(rant.state, 'draft')
   await k.setText(message)
   await k.setTheme(1)
+
   // set encryption level 1 (KeyPad)
   await k.setEncryption(1)
   // set secret
-  await k.setSecret($secret)
+  await k.setSecret(secret)
 
   rant = get(k.$rant())
   t.equal(rant.text, message)
@@ -35,21 +32,25 @@ test('Encrypt Rant', async t => {
   const url = await k.pickle()
   t.ok(url)
 
+  // Import and decrypt
   const k2 = new Kernel(makeDB())
   await k2.boot()
-  // set secret
-  await k2.setSecret($secret)
   // When loading from hash
   const impId = await k2.import(`https://xor.cry/${url}`) // dispatch(Feed.from(hash))
   t.ok(id.equals(impId))
+
+  t.notOk(rant.decrypted, 'Rant is encrypted')
+  t.equal(rant.text, '🔒', 'Shows lock-emoji instead of garbled output')
+
+  // Set secret
+  await k2.setSecret(secret)
+
+  // Rant is now unlocked
   rant = get(k2.$rant()) // imported
-  console.log(rant.decrypted)
   t.ok(rant.decrypted, 'Not encrypted')
-
-  t.equal(rant.secret, '1337')
-
+  // t.equal(rant.secret, '1337')
   t.equal(rant.state, 'signed')
-  t.equal(rant.text, message)
+  t.equal(rant.text, message, 'message decrypted')
   console.log('decryptedMessage: ', rant.text)
   // Enjoy rant.text
 })

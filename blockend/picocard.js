@@ -33,8 +33,7 @@ export const THEMES = [
   'light',
   'decent',
   'morpheus',
-  'ghostwriter',
-  'disco'
+  'ghostwriter'
 ]
 
 // const { encrypt, decrypt } = require('cryptology')

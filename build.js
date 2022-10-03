@@ -32,7 +32,8 @@ const config = {
   },
   plugins: [
     plugin(stdLibBrowser)
-    /* esbuild-plugin-replace is broken.
+    /* esbuild-plugin-replace gave broken output
+     * https://github.com/naecoo/esbuild-plugin-replace
     replace({
       __ENV__: `${production ? 'production' : 'dev'}`,
       __VERSION__: `${version}`,
