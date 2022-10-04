@@ -8,7 +8,8 @@ import { memo, mute, write, combine, get } from 'piconuro'
 import { inspect as dumpDot } from 'picorepo/dot.js'
 import {
   pack,
-  unpack,
+  decode,
+  encode,
   extractTitle,
   extractIcon,
   extractExcerpt,
@@ -18,11 +19,8 @@ import {
 } from './picocard.js'
 import { isDraftID, isRantID, isEqualID, btok } from './util.js'
 import Notebook from './slices/notebook.js'
-import { encrypt } from '../frontend/encryption.js'
-
-// Backdoor my own shit.
-// SimpleKernel.decodeBlock = unpack
-SimpleKernel.encodeBlock = (type, seq, data) => pack({ type, ...data })
+// TODO: move encrypt to util, want to be able to run kernel without frontend(headless).
+// import { encrypt } from '../frontend/encryption.js'
 
 export default class Kernel extends SimpleKernel {
   constructor (db) {
@@ -40,16 +38,19 @@ export default class Kernel extends SimpleKernel {
     // set up writable draft
     const [text, setText] = write('')
     const [theme, setTheme] = this.config('lastUsedTheme', 0)
-    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
     const [date, setDate] = write(Date.now())
+
+    // Rant Encryption Type
+    const [encryption, setEncryption] = this.config('lastUsedEncryption', 0)
+    // Rant Encryption Secret
     const [$secret, setSecret] = write('')
     /** Trying to create a global state hook to make the entire render process awaitable */
+    /** Sounds super scary O_o */
     const [encrypted, setEncrypted] = write(false)
+    this._nSecret = memo($secret)
 
     // combine all outputs
     this._draft = memo(combine({ id: this._current, text, theme, encryption, date, encrypted }))
-
-    this._nSecret = memo($secret)
 
     const [$drafts, setDrafts] = write([])
     this._nDrafts = memo($drafts)
@@ -65,7 +66,7 @@ export default class Kernel extends SimpleKernel {
     await this.drafts()
   }
 
-  $rant (secret) {
+  $rant () {
     const n = combine(
       this._current,
       this._draft,
@@ -85,7 +86,7 @@ export default class Kernel extends SimpleKernel {
     const iter = this._drafts.iterator()
     const drafts = []
     for await (const [id, value] of iter) {
-      const draft = unpack(value)
+      const draft = decode(value)
       drafts.push(this._mapRant({ id, ...draft }))
     }
     this._w.setDrafts(drafts) // Fugly hack
@@ -117,7 +118,7 @@ export default class Kernel extends SimpleKernel {
     else this._w.setDate(Date.now()) // bump date
 
     const draft = get(this._draft)
-    const content = pack(draft)
+    const content = encode(draft)
     await this._drafts.put(draft.id, content)
     await this.drafts() // Reload drafts
   }
@@ -149,7 +150,7 @@ export default class Kernel extends SimpleKernel {
     } else if (isDraftID(next)) {
       const b = await this._drafts.get(next)
       if (!b) throw new Error('DraftNotFound')
-      this._setDraft(unpack(b))
+      this._setDraft(decode(b))
     } else {
       const rants = get(s => this.store.on('rants', s))
       const r = rants[btok(next)]
@@ -174,7 +175,7 @@ export default class Kernel extends SimpleKernel {
     const isCurrent = isEqualID(c, rant.id)
     const isDraft = !rant.rev
     let size = rant.size
-    if (isDraft) size = rant.text ? pack(rant).length : 0
+    if (isDraft) size = rant.text ? encode(rant).length : 0
     // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
 
     const state = isDraft ? 'draft' : 'signed'
@@ -219,6 +220,8 @@ export default class Kernel extends SimpleKernel {
     if (this.isEditing) { await this._saveDraft() }
   }
 
+  // TODO: message encryption should be done
+  // on card.pack/card.unpack (once) to safely decrypt/encrypt
   async encryptMessage (secret) {
     const encrypted = await encrypt(get(this._draft).text, secret)
     console.info('encrypted: ', encrypted)
@@ -236,24 +239,18 @@ export default class Kernel extends SimpleKernel {
       // TODO: this.repo.rollback(current) // evict old if parent/draft id exists?
     }
     const rant = {
-      type: TYPE_RANT,
       ...get(this._draft),
       date: Date.now(),
       page: await this._inc('page') // TODO: repo.inc('key') ?
     }
-
-    // TODO: don't msgpack in picocard.pack() then use await this.createBlock()
+    // Prepack / apply text encryption & compression
     const data = pack(rant, get(this._nSecret))
-    branch.append(data, this._secret)
+    await this.createBlock(branch, TYPE_RANT, data)
+
     const id = branch.last.sig
-
-    const modified = await this.dispatch(branch, true)
-    if (!modified.length) throw new Error('commit() failed: rejected by store')
-
     await this.checkout(id)
-    await this.deleteRant(current)
+    await this.deleteRant(current) // Delete the draft:0
     await this.drafts() // Reload drafts
-    this.rpc.shareBlocks(branch) // TODO: if Public
     return id
   }
 
@@ -322,7 +319,7 @@ export default class Kernel extends SimpleKernel {
     const dot = await dumpDot(this.repo, {
       blockLabel (block, { link }) {
         const author = btok(block.key, 3)
-        const data = unpack(block.body)
+        const data = decode(block.body)
         const str = bq`
             [${btok(block.sig, 3)}]
             ${data.seq}:${author}

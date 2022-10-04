@@ -2,8 +2,8 @@ import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from '../blockend/kernel.js'
 import {
-  pack,
-  unpack,
+  encode,
+  decode,
   extractTitle,
   extractExcerpt,
   extractIcon
@@ -48,9 +48,9 @@ test('Describe flow', async t => {
 
 test('serialization', async t => {
   const text = '# Hello World'
-  const buffer = pack({ text, theme: 1, page: 4 })
+  const buffer = encode({ text, theme: 1, page: 4 })
   t.ok(Buffer.isBuffer(buffer))
-  const r = unpack(buffer)
+  const r = decode(buffer)
   t.ok(r.date)
   t.equal(r.theme, 1)
   t.equal(r.text, text)
