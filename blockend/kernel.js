@@ -16,7 +16,8 @@ import {
   TYPE_RANT,
   TYPE_TOMB
 } from './picocard.js'
-
+import { isDraftID, isRantID, isEqualID, btok } from './util.js'
+import Notebook from './slices/notebook.js'
 import { encrypt } from '../frontend/encryption.js'
 
 // Backdoor my own shit.
@@ -384,103 +385,4 @@ export default class Kernel extends SimpleKernel {
     }
     return feeds
   }
-}
-
-function Notebook (name = 'rants', resolveLocalKey) {
-  // There's no clean solution in pico for injecting local identity ATM.
-  let _key = null
-  const localKey = () => {
-    if (_key) return _key
-    if (typeof resolveLocalKey === 'function') {
-      _key = resolveLocalKey()
-      if (!_key) throw new Error('RacingCondition? falsy localKey')
-      return _key
-    } else throw new Error('resolveLocalKey expected to be function')
-  }
-  return {
-    name,
-    initialValue: {},
-    filter ({ block, parentBlock }) {
-      const rant = unpack(block.body)
-      const { type } = rant
-      switch (type) {
-        case TYPE_RANT:
-          if (block.body.length > 1024) return 'RantTooBig'
-          break
-
-        case TYPE_TOMB: {
-          // Tombstones can only be placed by author.
-          if (!(
-            block.key.equals(parentBlock.key) ||
-            localKey()?.equals(block.key) // accept own
-          )) return 'NotYourRant'
-
-          const pData = unpack(parentBlock.body)
-          // Tombstone can only be appended to rants (once).
-          if (pData.type !== TYPE_RANT) return 'ExpectedParentToBeRant'
-        } break
-        default: return 'UnknownBlock'
-      }
-      return false
-    },
-
-    reducer ({ state, block, parentBlock, CHAIN, mark }) {
-      const rant = unpack(block.body)
-      if (rant.type === TYPE_TOMB) {
-        state[btok(CHAIN)].entombed = true // soft delete
-        const propagateOwn = block.key.equals(parentBlock.key) &&
-          localKey()?.equals(block.key)
-        mark(CHAIN, propagateOwn ? Date.now() + 60 * 60000 : Date.now())
-        return state
-      }
-
-      state[btok(CHAIN)] = {
-        ...rant,
-        id: CHAIN,
-        author: block.key,
-        rev: block.sig,
-        size: block.body.length,
-        entombed: false,
-        encryption: rant.encryption
-      }
-      return { ...state }
-    },
-
-    sweep ({ state, CHAIN, mark, drop }) {
-      // TODO: not implemented
-      if (!state[btok(CHAIN)].entombed) throw new Error('MentalError: BuriedAlive')
-      drop()
-      delete state[btok(CHAIN)]
-      return state
-    }
-  }
-}
-
-export function btok (b, length = -1) { // 'base64url' not supported in browser :'(
-  if (Buffer.isBuffer(b) && length > 0) b = b.slice(0, Math.min(length, b.length))
-  return b.toString('hex')
-}
-
-/* // Cannot reverse slice byte, do we need it?
-export function ktob (s) {
-  if (typeof s !== 'string') throw new Error('Expected string')
-  return Buffer.from(s, 'hex')
-}
-*/
-
-// Don't ask, i seem to like footguns.
-export function isDraftID (id) {
-  return typeof id === 'string' && id.startsWith('draft:')
-}
-export function isRantID (id) {
-  return Buffer.isBuffer(id) && id.length === Feed.SIGNATURE_SIZE
-}
-
-export function isEqualID (a, b) {
-  return (isDraftID(a) && a === b) ||
-    (
-      isRantID(a) &&
-      isRantID(b) &&
-      a.equals(b)
-    )
 }

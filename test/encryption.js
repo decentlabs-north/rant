@@ -4,7 +4,7 @@ import Kernel from '../blockend/kernel.js'
 // import { encrypt, decrypt } from '../blockend/picocard.js'
 import { get } from 'piconuro'
 
-test.only('Encrypt Rant', async t => {
+test('Encrypt Rant', async t => {
   const message = 'sample message'
   const secret = '1337'
   const k = new Kernel(makeDB())

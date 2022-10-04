@@ -69,13 +69,12 @@ export function pack (props, secret) {
   // leave a note of what type of compression was used.
   const z = candidates.indexOf(winrar)
   const t = Buffer.from(winrar)
-  const x = encryption // Moved encryption to '/frontend/encryption.js'
 
   const card = {
     b: type || 0,
     t,
     z, // compression
-    x, // encryption
+    x: encryption || 0, // encryption
     l: theme || 0,
     d: date || Date.now(),
     s: page || 0
@@ -103,6 +102,7 @@ export function unpack (buffer, secret) {
       text = card.t
       break
     default:
+      console.info(card.t)
       throw new Error('UnknownEncryption')
   }
   text = decompressors[card.z](text)
@@ -136,6 +136,7 @@ export function extractTitle (md) {
   }
   return title.replace(new RegExp(EMOJI_REGEXP, 'g'), '').trim()
 }
+
 export function extractIcon (md) {
   if (typeof md !== 'string' && !md.length) return
   const m = md.match(EMOJI_REGEXP)
