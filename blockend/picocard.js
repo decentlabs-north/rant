@@ -25,9 +25,6 @@ marked.use({
 })
 /* #endif */
 
-export const TYPE_RANT = 0
-export const TYPE_TOMB = 1
-
 export const THEMES = [
   'dark',
   'light',

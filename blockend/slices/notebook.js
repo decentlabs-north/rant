@@ -1,5 +1,5 @@
-import { btok } from '../util.js'
-import { unpack, TYPE_RANT, TYPE_TOMB } from '../picocard.js'
+import { btok, TYPE_RANT, TYPE_TOMB } from '../util.js'
+import { unpack } from '../picocard.js'
 import { SimpleKernel } from 'picostack'
 const { decodeBlock } = SimpleKernel
 

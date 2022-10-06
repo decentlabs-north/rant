@@ -10,7 +10,7 @@ import {
 } from '../blockend/picocard.js'
 import { get, until } from 'piconuro'
 
-test('Describe flow', async t => {
+test.only('Describe flow', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   t.notOk(get(k.$rant()).id) // current -> undefined
@@ -19,6 +19,7 @@ test('Describe flow', async t => {
   let rant = get(k.$rant())
   t.equal(rant.id, 'draft:0', 'generates draft id')
   t.equal(rant.state, 'draft', 'rant is in state "draft"')
+
   await k.setText('# Hack\nworld is not hackable')
   await k.setTheme(1)
   await k.setText('# Hack\nworld is not hackable\nit is soft')

@@ -3,6 +3,9 @@
  */
 import Feed from 'picofeed'
 
+export const TYPE_RANT = 0
+export const TYPE_TOMB = 1
+
 // Buffer to Key(string)
 export function btok (b, length = -1) {
   if (Buffer.isBuffer(b) && length > 0) b = b.slice(0, Math.min(length, b.length))
