@@ -20,5 +20,5 @@ export async function decrypt (encoded, secret) {
 }
 
 async function crypt (input) {
-  return window.btoa((encodeURIComponent(input)))
+  return Buffer.from(input).toString('base64')
 }
