@@ -43,6 +43,7 @@
       </div>
     </home>
 
+
     <!----- SAVED RANTS ------------->
     <saved class="west">
       <main-menu></main-menu>
@@ -152,7 +153,7 @@
         <!-- lock keypad dialog-->
         <dialog id="edit-keypad-dlg">
           <article class="keypad-article">
-            <keypad-dialog></keypad-dialog>
+            <keypad-dialog id="keypadLock"></keypad-dialog>
           </article>
         </dialog>
         <dialog id="edit-opts-dlg">
@@ -196,7 +197,7 @@
       <dialog id="edit-keypad-dlg2">
         <article class="keypad-article">
           <div class="unlock-keypad-title" id="UnlockKeypadTitle"><span id="UnlockKeypadTitleSpan">Enter PIN</span></div>
-          <keypad-dialog post='false'></keypad-dialog>
+          <keypad-dialog post='false' id="keypadUnlock"></keypad-dialog>
         </article>
       </dialog>
       <message-preview id="markdown-render" class="container grow4"></message-preview>
