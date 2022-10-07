@@ -1,8 +1,18 @@
 import esbuild from 'esbuild'
 import plugin from 'node-stdlib-browser/helpers/esbuild/plugin'
+import { replace } from 'esbuild-plugin-replace'
 import stdLibBrowser from 'node-stdlib-browser'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { execSync } from 'node:child_process'
+
+/**
+ *
+ * @returns encoded static file content as an object
+ */
+async function loadStaticFileData () {
+  const staticData = await readStaticFiles('static_files/')
+  return JSON.stringify(staticData)
+}
 
 /* TODO: Choose some tradeoff for live reload & css-injection
  * https://github.com/evanw/esbuild/issues/802
@@ -31,15 +41,16 @@ const config = {
     Buffer: 'Buffer'
   },
   plugins: [
-    plugin(stdLibBrowser)
+    plugin(stdLibBrowser),
     /* esbuild-plugin-replace gave broken output
-     * https://github.com/naecoo/esbuild-plugin-replace
+     * https://github.com/naecoo/esbuild-plugin-replace */
     replace({
+      include: /\.js$/, // <-- This little fella here was apparently very important :)
       __ENV__: `${production ? 'production' : 'dev'}`,
       __VERSION__: `${version}`,
       __COMMIT__: `${commit}`,
+      __TEST_CSS__: `${await loadStaticFileData()}`
     })
-    */
   ]
 }
 
@@ -81,3 +92,18 @@ async function build () {
   }
 }
 build()
+
+/**
+ *
+ * @param {*} dir The directory to read.
+ * @returns An object with base64 encoded file content.
+ */
+async function readStaticFiles (dir) {
+  const staticData = {}
+  const filenames = readdirSync(dir)
+  filenames.forEach(function (filename) {
+    const content = readFileSync(dir + filename)
+    staticData[filename] = Buffer.from(content).toString('base64')
+  })
+  return staticData
+}
