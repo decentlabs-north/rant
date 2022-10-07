@@ -108,7 +108,7 @@ async function main () {
     } else {
       const id = await kernel.commit()
       const pickle = await kernel.pickle(id)
-      navigate(`r/${pickle}`)
+      navigate(`show/${pickle}`)
       setMode(false)
       console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
     }
