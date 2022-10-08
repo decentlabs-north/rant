@@ -17,12 +17,12 @@
  * k.setDate(number) // Date.now()
  * k.setEncryption(0) // Mode: 0 plain, 1: secretbox (PIN), 2: boxseal (PM)
  * k.setSecret(Buffer) // PIN | BoxSecretKey
- *
  */
 import Feed from 'picofeed'
 import { mute, write, memo, combine, get } from 'piconuro'
 import {
   TYPE_RANT,
+  TYPE_TOMB,
   btok,
   isRantID,
   isDraftID,
@@ -42,6 +42,7 @@ import {
  * scratchpad that can be turned into a Rant by signing it.
  * @param db {LevelDB} Instance of leveldb.
  * @param config {Function} the cfg-module export
+ * @return {Object} A kernel module
  */
 export default function DraftsModule (db, config) {
   // Create a sublevel for draft storage
@@ -76,39 +77,13 @@ export default function DraftsModule (db, config) {
       encrypted: $encrypted
     })
   )
-
   const [$drafts, setDrafts] = write([])
-
-  // Hydrate setters from object.
-  function setDraft (rant = {}) {
-    setText(rant.text || '')
-    setTheme(rant.theme || get($theme))
-    setEncryption(rant.encryption || get($encryption))
-    setDate(rant.date || Date.now())
-    // setSecret(???) // don't know what to do.
-  }
-
-  const reloadDrafts = async () => {
-    const iter = db.iterator()
-    const drafts = []
-    for await (const [id, value] of iter) {
-      const draft = decode(value)
-      drafts.push(_mapRant({ id, ...draft }))
-    }
-    drafts.sort((a, b) => b.date - a.date)
-    setDrafts(drafts) // Fugly hack
-    return drafts
-  }
-
-  let saveTimerId = null
+  let saveTimerId = null // Used by saveDraft() when debounce: true
 
   // this._nDrafts = $drafts
   return {
     get $current () { return $current },
     get $draft () { return $draft },
-    get isEditing () {
-      return isDraftID(get($current))
-    },
     get drafts () { return reloadDrafts },
 
     // TODO: convert to getter (maybe)
@@ -128,7 +103,7 @@ export default function DraftsModule (db, config) {
           ([current, draft, rants]) =>
             isRantID(current) ? rants[btok(current)] : draft
         ),
-        r => _mapRant(r)
+        r => mapRant(r)
       )
     },
 
@@ -138,39 +113,43 @@ export default function DraftsModule (db, config) {
         s => this.store.on('rants', s),
         rants => Object.values(rants)
           .filter(r => !r.entombed)
-          .map(r => _mapRant(r))
+          .map(r => mapRant(r))
           .sort((a, b) => b.date - a.date)
       )
     },
 
-    async setText (txt) {
-      if (!this.isEditing) throw new Error('EditMode not active')
+    /**
+     * Update draft text
+     * @param txt {string} The text content (usually markdown)
+     * @param defer {boolean} Will postpone saveDraft 3 seconds when true. default: false
+     */
+    async setText (txt, defer = false) {
+      if (!isEditing()) throw new Error('EditMode not active')
       setText(txt)
-      this._saveDraft(true) // to plain registry
+      return this.saveDraft(defer) // to plain registry
     },
 
     async setTheme (theme) {
-      if (!this.isEditing) throw new Error('EditMode not active')
+      if (!isEditing()) throw new Error('EditMode not active')
       setTheme(theme)
-      await this._saveDraft()
+      await this.saveDraft()
     },
 
     async setEncryption (encryption) {
-      if (!this.isEditing) throw new Error('EditMode not active')
+      if (!isEditing()) throw new Error('EditMode not active')
       // TODO: assert encryption type Integer(0..2)
       setEncryption(encryption)
-      await this._saveDraft()
+      await this.saveDraft()
     },
 
     async setSecret (secret) {
-      if (!this.isEditing) throw new Error('EditMode not active')
+      if (!isEditing()) throw new Error('EditMode not active')
       setSecret(secret)
-      await this._saveDraft()
+      await this.saveDraft()
     },
 
     async commit () {
-      if (!this.isEditing) throw new Error('EditMode not active')
-      this._checkReady()
+      if (!isEditing()) throw new Error('EditMode not active')
       const branch = new Feed()
       const current = get($current)
       const rant = {
@@ -191,8 +170,8 @@ export default function DraftsModule (db, config) {
 
     // TODO: move to mod/rant.js
     async pickle (id) {
-      if (!id && this.isEditing) throw new Error('Provide Id or set current to published rant')
-      if (!id) id = get(this._current)
+      if (!id && isEditing()) throw new Error('Provide Id or set current to published rant')
+      if (!id) id = get($current)
       if (!isRantID(id)) throw new Error('InvalidRantId')
 
       const rants = get(s => this.store.on('rants', s))
@@ -212,7 +191,7 @@ export default function DraftsModule (db, config) {
     },
 
     async saveDraft (defer = false) {
-      if (!this.isEditing) throw new Error('EditMode not active')
+      if (!isEditing()) throw new Error('EditMode not active')
       if (defer) return this._saveLater()
       if (saveTimerId) {
         clearTimeout(saveTimerId)
@@ -234,7 +213,7 @@ export default function DraftsModule (db, config) {
       if (saveTimerId) clearTimeout(saveTimerId)
       saveTimerId = setTimeout(() => {
         saveTimerId = null
-        this._saveDraft()
+        this.saveDraft()
           .then(() => console.info('Draft Autosaved'))
           .catch(err => console.error('AutoSaveFailed:', err))
       }, delay)
@@ -257,13 +236,14 @@ export default function DraftsModule (db, config) {
       // Already checked out
       if (!fork && isEqualID(next, prev)) return [prev, prev]
 
-      if (isDraftID(prev)) await this._saveDraft()
+      // Stash existing draft before switch.
+      if (isDraftID(prev)) await this.saveDraft()
 
       if (next === null) { // Create new Draft
         next = 'draft:' + await this._inc('draft')
         setDraft() // empty sheet
       } else if (isDraftID(next)) { // Checkout existing draft
-        const b = await this.db.get(next)
+        const b = await db.get(next)
         if (!b) throw new Error('DraftNotFound')
         const secret = get($secret)
         setDraft(decode(b, secret))
@@ -278,7 +258,59 @@ export default function DraftsModule (db, config) {
       }
       setCurrent(next)
       return [next, prev]
+    },
+
+    async deleteRant (id) {
+      // Move away from note that's about to be deleted
+      const current = get($current)
+      if (isEqualID(id, current)) await this.checkout(null)
+
+      if (isDraftID(id)) {
+        await db.del(id)
+        await this.drafts() // Reload drafts
+      } else if (isRantID(id)) {
+        const branch = await this.repo.resolveFeed(id)
+        if (!branch) throw new Error('RantNotFound')
+        return await this.createBlock(branch, TYPE_TOMB, { id })
+      } else throw new Error('DeleteWhat?')
+    },
+
+    async import (url) { // Imports pickles
+      const f = Feed.from(url)
+      // TODO: return if f.first.sig === current (already checked out)
+      // TODO: skip dispatch if f.first.sig exists in $rants. (already imported)
+      await this.dispatch(f, true)
+      const id = f.first.sig
+      setCurrent(id)
+      return id
     }
+  }
+  // --- Private Helpers
+
+  // Hydrate setters from object.
+  // @param rant {Rant} rant-like object.
+  function setDraft (rant = {}) {
+    setText(rant.text || '')
+    setTheme(rant.theme || get($theme))
+    setEncryption(rant.encryption || get($encryption))
+    setDate(rant.date || Date.now())
+    // setSecret(???) // don't know what to do.
+  }
+
+  async function reloadDrafts () {
+    const iter = db.iterator()
+    const drafts = []
+    for await (const [id, value] of iter) {
+      const draft = decode(value)
+      drafts.push(mapRant({ id, ...draft }))
+    }
+    drafts.sort((a, b) => b.date - a.date)
+    setDrafts(drafts) // Fugly hack
+    return drafts
+  }
+
+  function isEditing () {
+    return isDraftID(get($current))
   }
 
   /**
@@ -288,9 +320,9 @@ export default function DraftsModule (db, config) {
    * @param rant {Object}
    * @return {Rant}
    */
-  function _mapRant (rant) {
+  function mapRant (rant) {
     if (!rant) throw new Error('NoRant')
-    // console.log('_mapRant()', rant)
+    // console.log('mapRant()', rant)
     const c = get($current)
     const isCurrent = isEqualID(c, rant.id)
     const isDraft = !rant.rev

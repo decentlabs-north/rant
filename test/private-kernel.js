@@ -10,7 +10,7 @@ import {
 } from '../blockend/picocard.js'
 import { get, until } from 'piconuro'
 
-test.only('Describe flow', async t => {
+test('Describe flow', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   t.notOk(get(k.$rant()).id) // current -> undefined
@@ -121,9 +121,9 @@ test('Drafts are saved', async t => {
   // use a simple local counter for unpublished notes.
   t.equal(draft1[1], 'draft:0', 'checkout() returns previous id')
   const drafts = await k.drafts()
-  t.equal(drafts.length, 1)
+  t.equal(drafts.length, 1, 'Drafts length 1')
   rant = get(k.$rant())
-  t.equal(rant.text, '')
+  t.equal(rant.text, '', 'Blank rant')
   await k.setText('All is not lost')
   const draft2 = await k.checkout(draft1[1])
   t.equal(draft2[1], 'draft:1')
@@ -149,7 +149,7 @@ test('Delete Rants', async t => {
   const rid = await k.commit()
   await k.checkout(null)
   await k.setText('# Draft Rant')
-  await k._saveDraft()
+  await k.saveDraft()
 
   const did = get(k.$current)
   let drafts = await k.drafts()

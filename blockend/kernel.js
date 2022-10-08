@@ -67,33 +67,6 @@ export default class Kernel extends SimpleKernel {
     return i
   }
 
-  async import (url) { // Imports pickles
-    const f = Feed.from(url)
-    // TODO: return if f.first.sig === current (already checked out)
-    // TODO: skip dispatch if f.first.sig exists in $rants. (already imported)
-    await this.dispatch(f, true)
-    const id = f.first.sig
-    this._setCurrent(id)
-    return id
-  }
-
-  async deleteRant (id) {
-    // Move away from note that's about to be deleted
-    const current = get(this._current)
-    if (isEqualID(id, current)) await this.checkout(null)
-
-    if (isDraftID(id)) {
-      await this._drafts.del(id)
-      await this.drafts() // Reload drafts
-    } else if (isRantID(id)) {
-      const branch = await this.repo.resolveFeed(id)
-      if (!branch) throw new Error('RantNotFound')
-      return await this.createBlock(branch, TYPE_TOMB, { id })
-      // TODO: rollback to free up storage?
-      // await this.repo.rollback(id)
-    } else throw new Error('DeleteWhat?')
-  }
-
   async inspect () {
     // console.info('Inspecting Repo...')
     const dot = await dumpDot(this.repo, {
