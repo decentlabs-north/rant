@@ -15,10 +15,6 @@ import {
 } from './picocard.js'
 import {
   TYPE_RANT,
-  TYPE_TOMB,
-  isDraftID,
-  isRantID,
-  isEqualID,
   btok
 } from './util.js'
 
@@ -30,6 +26,12 @@ import ModuleCfg from './mod/cfg.js'
 import ModuleDrafts from './mod/draft.js'
 
 // import { encrypt } from '../frontend/encryption.js'
+export {
+  isDraftID,
+  isRantID,
+  isEqualID,
+  btok
+} from './util.js'
 
 export default class Kernel extends SimpleKernel {
   constructor (db) {
