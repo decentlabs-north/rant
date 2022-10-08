@@ -1,8 +1,11 @@
-/* ------------ NuroSurgeon ------------ */
-/* Minimal functions to stitch neurons to DOM
-* yeah pretty much jQuery reinvented...
-* TODO: overused in main.js, works but unfriendly, use components instead.
-*/
+/* ------------ NuroSurgeon ------------
+ *
+ * Minimal functions to stitch neurons to DOM
+ * It's pretty much jQuery with recursion :shrug:
+ *
+ * @author Tony Ivanov <tony@decentlabs.se>
+ * @license AGPLv3
+ */
 export function nEl (el) {
   const o = el
   if (typeof el === 'string') el = document.getElementById(el)
@@ -64,7 +67,4 @@ export function nDisabled (el, $n) {
 export function nHide (el, n) {
   el = nEl(el)
   return n(v => { el.style.display = v ? 'none' : null })
-}
-export function nShow (el, n) {
-  return nHide(el, mute(n, n => !n))
 }

@@ -3,7 +3,7 @@
  * @author Tony Ivanov
  * @license AGPLv3
  */
-import { SimpleKernel, Feed } from 'picostack'
+import { SimpleKernel } from 'picostack'
 import { get } from 'piconuro'
 import { inspect as dumpDot } from 'picorepo/dot.js'
 import {

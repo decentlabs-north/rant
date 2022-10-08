@@ -8,6 +8,7 @@ import {
   extractExcerpt,
   extractIcon
 } from '../blockend/picocard.js'
+import { randomBytes } from 'node:crypto'
 import { get, until } from 'piconuro'
 
 test('Describe flow', async t => {
@@ -58,6 +59,21 @@ test('serialization', async t => {
   t.equal(r.page, 4)
 })
 
+test.skip('secret box encryption', async t => {
+  const text = 'Bob is a bastard'
+  const secret = randomBytes(32)
+  const b = await encode({ text, encryption: 1 }, secret)
+  t.ok(Buffer.isBuffer(b))
+  let card
+  try {
+    card = await decode(b)
+  } catch (err) {
+    t.fail(err)
+  }
+  card = await decode(b, secret)
+  t.equal(card.text, text)
+})
+
 test('title extraction', async t => {
   const ex1 = `
 title
@@ -94,17 +110,6 @@ test('Icon extraction', async t => {
   t.notOk(extractIcon(ex2))
   const ex3 = '# !🥚! The Idea\nIt came to me when the time was right but the apple fell from the tree'
   t.equal(extractIcon(ex3), '🥚')
-})
-
-test.skip('secret box encryption', t => {
-  const { sk } = Postcard.signPair()
-  const p = new Postcard()
-  const text = 'Bob is a bastard'
-  const secret = randomBytes(32)
-  p.update({ text, secret }, sk) // preliminary api.
-  const r = Postcard.from(p.pickle())
-  t.equal(r.decrypt(secret), text)
-  t.end()
 })
 
 test('Drafts are saved', async t => {

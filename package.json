@@ -7,7 +7,8 @@
     "dev": "node build.js -w",
     "start": "node build.js -w",
     "test": "tape test/*.js",
-    "debug": "node inspect $(npm bin)/tape test/*.js"
+    "debug": "node inspect $(npm bin)/tape test/*.js",
+    "lint": "standard"
   },
   "devDependencies": {
     "esbuild": "^0.15.8",
