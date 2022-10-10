@@ -2,7 +2,7 @@
  * Manipulated during build.
  * @returns JSON object with base64-encoded static file content
  */
-const styles = `__TEST_CSS__
+const styles = `__SCOPED_CSS__
 `
 
 /**

@@ -49,7 +49,7 @@ const config = {
       __ENV__: `${production ? 'production' : 'dev'}`,
       __VERSION__: `${version}`,
       __COMMIT__: `${commit}`,
-      __TEST_CSS__: `${await loadStaticFileData()}`
+      __SCOPED_CSS__: `${await loadStaticFileData()}`
     })
   ]
 }
@@ -95,7 +95,7 @@ build()
 
 /**
  *
- * @param {*} dir The directory to read.
+ * @param {string} dir The directory to read.
  * @returns An object with base64 encoded file content.
  */
 async function readStaticFiles (dir) {
