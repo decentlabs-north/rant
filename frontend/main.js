@@ -36,8 +36,6 @@ import './components/discover-page.js'
 import './components/mermaid-graph.js'
 /* #endif */
 
-/* KeyPad async await promptPIN */
-
 async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
