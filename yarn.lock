@@ -3179,10 +3179,10 @@ picorepo@^1.4.5:
   resolved "https://registry.yarnpkg.com/picorepo/-/picorepo-1.4.5.tgz#fd36928d35aaf9a0c3bbcd171a5c0cc1d16217fd"
   integrity sha512-z8UH/qQ3L1EDxbqovu50Qg1dCbCfVUXCNQuhKJcwNXBElEvnbqDwaV66KZ2DR1lqVQ6aQqm9oL/24hOb5pR6CA==
 
-picostack@^1.5.8:
-  version "1.5.8"
-  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.8.tgz#4aa314642c96c47753621edd55cac9d54a6d937a"
-  integrity sha512-TYVFS5jxS9kU3ZjY2beEnhE7RMwZ2DxBWGlw3Q+7MuT+swVzrB5bN5qPsmlPdYRh+w1f3nZ+HjacRz0bRPVlVw==
+picostack@^1.5.11:
+  version "1.5.11"
+  resolved "https://registry.yarnpkg.com/picostack/-/picostack-1.5.11.tgz#15eafcca4b3168bd39bb40d4d3ae4744d14e152f"
+  integrity sha512-ImZpYn7cNfmKdAY/GjdbowhmIH4FYNLQbOzM0meNCimusDz29v6sUYbJvYWNaDlsSIDtN/v6mYhq5Kheo62Dmg==
   dependencies:
     "@telamon/picostore" "^2.0.1"
     msgpackr "^1.7.0"

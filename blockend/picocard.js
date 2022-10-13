@@ -89,7 +89,8 @@ export function pack (props, secret) {
     x: encryption || 0, // encryption
     l: theme || 0,
     d: date || Date.now(),
-    s: page || 0
+    s: page || 0,
+    p: !!props.public
   }
   return card
 }
@@ -121,7 +122,8 @@ export function unpack (card, secret) {
     compression: card.z,
     encryption: card.x,
     theme: card.l,
-    page: card.s
+    page: card.s,
+    public: card.p
   }
 }
 

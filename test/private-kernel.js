@@ -9,7 +9,7 @@ import {
   extractIcon
 } from '../blockend/picocard.js'
 import { randomBytes } from 'node:crypto'
-import { get, until } from 'piconuro'
+import { get } from 'piconuro'
 
 test('Describe flow', async t => {
   const k = new Kernel(makeDB())
@@ -188,44 +188,6 @@ test('Delete others rants', async t => {
   await b.deleteRant(id)
   rants = get(b.$rants())
   t.equal(rants.length, 0, 'Imported rant Deleted')
-})
-
-test('... modem time', async t => {
-  const a = new Kernel(makeDB())
-  await a.boot()
-  const b = new Kernel(makeDB())
-  await b.boot()
-  // Shit
-  a.spawnWire().open(b.spawnWire())
-  const text = 'This message was brought to you through the ether'
-  await a.checkout(null)
-  await a.setText(text)
-  await a.commit()
-
-  const rants = await until(b.$rants(), r => r.length)
-  t.equal(rants.length, 1, 'Rant imported')
-  t.equal(rants[0].text, text, 'Message transferred')
-})
-
-/**
- * Todo: move secondary kernel code from frontend to
-  */
-test('glue', async t => {
-  const a = new Kernel(makeDB())
-  await a.boot()
-  const b = new Kernel(makeDB())
-  await b.boot()
-  // Shit
-  const text = 'This message was brought to you through the ether'
-  for (let i = 0; i < 10; i++) {
-    await a.checkout(null)
-    await a.setText(text)
-    await a.commit()
-  }
-
-  a.spawnWire().open(b.spawnWire())
-  const rants = await until(b.$rants(), r => r.length > 9)
-  t.equal(rants.length, 10, 'Rant imported')
 })
 
 function makeDB () {

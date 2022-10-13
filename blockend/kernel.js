@@ -1,22 +1,10 @@
 /*
- * 1k Rant - Kernel
+ * 1k Rant - Private Kernel
  * @author Tony Ivanov
  * @license AGPLv3
  */
 import { SimpleKernel } from 'picostack'
 import { get } from 'piconuro'
-import { inspect as dumpDot } from 'picorepo/dot.js'
-import {
-  decode,
-  extractTitle,
-  extractIcon,
-  extractExcerpt,
-  bq
-} from './picocard.js'
-import {
-  TYPE_RANT,
-  btok
-} from './util.js'
 
 // Import Slices
 import Notebook from './slices/notebook.js'
@@ -24,6 +12,7 @@ import Notebook from './slices/notebook.js'
 // Import Modules
 import ModuleCfg from './mod/cfg.js'
 import ModuleDrafts from './mod/draft.js'
+import ModuleInspect from './mod/inspect.js'
 
 // import { encrypt } from '../frontend/encryption.js'
 export {
@@ -44,6 +33,7 @@ export default class Kernel extends SimpleKernel {
     // Include Kernel modules
     Object.assign(this, ModuleCfg())
     Object.assign(this, ModuleDrafts(db, this.config.bind(this)))
+    Object.assign(this, ModuleInspect())
   }
 
   async boot () {
@@ -69,49 +59,9 @@ export default class Kernel extends SimpleKernel {
     return i
   }
 
-  async inspect () {
-    // console.info('Inspecting Repo...')
-    const dot = await dumpDot(this.repo, {
-      blockLabel (block, { link }) {
-        const author = btok(block.key, 3)
-        const data = decode(block.body)
-        const str = bq`
-            [${btok(block.sig, 3)}]
-            ${data.seq}:${author}
-          `
-        if (data.type !== TYPE_RANT) {
-          return bq`
-            ${str}
-            UnknownBlock
-          `
-        }
-        return bq`
-          ${str}
-          ${extractIcon(data.text)}
-          ${extractTitle(data.text)}
-          ${extractExcerpt(data.text, 12)}
-          🎨${data.theme} 🔒${data.encryption} 🗜️${data.compression}
-        `
-      }
-    })
-    // console.info('$ xdot rant.dot')
-    console.info(dot)
-    return dot
-  }
-
   // TODO: picostack/SimpleKernel - When detached mode is active this
   // should be default behaviour
   async onquery () {
-    const feeds = []
-    const res = await this.repo.listFeeds()
-    for (const { value: chainId } of res) {
-      if (!Buffer.isBuffer(chainId)) {
-        console.error('ChainId borked', chainId)
-        continue
-      }
-      const feed = await this.repo.resolveFeed(chainId)
-      feeds.push(feed)
-    }
-    return feeds
+    return [] // Private kernel does not sync
   }
 }
