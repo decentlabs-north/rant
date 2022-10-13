@@ -10,7 +10,7 @@ import { marked } from 'marked'
 import Purify from 'dompurify'
 import lzutf8 from 'lzutf8'
 import lzString from 'lz-string'
-import { pack as mpack, unpack as munpack } from 'msgpackr'
+import { unpack as msgUnpack, pack as msgPack } from 'msgpackr'
 import { Feed } from 'picostack'
 
 /* #if _MERMAID */
@@ -24,9 +24,6 @@ marked.use({
   }
 })
 /* #endif */
-
-export const TYPE_RANT = 0
-export const TYPE_TOMB = 1
 
 export const THEMES = [
   'dark',
@@ -43,15 +40,30 @@ const { compressToUint8Array, decompressFromUint8Array } = lzString
 // 10kB accurate version: https://github.com/mathiasbynens/emoji-regex/blob/master/index.js
 export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
 
+/*
+ * encode/decode functions works like old pack/unpack before we introduced
+ * picostack.
+ * They are used only for drafts ATM.
+ * They handle compression & encryption types and attempt to be space-efficient
+ */
+export function encode (card, secret) {
+  if (Buffer.isBuffer(card)) throw new Error('Expected a card object')
+  return msgPack(pack(card, secret))
+}
+export function decode (buffer, secret) {
+  if (!Buffer.isBuffer(buffer)) throw new Error('Expected binary Buffer')
+  const props = msgUnpack(buffer)
+  return unpack(props, secret)
+}
+
+/**
+ * Minifies object-keys and compresses/encrypts the card-contents
+ * If used outside of pico-stack use msgpack (unpack) to read
+ * it.
+ */
 export function pack (props, secret) {
   if (!props) throw new Error('Expeceted Props')
   const { date, page, theme, type, encryption } = props
-  if (type === TYPE_TOMB) { // Tombstone/Delete rant.
-    return mpack({
-      b: type,
-      i: props.id
-    })
-  } // else assume TYPE_RANT as we only have 2 blocktypes atm.
 
   if (typeof props.text !== 'string' || !props.text.length) throw new Error('Expected text')
 
@@ -79,15 +91,10 @@ export function pack (props, secret) {
     d: date || Date.now(),
     s: page || 0
   }
-  return mpack(card)
+  return card
 }
 
-export function unpack (buffer, secret) {
-  const card = munpack(buffer)
-  if (card.b === TYPE_TOMB) {
-    return { type: card.b, id: card.i }
-  } // assume TYPE_RANT
-
+export function unpack (card, secret) {
   const decompressors = [
     i => i.toString('utf8'),
     decompress,
@@ -99,10 +106,11 @@ export function unpack (buffer, secret) {
       text = card.t
       break // plain yay!
     case 1: // Moved decryption to '/frontend/encryption.js'
+      // TODO: move back to avoid recursive nested encrypt glitch :snicker:
       text = card.t
       break
     default:
-      console.info(card.t)
+      console.info('unknown', card, card.x)
       throw new Error('UnknownEncryption')
   }
   text = decompressors[card.z](text)
@@ -120,7 +128,8 @@ export function unpack (buffer, secret) {
 // Temporary solution for unpacking static content.
 export function unpackFeed (pickle, secret) {
   const f = Feed.from(pickle)
-  return unpack(f.first.body, secret)
+  const obj = msgUnpack(f.first.body)
+  return unpack(obj, secret)
 }
 
 export function extractTitle (md) {

@@ -1,5 +1,7 @@
-import { btok } from '../util.js'
-import { unpack, TYPE_RANT, TYPE_TOMB } from '../picocard.js'
+import { btok, TYPE_RANT, TYPE_TOMB } from '../util.js'
+import { unpack } from '../picocard.js'
+import { SimpleKernel } from 'picostack'
+const { decodeBlock } = SimpleKernel
 
 export default function Notebook (name = 'rants', resolveLocalKey) {
   // There's no clean solution in pico for injecting local identity ATM.
@@ -16,8 +18,8 @@ export default function Notebook (name = 'rants', resolveLocalKey) {
     name,
     initialValue: {},
     filter ({ block, parentBlock }) {
-      const rant = unpack(block.body)
-      const { type } = rant
+      const data = decodeBlock(block.body)
+      const { type } = data
       switch (type) {
         case TYPE_RANT:
           if (block.body.length > 1024) return 'RantTooBig'
@@ -30,7 +32,7 @@ export default function Notebook (name = 'rants', resolveLocalKey) {
             localKey()?.equals(block.key) // accept own
           )) return 'NotYourRant'
 
-          const pData = unpack(parentBlock.body)
+          const pData = decodeBlock(parentBlock.body)
           // Tombstone can only be appended to rants (once).
           if (pData.type !== TYPE_RANT) return 'ExpectedParentToBeRant'
         } break
@@ -40,8 +42,9 @@ export default function Notebook (name = 'rants', resolveLocalKey) {
     },
 
     reducer ({ state, block, parentBlock, CHAIN, mark }) {
-      const rant = unpack(block.body)
-      if (rant.type === TYPE_TOMB) {
+      const data = decodeBlock(block.body)
+      const { type } = data
+      if (type === TYPE_TOMB) {
         state[btok(CHAIN)].entombed = true // soft delete
         const propagateOwn = block.key.equals(parentBlock.key) &&
           localKey()?.equals(block.key)
@@ -49,6 +52,7 @@ export default function Notebook (name = 'rants', resolveLocalKey) {
         return state
       }
 
+      const rant = unpack(data)
       state[btok(CHAIN)] = {
         ...rant,
         id: CHAIN,

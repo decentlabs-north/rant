@@ -2,12 +2,13 @@ import test from 'tape'
 import { MemoryLevel } from 'memory-level'
 import Kernel from '../blockend/kernel.js'
 import {
-  pack,
-  unpack,
+  encode,
+  decode,
   extractTitle,
   extractExcerpt,
   extractIcon
 } from '../blockend/picocard.js'
+import { randomBytes } from 'node:crypto'
 import { get, until } from 'piconuro'
 
 test('Describe flow', async t => {
@@ -19,6 +20,7 @@ test('Describe flow', async t => {
   let rant = get(k.$rant())
   t.equal(rant.id, 'draft:0', 'generates draft id')
   t.equal(rant.state, 'draft', 'rant is in state "draft"')
+
   await k.setText('# Hack\nworld is not hackable')
   await k.setTheme(1)
   await k.setText('# Hack\nworld is not hackable\nit is soft')
@@ -48,13 +50,28 @@ test('Describe flow', async t => {
 
 test('serialization', async t => {
   const text = '# Hello World'
-  const buffer = pack({ text, theme: 1, page: 4 })
+  const buffer = encode({ text, theme: 1, page: 4 })
   t.ok(Buffer.isBuffer(buffer))
-  const r = unpack(buffer)
+  const r = decode(buffer)
   t.ok(r.date)
   t.equal(r.theme, 1)
   t.equal(r.text, text)
   t.equal(r.page, 4)
+})
+
+test.skip('secret box encryption', async t => {
+  const text = 'Bob is a bastard'
+  const secret = randomBytes(32)
+  const b = await encode({ text, encryption: 1 }, secret)
+  t.ok(Buffer.isBuffer(b))
+  let card
+  try {
+    card = await decode(b)
+  } catch (err) {
+    t.fail(err)
+  }
+  card = await decode(b, secret)
+  t.equal(card.text, text)
 })
 
 test('title extraction', async t => {
@@ -95,17 +112,6 @@ test('Icon extraction', async t => {
   t.equal(extractIcon(ex3), '🥚')
 })
 
-test.skip('secret box encryption', t => {
-  const { sk } = Postcard.signPair()
-  const p = new Postcard()
-  const text = 'Bob is a bastard'
-  const secret = randomBytes(32)
-  p.update({ text, secret }, sk) // preliminary api.
-  const r = Postcard.from(p.pickle())
-  t.equal(r.decrypt(secret), text)
-  t.end()
-})
-
 test('Drafts are saved', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
@@ -120,9 +126,9 @@ test('Drafts are saved', async t => {
   // use a simple local counter for unpublished notes.
   t.equal(draft1[1], 'draft:0', 'checkout() returns previous id')
   const drafts = await k.drafts()
-  t.equal(drafts.length, 1)
+  t.equal(drafts.length, 1, 'Drafts length 1')
   rant = get(k.$rant())
-  t.equal(rant.text, '')
+  t.equal(rant.text, '', 'Blank rant')
   await k.setText('All is not lost')
   const draft2 = await k.checkout(draft1[1])
   t.equal(draft2[1], 'draft:1')
@@ -148,7 +154,7 @@ test('Delete Rants', async t => {
   const rid = await k.commit()
   await k.checkout(null)
   await k.setText('# Draft Rant')
-  await k._saveDraft()
+  await k.saveDraft()
 
   const did = get(k.$current)
   let drafts = await k.drafts()
