@@ -1,0 +1,19 @@
+.static-loader-class{
+  padding:0.5rem;
+  width:50%;
+  margin:auto;
+  border: none;
+  border-radius:0.3rem;
+}
+.static-loader-class:hover{
+  filter:brightness(1.1);
+  cursor:pointer;
+}
+.static-loader-class:active{
+  filter:brightness(0.9);
+}
+child-element{
+  display:flex;
+  text-align:center;
+}
+p{text-align:center; margin:0; padding:1rem;}

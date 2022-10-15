@@ -17,7 +17,7 @@ test('A public board', async t => {
   t.equal(rants[0].text, text, 'Message transferred')
 })
 
-test('Board message limit', async t => {
+test.skip('Board message limit', async t => {
   const peers = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne', 'Gemma')
   // 5 peers * 11msgs, (5 msgs should overflow)
   for (const peer of peers) {

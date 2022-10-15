@@ -39,7 +39,7 @@ Tonic.add(class RantList extends Tonic {
       setMode(true)
     } else if (r.state === 'signed') {
       const pickle = await kernel.pickle(id)
-      navigate(`r/${pickle}`)
+      navigate(`show/${pickle}`)
     }
   }
 

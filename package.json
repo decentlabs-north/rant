@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.15.8",
+    "esbuild-plugin-replace": "^1.2.0",
     "memory-level": "^1.0.0",
     "node-stdlib-browser": "^1.2.0",
     "standard": "^17.0.0",

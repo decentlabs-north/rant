@@ -36,8 +36,6 @@ import './components/discover-page.js'
 import './components/mermaid-graph.js'
 /* #endif */
 
-/* KeyPad async await promptPIN */
-
 async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
@@ -108,7 +106,7 @@ async function main () {
     } else {
       const id = await kernel.commit()
       const pickle = await kernel.pickle(id)
-      navigate(`r/${pickle}`)
+      navigate(`show/${pickle}`)
       setMode(false)
       console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
     }

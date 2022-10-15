@@ -149,6 +149,7 @@ export default function DraftsModule (db, config) {
       await this.saveDraft()
     },
 
+
     async commit (isPublic = false) {
       if (!isEditing()) throw new Error('EditMode not active')
       const branch = new Feed()
