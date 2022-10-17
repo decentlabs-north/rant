@@ -3,7 +3,7 @@ import { getStyleSheet } from '../injector.js'
 import { write, next } from 'piconuro'
 import { nEl } from '../surgeon.js'
 
-const [$secret, setSecret] = write('')
+const [$secret, setSecret] = write(null)
 Tonic.add(class KeypadDialog extends Tonic {
   constructor () {
     super()
@@ -113,7 +113,7 @@ async function pushSecret (secret) {
  * @param {*} mode lock/unlock mode
  * @returns secret
  */
-export async function promptPIN (mode) {
+export async function promptPIN (mode) { // TODO: clean this up it looks terrible
   if (mode) {
     nEl('edit-keypad-dlg2').open = true
     const secret = await next($secret)

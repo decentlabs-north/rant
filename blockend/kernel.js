@@ -42,15 +42,6 @@ export default class Kernel extends SimpleKernel {
     await this.drafts() // lists and sets $drafts writable
   }
 
-  // TODO: message encryption should be done
-  // on card.pack/card.unpack (once) to safely decrypt/encrypt
-  // async encryptMessage (secret) {
-  //   const encrypted = await encrypt(get(this._draft).text, secret)
-  //   console.info('encrypted: ', encrypted)
-  //   this._w.setText(encrypted)
-  //   this._w.setEncrypted(true)
-  // }
-
   async _inc (key) {
     // Most likely races
     const b = await this.repo.readReg(`inc|${key}`)

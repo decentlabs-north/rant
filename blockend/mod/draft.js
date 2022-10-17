@@ -37,8 +37,8 @@ import {
   extractIcon
 } from '../picocard.js'
 
-import { decrypt } from './mod/encryption.js'
-import { promptPIN } from '../../frontend/components/keypad-dialog.js'
+import { decrypt } from './encryption.js'
+
 /**
  * Drafts Module that provides the user a persistable
  * scratchpad that can be turned into a Rant by signing it.
@@ -66,7 +66,7 @@ export default function DraftsModule (db, config) {
 
   /** Trying to create a global state hook to make the entire render process awaitable */
   /** Sounds super scary O_o */
-  const [$encrypted, setEncrypted] = write(false)
+  const [$encrypted, setEncrypted] = write(false) // TODO: remember the purpose of this *facepalm*
 
   // combine all outputs into a single object
   const $draft = memo(
@@ -93,7 +93,7 @@ export default function DraftsModule (db, config) {
 
     // TODO: convert to getter (maybe)
     // TODO: move to `mod/rants.js`
-    $rant () {
+    $rant (secret) {
       const $n = combine(
         $current,
         $draft,
@@ -104,7 +104,7 @@ export default function DraftsModule (db, config) {
         ([current, draft, rants]) =>
           mapRant(
             isRantID(current) ? rants[btok(current)] : draft,
-            current
+            current, secret
           )
       )
     },
@@ -326,7 +326,7 @@ export default function DraftsModule (db, config) {
  * @param rant {Object}
  * @return {Rant}
  */
-export function mapRant (rant, current = null) {
+export function mapRant (rant, current = null, secret) {
   if (!rant) throw new Error('NoRant')
   // console.log('mapRant()', rant)
   const isCurrent = isEqualID(current, rant.id)
@@ -336,6 +336,8 @@ export function mapRant (rant, current = null) {
   // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
 
   const state = isDraft ? 'draft' : 'signed'
+
+  rant.text = secret ? decrypt(rant.text, secret) : rant.text // BUG: Sometimes returns blank TODO: find out why
 
   return {
     ...rant,
