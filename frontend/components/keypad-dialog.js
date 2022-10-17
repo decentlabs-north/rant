@@ -1,13 +1,9 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { getStyleSheet } from '../injector.js'
-import { write, next, get } from 'piconuro'
+import { write, next } from 'piconuro'
 import { nEl } from '../surgeon.js'
-import { decrypt } from '../encryption.js'
-import { kernel } from '../api.js'
 
 const [$secret, setSecret] = write('')
-const [$text, setText] = write('')
-const [$unlockState, setUnlockState] = write(false)
 Tonic.add(class KeypadDialog extends Tonic {
   constructor () {
     super()
@@ -48,7 +44,6 @@ Tonic.add(class KeypadDialog extends Tonic {
         break
       case 'UnlockBtn':
         setSecret(keyPadVal)
-        await tryUnlock(keyPad)
         keyPad.value = ''
         break
       case 'BackspaceBtnUnlock':
@@ -106,58 +101,30 @@ function RemoveLastChar (value) {
   return value
 }
 /**
- * Sets secret in {@link kernel} and encrypts the rant text with {@link kernel.encryptMessage|encryptMessage}
+ * Sets secret
  * @param {*} secret user provided secret
  */
 async function pushSecret (secret) {
-  await kernel.setSecret(secret)
-  await kernel.encryptMessage(secret)
+  setSecret(secret)
 }
+
 /**
- * Tries to {@link decrypt} rant text with user provided secret.
+ * Used to display keypad-dialog
+ * @param {*} mode lock/unlock mode
+ * @returns secret
  */
-async function tryUnlock (keypadDisplay) {
-  const secret = get($secret)
-  const text = get($text)
-  try {
-    const unlock = await decrypt(text, secret)
-    if (unlock !== '') {
-      setUnlockState(true)
-      setText(unlock)
-    } else {
-      keypadDisplay.placeholder = 'Incorrect PIN'
-    }
-  } catch (e) {
-    if (e.message === 'Malformed UTF-8 data') {
-      keypadDisplay.placeholder = 'Incorrect PIN?'
-      console.info('Actually an error occured. If this happend while entering the correct PIN try reloading the page.')
-    }
+export async function promptPIN (mode) {
+  if (mode) {
+    nEl('edit-keypad-dlg2').open = true
+    const secret = await next($secret)
+    nEl('edit-keypad-dlg2').open = false
+    setSecret(null)
+    return secret
+  } else {
+    nEl('edit-keypad-dlg').open = true
+    const secret = await next($secret)
+    nEl('edit-keypad-dlg').open = false
+    setSecret(null)
+    return secret
   }
-}
-/**
- * Reccursive function that waits for {@link $unlockState} to change.
- * @returns Dectypted rant text | {@link waitForInput}
- */
-async function waitForInput (text) {
-  const state = await next($unlockState)
-  if (state) {
-    return get($text)
-  } else return waitForInput()
-}
-
-/**
- * Used to display keypad-dialog and decrypt rant text on user input.
- * @param {*} text Encrypted rant text
- * @returns Decrypted rant text
- */
-export async function promptPIN (text) {
-  setText(text)
-  nEl('edit-keypad-dlg2').open = true
-
-  const decryptedMessage = await waitForInput(text)
-
-  nEl('edit-keypad-dlg2').open = false
-  setUnlockState(false)
-
-  return decryptedMessage
 }

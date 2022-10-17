@@ -13,6 +13,8 @@ import lzString from 'lz-string'
 import { unpack as msgUnpack, pack as msgPack } from 'msgpackr'
 import { Feed } from 'picostack'
 
+import { encrypt } from './mod/encryption.js'
+
 /* #if _MERMAID */
 // Extend marked with mermaid support (+1MB bundle size)
 marked.use({
@@ -48,12 +50,12 @@ export const EMOJI_REGEXP = /!([FLDd~|/.-]{0,4})([^!\n .}]{1,8})!/
  */
 export function encode (card, secret) {
   if (Buffer.isBuffer(card)) throw new Error('Expected a card object')
-  return msgPack(pack(card, secret))
+  return msgPack(pack(card, secret, true))
 }
-export function decode (buffer, secret) {
+export function decode (buffer, secret, isDraft) {
   if (!Buffer.isBuffer(buffer)) throw new Error('Expected binary Buffer')
   const props = msgUnpack(buffer)
-  return unpack(props, secret)
+  return unpack(props, secret, isDraft)
 }
 
 /**
@@ -61,15 +63,28 @@ export function decode (buffer, secret) {
  * If used outside of pico-stack use msgpack (unpack) to read
  * it.
  */
-export function pack (props, secret) {
+export function pack (props, secret, isDraft) {
   if (!props) throw new Error('Expeceted Props')
   const { date, page, theme, type, encryption } = props
 
   if (typeof props.text !== 'string' || !props.text.length) throw new Error('Expected text')
 
-  const text = props.text // Prepack transforms
+  let text = props.text // Prepack transforms
     .replace(/\r/, '') // Unecessary CRLF
   // .replace(/ {4}/, '\t') // most likely annoy more people than it saves space.
+  let encrypted = null
+  if (!isDraft) {
+    if (encryption === 1) {
+      try {
+        if (text) {
+          text = encrypt(text, secret)
+          encrypted = true
+        }
+      } catch (e) {
+        throw new Error('something went wrong in the encrypt department \n', e.message)
+      }
+    }
+  }
 
   // pick the algo that offers the best space efficiency
   const candidates = [
@@ -87,6 +102,7 @@ export function pack (props, secret) {
     t,
     z, // compression
     x: encryption || 0, // encryption
+    y: encrypted || false,
     l: theme || 0,
     d: date || Date.now(),
     s: page || 0
@@ -94,7 +110,7 @@ export function pack (props, secret) {
   return card
 }
 
-export function unpack (card, secret) {
+export function unpack (card, secret, isDraft) {
   const decompressors = [
     i => i.toString('utf8'),
     decompress,
@@ -105,8 +121,7 @@ export function unpack (card, secret) {
     case 0:
       text = card.t
       break // plain yay!
-    case 1: // Moved decryption to '/frontend/encryption.js'
-      // TODO: move back to avoid recursive nested encrypt glitch :snicker:
+    case 1:
       text = card.t
       break
     default:
@@ -120,6 +135,7 @@ export function unpack (card, secret) {
     date: card.d,
     compression: card.z,
     encryption: card.x,
+    encrypted: card.y,
     theme: card.l,
     page: card.s
   }

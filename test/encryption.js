@@ -1,8 +1,10 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
-import Kernel from '../blockend/kernel.js'
-// import { encrypt, decrypt } from '../blockend/picocard.js'
-import { get } from 'piconuro'
+// import Kernel from '../blockend/kernel.js'
+// // import { encrypt, decrypt } from '../blockend/picocard.js'
+// import { get } from 'piconuro'
+
+import { encrypt, decrypt } from '../blockend/mod/encryption.js'
 
 test.skip('Encrypt Rant', async t => {
   const message = 'sample message'
@@ -59,19 +61,19 @@ test.skip('Encrypt Rant', async t => {
  * Testing basic Encryption/Decryption
  */
 
-// test('Basic Encrypt/Decrypt', async t => {
-//   const message = '# Hack\nworld is not hackable\nit is soft'
-//   const secret = '1337'
+test('Basic Encrypt/Decrypt', async t => {
+  const message = '# Hack\nworld is not hackable\nit is soft'
+  const secret = '1337'
 
-//   const encrypted = encrypt(message, secret)
-//   console.log('Encrypted: ', encrypted)
+  const encrypted = encrypt(message, secret)
+  console.log('Encrypted: ', encrypted)
 
-//   const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 10)
+  // const decryptTimeout = new Date().setSeconds(new Date().getSeconds() + 10)
 
-//   const decrypted = await decrypt(encrypted, secret, decryptTimeout)
-//   console.log('Decrypted: ', decrypted)
-//   t.equal(decrypted, message)
-// })
+  const decrypted = decrypt(encrypted, secret)
+  console.log('Decrypted: ', decrypted)
+  t.equal(decrypted, message)
+})
 
 function makeDB () {
   return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })

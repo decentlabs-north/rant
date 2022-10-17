@@ -37,6 +37,8 @@ import {
   extractIcon
 } from '../picocard.js'
 
+import { decrypt } from './mod/encryption.js'
+import { promptPIN } from '../../frontend/components/keypad-dialog.js'
 /**
  * Drafts Module that provides the user a persistable
  * scratchpad that can be turned into a Rant by signing it.
@@ -143,9 +145,9 @@ export default function DraftsModule (db, config) {
     },
 
     async setSecret (secret) {
-      if (!isEditing()) throw new Error('EditMode not active')
+      // if (!isEditing()) throw new Error('EditMode not active')
       setSecret(secret)
-      await this.saveDraft()
+      // await this.saveDraft()
     },
 
     async commit () {
@@ -158,7 +160,7 @@ export default function DraftsModule (db, config) {
         page: await this._inc('page') // TODO: repo.inc('key') ?
       }
       // Prepack / apply text encryption & compression
-      const data = pack(rant, get($secret))
+      const data = pack(rant, get($secret), false)
       await this.createBlock(branch, TYPE_RANT, data)
 
       const id = branch.last.sig
@@ -294,14 +296,15 @@ export default function DraftsModule (db, config) {
     setTheme(rant.theme || get($theme))
     setEncryption(rant.encryption || get($encryption))
     setDate(rant.date || Date.now())
-    // setSecret(???) // don't know what to do.
+    // setSecret(???) // don't know what to do. <-- // i added IsDraft param to not encrypt/decrypt on user input and crash the system
   }
 
   async function reloadDrafts () {
     const iter = db.iterator()
     const drafts = []
     for await (const [id, value] of iter) {
-      const draft = decode(value)
+      const secret = get($secret)
+      const draft = decode(value, secret)
       drafts.push(mapRant({ id, ...draft }))
     }
     drafts.sort((a, b) => b.date - a.date)
@@ -341,7 +344,7 @@ export default function DraftsModule (db, config) {
       excerpt: extractExcerpt(rant.text),
       icon: extractIcon(rant.text),
       // TODO: Only true if encryption is plain or correct secret applied
-      decrypted: true
+      decrypted: rant.encrypted || true
     }
   }
 }

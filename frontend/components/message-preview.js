@@ -3,7 +3,6 @@ import { processText, unpackFeed } from '../../blockend/picocard.js'
 import { kernel, setMode } from '../api.js'
 import { navigate } from '../router.js'
 import { nEl } from '../surgeon.js'
-import { promptPIN } from './keypad-dialog.js'
 import { get } from 'piconuro'
 
 const CHEATSHEET = unpackFeed('PIC0.K0.GFZu8O6IJ1_4DVdAZHQr32fJx8afn6MUbyyXz987iLAB0.3Dq-Z9Oa8L6SiTU6LWCssrPRyPN_RPXC40XzrwQf2dHdWTWGyUpwzvFoMYzZ3_DTtXlvgl1EI+1Z+pGPCJcFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOw3gAHoWIAoXTFA44jIENoZWF0U2hlZXQKCiMjIE1hY3JvcwoKfCBleHByZXNzaW9uIHwgbmFtZXwgc3RhdHVzfAp8LcQBxgbIBy0tOnwKfGAh8J+TtyAhYHwgQmlnIEVtb2ppIFBpY3R1cmVzfCBkb25lxCZ7a2V5fWB8IEF1dGhvciBQdWJsaWMta2V5fCB0b2RvxSN0OmVwb2NoXHxmb3JtYXTEL0NvdW50ZG93bssnZzp1NjIycmQ4bXdwfWAgfCBFbWJlZCBHZW9oYXNofCBwbGFubmVkIMQtfn54b3I6cHdcfHJlZGFjdGVkfn7EM0lucGxhY2UgZW5jcnlwdOYA88s65AEZQmFzaWNzCiMjIyBUeXBvZ3JhcGh5CnzqASZ8cmVzdWx05gEexQQKfGAqKmJvbGQqKsRmICAgyA_EG19pdGFsaWNzX2B8IMkMxBl+flN0cmlrZSBUaHJvdWdo5gCk0hZ8CnwgQmFja3RpY2tzLcViYGNvZGVg5gCyIyBIZWFkaW5ncwpgYGBtYXJr5AE6CskXIDHkANfIDTLMMiAzxA7KDzTFD8oQNcYQyhE2xGPGdUxpc3TlAScjIyBVbm9yZGVyZWTtAIItIHN3aW1txDh3ZWFyCi0gcGFzc3BvcnTEG3VuZ2xhc3Nl5QC2xVMjIyBP00cxLiBNb25rZXkKMskKMy4gQmFuYW5hxT3EOlRhYmxlcwrNOnwgYWxpZ24gcmlnaHQgyA5sZWbKDWNlbnRlcuQCNegC3sQBOnw6yw7NDeUC_uQB4yAgyVjFUsYBxRttaWRkbGXFD8ksxAEwIHwgQ2HIK8YsygHNLEFCIHwgQUxQSEEgQkVUQcgseMks6AD4TGlua3MgJmFtcDsgSW1hZ_ABBFvEISB0ZXh0XShodHRwczovL2hvc3QudGxkKQohW2FsdCBpxDjXJC_FHS5wbmcpxXRfVE9ETzogYmxvY2sgcmVtb3RlxkBzIGZyb20gdW50cnVzdGVkIGHlA_RzLl_mAjBCxDJxdW90Ze0AoD4gVGhlIHRyZWUgd2FzIHRhbGxlciB0aGFuIGFueXRo5AI+c2hlCj4gaGFkIGV2ZXIgc2VlbiBiZWZvcmUuCj4KPiAtVGhleSBzYWlkIGl0xShixCN0aGVyZSBhIHdoaWxlLuoCukNvZGXmAI9zCuQBTcQZxAggIGNvbnN0IHggPSA0MssTb2xlLmxvZyh4KcgwoXoBoXgAoWwAoWTLQngxnEIYkAChcwo')
@@ -26,12 +25,12 @@ Tonic.add(class MessagePreview extends Tonic {
 
   async render () {
     // console.log('MP', this.props)
-    const { pickle, state, encryption } = this.props?.n || {}
+    const { pickle, state } = this.props?.n || {}
+
     const rant = get(kernel.$rant())
-    if (encryption !== 0 && encryption !== 'undefined' && state !== 'draft' && state) {
-      const unlockRant = get(kernel.$rant())
-      rant.text = await promptPIN(unlockRant.text)
-    }
+    // if (encryption !== 0 && encryption !== 'undefined' && state !== 'draft' && state) {
+    //   const secret = await promptPIN(true)
+    // }
 
     if (pickle) console.log('We have a pickle!', pickle)
     if (rant.text === '' && state !== 'draft') {

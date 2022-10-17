@@ -2,6 +2,7 @@ import '@picocss/pico'
 import { gate, nfo, mute, get, init, memo } from 'piconuro'
 import { isDraftID } from '../blockend/kernel.js'
 import { THEMES } from '../blockend/picocard.js'
+import { promptPIN } from '../frontend/components/keypad-dialog.js'
 import {
   nAttr,
   nClass,
@@ -30,7 +31,6 @@ import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
-import './components/keypad-dialog.js'
 import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
@@ -52,7 +52,7 @@ async function main () {
   const $state = memo(gate(mute($rant, r => r.state)))
   const $theme = memo(mute($rant, r => r.theme))
   const $encryption = memo(mute($rant, r => r.encryption))
-  const $encrypted = memo(mute($rant, r => r.encrypted))
+  // const $encrypted = memo(mute($rant, r => r.encrypted))
 
   // nfo($state, 'outside')(s => console.error('DraftState: ' + s.toUpperCase()))
   nAttr('view-render', 'state', $state)
@@ -100,16 +100,15 @@ async function main () {
 
   nClick('edit-publish', async () => {
     const encryptionLevel = get($encryption)
-    const isEncrypted = get($encrypted)
-    if (encryptionLevel === 1 && !isEncrypted) {
-      nEl('edit-keypad-dlg').open = true
-    } else {
-      const id = await kernel.commit()
-      const pickle = await kernel.pickle(id)
-      navigate(`show/${pickle}`)
-      setMode(false)
-      console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+    if (encryptionLevel === 1) {
+      const secret = await promptPIN(false)
+      await kernel.setSecret(secret)
     }
+    const id = await kernel.commit()
+    const pickle = await kernel.pickle(id)
+    navigate(`show/${pickle}`)
+    setMode(false)
+    console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
   })
 
   nValue('edit-opt-encryption',
@@ -176,6 +175,7 @@ async function main () {
         try {
           await kernel.import(id)
           const { title, excerpt } = get(kernel.$rant())
+
           document.head.querySelector('title').text = title
           document.head.querySelector('meta[name="description"]').content = excerpt
         } catch (err) {

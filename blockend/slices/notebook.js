@@ -52,7 +52,7 @@ export default function Notebook (name = 'rants', resolveLocalKey) {
         return state
       }
 
-      const rant = unpack(data)
+      const rant = unpack(data, null, true)
       state[btok(CHAIN)] = {
         ...rant,
         id: CHAIN,
