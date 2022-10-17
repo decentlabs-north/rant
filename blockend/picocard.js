@@ -105,7 +105,8 @@ export function pack (props, secret, isDraft) {
     y: encrypted || false,
     l: theme || 0,
     d: date || Date.now(),
-    s: page || 0
+    s: page || 0,
+    p: !!props.public
   }
   return card
 }
@@ -137,7 +138,8 @@ export function unpack (card, secret, isDraft) {
     encryption: card.x,
     encrypted: card.y,
     theme: card.l,
-    page: card.s
+    page: card.s,
+    public: card.p
   }
 }
 

@@ -100,22 +100,23 @@ export default function DraftsModule (db, config) {
         s => this.store.on('rants', s)
       )
       return mute(
-        mute(
-          $n,
-          ([current, draft, rants]) =>
-            isRantID(current) ? rants[btok(current)] : draft
-        ),
-        r => mapRant(r)
+        $n,
+        ([current, draft, rants]) =>
+          mapRant(
+            isRantID(current) ? rants[btok(current)] : draft,
+            current
+          )
       )
     },
 
     // TODO: move to `mod/rants.js`
     $rants () {
+      const current = get($current)
       return mute(
         s => this.store.on('rants', s),
         rants => Object.values(rants)
           .filter(r => !r.entombed)
-          .map(r => mapRant(r))
+          .map(r => mapRant(r, current))
           .sort((a, b) => b.date - a.date)
       )
     },
@@ -150,12 +151,13 @@ export default function DraftsModule (db, config) {
       // await this.saveDraft()
     },
 
-    async commit () {
+    async commit (isPublic = false) {
       if (!isEditing()) throw new Error('EditMode not active')
       const branch = new Feed()
       const current = get($current)
       const rant = {
         ...get($draft),
+        public: isPublic,
         date: Date.now(),
         page: await this._inc('page') // TODO: repo.inc('key') ?
       }
@@ -302,10 +304,10 @@ export default function DraftsModule (db, config) {
   async function reloadDrafts () {
     const iter = db.iterator()
     const drafts = []
+    const current = get($current)
     for await (const [id, value] of iter) {
-      const secret = get($secret)
-      const draft = decode(value, secret)
-      drafts.push(mapRant({ id, ...draft }))
+      const draft = decode(value)
+      drafts.push(mapRant({ id, ...draft }, current))
     }
     drafts.sort((a, b) => b.date - a.date)
     setDrafts(drafts) // Fugly hack
@@ -315,36 +317,35 @@ export default function DraftsModule (db, config) {
   function isEditing () {
     return isDraftID(get($current))
   }
+}
 
-  /**
-   * High-level formatter, decorates a rant object with
-   * title, icon, size and other calculated props.
-   *
-   * @param rant {Object}
-   * @return {Rant}
-   */
-  function mapRant (rant) {
-    if (!rant) throw new Error('NoRant')
-    // console.log('mapRant()', rant)
-    const c = get($current)
-    const isCurrent = isEqualID(c, rant.id)
-    const isDraft = !rant.rev
-    let size = rant.size
-    if (isDraft) size = rant.text ? encode(rant).length : 0
-    // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
+/**
+ * High-level formatter, decorates a rant object with
+ * title, icon, size and other calculated props.
+ *
+ * @param rant {Object}
+ * @return {Rant}
+ */
+export function mapRant (rant, current = null) {
+  if (!rant) throw new Error('NoRant')
+  // console.log('mapRant()', rant)
+  const isCurrent = isEqualID(current, rant.id)
+  const isDraft = !rant.rev
+  let size = rant.size
+  if (isDraft) size = rant.text ? encode(rant).length : 0
+  // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
 
-    const state = isDraft ? 'draft' : 'signed'
+  const state = isDraft ? 'draft' : 'signed'
 
-    return {
-      ...rant,
-      state,
-      selected: isCurrent,
-      size,
-      title: extractTitle(rant.text),
-      excerpt: extractExcerpt(rant.text),
-      icon: extractIcon(rant.text),
-      // TODO: Only true if encryption is plain or correct secret applied
-      decrypted: rant.encrypted || true
-    }
+  return {
+    ...rant,
+    state,
+    selected: isCurrent,
+    size,
+    title: extractTitle(rant.text),
+    excerpt: extractExcerpt(rant.text),
+    icon: extractIcon(rant.text),
+    // TODO: Only true if encryption is plain or correct secret applied
+    decrypted: true
   }
 }

@@ -9,7 +9,7 @@ import {
   extractIcon
 } from '../blockend/picocard.js'
 import { randomBytes } from 'node:crypto'
-import { get, until } from 'piconuro'
+import { get } from 'piconuro'
 
 test.skip('Describe flow', async t => {
   const k = new Kernel(makeDB())
