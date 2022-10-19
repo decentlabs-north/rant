@@ -336,18 +336,19 @@ export function mapRant (rant, current = null, secret) {
   // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
 
   const state = isDraft ? 'draft' : 'signed'
-
-  rant.text = secret ? decrypt(rant.text, secret) : rant.text // BUG: Sometimes returns blank TODO: find out why
+  const decrypted = (secret && rant.encrypted)
+  const message = decrypted ? decrypt(rant.text, secret) : rant.text // separates the encrypted and decrypted values for security reasons
 
   return {
     ...rant,
+    message, // <-- this is what gets rendered rant.text remains in encrypted/original state
     state,
     selected: isCurrent,
     size,
     title: extractTitle(rant.text),
     excerpt: extractExcerpt(rant.text),
     icon: extractIcon(rant.text),
-    // TODO: Only true if encryption is plain or correct secret applied
-    decrypted: true
+    // TODO: ✔️ Only true if encryption is plain or correct secret applied
+    decrypted: !message ? false : decrypted
   }
 }

@@ -15,6 +15,15 @@ export function decrypt (text, password) {
   const decipher = crypto.createDecipheriv('aes-256-ctr', key, iv)
   let decrypted = decipher.update(text, 'hex', 'utf8')
   decrypted += decipher.final('utf8')
+
+  /**
+   * super hack, will work untill someone posts a rant with a � inside.
+   * So either replace � with ' ' in pack or find another way to do "password check"
+   */
+  if (decrypted.includes('�')) {
+    console.log('��we g�t some wi�rd chars man��')
+    return false
+  }
   return decrypted
 }
 

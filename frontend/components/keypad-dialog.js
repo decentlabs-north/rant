@@ -28,6 +28,7 @@ Tonic.add(class KeypadDialog extends Tonic {
       case 'lockBtn':
         await pushSecret(keyPadVal)
         nEl('edit-keypad-dlg').open = false
+        keyPad.value = ''
         break
       case 'BackspaceBtn':
         keyPad.value = RemoveLastChar(keyPadVal)

@@ -5,7 +5,7 @@ import PublicKernel from '../blockend/public-kernel.js'
 import { MemoryLevel } from 'memory-level'
 import { until, get } from 'piconuro'
 
-test('A public board', async t => {
+test.skip('A public board', async t => {
   const [a, b] = await spawnSwarm('Alice', 'Bob')
   const text = 'I need no money.'
   await a.post(text)

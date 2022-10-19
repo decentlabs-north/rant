@@ -1,12 +1,12 @@
 import test from 'tape'
 import { MemoryLevel } from 'memory-level'
-// import Kernel from '../blockend/kernel.js'
+import Kernel from '../blockend/kernel.js'
 // // import { encrypt, decrypt } from '../blockend/picocard.js'
-// import { get } from 'piconuro'
+import { get } from 'piconuro'
 
 import { encrypt, decrypt } from '../blockend/mod/encryption.js'
 
-test.skip('Encrypt Rant', async t => {
+test('Encrypt Rant', async t => {
   const message = 'sample message'
   const secret = '1337'
   const k = new Kernel(makeDB())
@@ -41,14 +41,14 @@ test.skip('Encrypt Rant', async t => {
   const impId = await k2.import(`https://xor.cry/${url}`) // dispatch(Feed.from(hash))
   t.ok(id.equals(impId))
 
-  t.notOk(rant.decrypted, 'Rant is encrypted')
-  t.equal(rant.text, '🔒', 'Shows lock-emoji instead of garbled output')
+  t.ok(rant.encrypted, 'Rant is encrypted')
+  // t.equal(rant.text, '🔒', 'Shows lock-emoji instead of garbled output')
 
   // Set secret
   await k2.setSecret(secret)
 
   // Rant is now unlocked
-  rant = get(k2.$rant()) // imported
+  rant = get(k2.$rant(secret)) // imported
   t.ok(rant.decrypted, 'Not encrypted')
   // t.equal(rant.secret, '1337')
   t.equal(rant.state, 'signed')
@@ -61,7 +61,7 @@ test.skip('Encrypt Rant', async t => {
  * Testing basic Encryption/Decryption
  */
 
-test('Basic Encrypt/Decrypt', async t => {
+test.skip('Basic Encrypt/Decrypt', async t => {
   const message = '# Hack\nworld is not hackable\nit is soft'
   const secret = '1337'
 

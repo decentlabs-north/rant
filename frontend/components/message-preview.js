@@ -27,16 +27,17 @@ Tonic.add(class MessagePreview extends Tonic {
   async render () {
     // console.log('MP', this.props)
     const { pickle, state, encrypted } = this.props?.n || {}
-
     let secret
     if (encrypted) {
-      secret = await promptPIN(true) // BUG: 1st render is fine, but after that text begins to dissapear for unknown reasons
+      secret = await promptUntilCorrect()
     }
-
     const rant = get(kernel.$rant(secret))
 
+    /** a little hacky but it works for now */
+    nEl('markdown-area').value = rant.message // TODO: Alter the rendering process so that message-preview is rendered before the editor if possible
+
     if (pickle) console.log('We have a pickle!', pickle)
-    if (rant.text === '' && state !== 'draft') {
+    if (rant.message === '' && state !== 'draft') {
       return this.html`<code>Empty Casette</code>`
     }
     if (this.props.id === 'pitch-render') {
@@ -48,7 +49,26 @@ Tonic.add(class MessagePreview extends Tonic {
     }
 
     nEl('render-ctrls')?.reRender({ state, rant: this.props.n })
-    const md = this.preprocess(rant.text || CHEATSHEET.text)
+    const md = this.preprocess(rant.message || CHEATSHEET.text)
     return this.html([md])
   }
 })
+
+/**
+ * Recursive pin code prompt, it might need some tinkering
+ * TODO: break after certain amount of failed tries
+ */
+const promptUntilCorrect = async (s) => {
+  if (s) {
+    const rant = get(kernel.$rant(s))
+    if (!rant.message) {
+      const secret = await promptPIN(true)
+      return await promptUntilCorrect(secret)
+    } else {
+      return s
+    }
+  } else {
+    const secret = await promptPIN(true)
+    return await promptUntilCorrect(secret)
+  }
+}
