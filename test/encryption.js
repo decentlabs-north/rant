@@ -1,6 +1,6 @@
 import test from 'tape'
-import { MemoryLevel } from 'memory-level'
 import Kernel from '../blockend/kernel.js'
+import { makeDB } from './helpers.js'
 // import { encrypt, decrypt } from '../blockend/picocard.js'
 import { get } from 'piconuro'
 
@@ -72,7 +72,3 @@ test.skip('Encrypt Rant', async t => {
 //   console.log('Decrypted: ', decrypted)
 //   t.equal(decrypted, message)
 // })
-
-function makeDB () {
-  return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
-}

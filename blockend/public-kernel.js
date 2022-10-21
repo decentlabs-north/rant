@@ -11,12 +11,12 @@ const { decodeBlock } = SimpleKernel
 const TYPE_BUMP = 'shit'
 
 export default class PublicKernel extends SimpleKernel {
-  constructor (db) {
+  constructor (db, now = Date.now) {
     super(db)
     this.repo.allowDetached = true // enable multiple chains per author
 
     // Register consensus slices
-    this.store.register(TinyBoard())
+    this.store.register(TinyBoard(undefined, undefined, now))
 
     // Register modules
     Object.assign(this, ModuleInspect())
@@ -41,6 +41,10 @@ export default class PublicKernel extends SimpleKernel {
       feeds.push(feed)
     }
     return feeds
+  }
+
+  gc (at) {
+    return this.store.gc(at)
   }
 }
 
@@ -87,20 +91,22 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             size: block.body.length,
             expiresAt: rant.date + ttl // - current stunLock
           }
+          mark(btok(CHAIN), state[btok(CHAIN)].expiresAt)
         }
       }
       return { ...state }
     },
 
-    sweep ({ state, CHAIN, mark, drop }) {
+    sweep ({ state, CHAIN, mark, drop, payload }) {
       const rant = state[btok(CHAIN)]
       if (!rant) {
         console.warning('RantAlreadyGone')
         return state
       }
-
-      if (rant.expiresAt < now()) { // Not dead
-        // TODO: reschedule
+      // console.log('Sweeping expiresAt:', new Date(rant.expiresAt), ' now:', new Date(now()))
+      if (rant.expiresAt > now()) { // Not dead
+        // Create a new gc-mark with fresh expiry date
+        mark(payload, rant.expiresAt)
       } else { // Dead
         drop() // cleanup block-repo
         delete state[btok(CHAIN)] // cleanup-state

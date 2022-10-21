@@ -1,9 +1,6 @@
 import test from 'tape'
-import Feed from 'picofeed'
-import PrivateKernel from '../blockend/kernel.js'
-import PublicKernel from '../blockend/public-kernel.js'
-import { MemoryLevel } from 'memory-level'
 import { until, get } from 'piconuro'
+import { spawnSwarm } from './helpers.js'
 
 test('A public board', async t => {
   const [a, b] = await spawnSwarm('Alice', 'Bob')
@@ -15,6 +12,23 @@ test('A public board', async t => {
   rants = await until(b.pub.$rants(), r => r.length)
   t.equal(rants.length, 1, 'Bob sees the rant')
   t.equal(rants[0].text, text, 'Message transferred')
+})
+
+test('Rants have a lifetime of 1hour', async t => {
+  const [a, b] = await spawnSwarm('Alice', 'Bob')
+  const text = 'I have a guitar'
+  await a.post(text)
+  let rants = await until(b.pub.$rants(), r => r.length)
+  t.equal(rants.length, 1, 'Bob sees the rant')
+
+  // Timetravel 1 hour into future
+  b.clock.fwd(60)
+
+  const dropped = await b.pub.gc(b.clock.now())
+  t.equal(dropped.length, 1, 'One chain discarded')
+
+  rants = get(b.pub.$rants())
+  t.equal(rants.length, 0, 'Rant was garbage collected')
 })
 
 test.skip('Board message limit', async t => {
@@ -45,55 +59,3 @@ test.skip('Bumping a post should induce stunlock-mechanics', async t => {
   // If a bump -- too tired, need a whiteboard.
   // Longest non-settled bump-chain is used (conflict resolution policy)
 })
-
-function makeDB () {
-  return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
-}
-
-async function spawnSwarm (...peers) {
-  const kernels = []
-  let prev = null
-  for (const p of peers) {
-    const k = await spawnPeer(p)
-    // connect all peers in series
-    if (prev) prev.spawnWire({ client: true }).open(k.spawnWire())
-    prev = k
-    kernels.push(k)
-  }
-  return kernels
-}
-
-async function spawnPeer (name) {
-  const db = makeDB()
-  const pubDB = db.sublevel('pub', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
-  const prv = new PrivateKernel(db)
-  const pub = new PublicKernel(pubDB)
-  await prv.boot()
-  await pub.boot()
-  return {
-    prv,
-    pub,
-    spawnWire () {
-      return pub.spawnWire()
-    },
-    async post (text) {
-      await prv.checkout(null)
-      await prv.setText(text || `${name}: Hello`)
-      const id = await prv.commit(1)
-      const rant = Feed.from(await prv.pickle(id))
-      await pub.dispatch(rant, true)
-    }
-  }
-}
-
-/**
- * Tests that all async callbacks have finished
- * and all sockets are closed
- */
-export function noPending (t) {
-  const reqs = process._getActiveRequests()
-  const handles = process._getActiveHandles()
-  if (reqs.length) t.notOk(reqs, 'Pending Requests')
-  else if (handles.length) t.notOk(handles, 'Pending Handles')
-  else t.pass('Node:event-loop is not blocked')
-}

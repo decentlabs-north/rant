@@ -2,3 +2,5 @@
 /pub/build/
 .DS_Store
 pub/modem56.web.js
+yarn.lock
+package-lock.json
