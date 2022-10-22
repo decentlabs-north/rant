@@ -89,9 +89,20 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             author: block.key,
             rev: block.sig,
             size: block.body.length,
-            expiresAt: rant.date + ttl // - current stunLock
+            expiresAt: rant.date + ttl, // - current stunLock
+            overflowAt: 0
           }
           mark(btok(CHAIN), state[btok(CHAIN)].expiresAt)
+
+          // If board-capacity reached.
+          // Mark lowest scored rant for deletion
+          const rants = Object.values(state)
+            .filter(r => !r.overflowAt)
+          if (rants.length > size) {
+            const last = sortByWeight(rants)[rants.length - 1]
+            last.overflowAt = now()
+            mark(btok(last.id)) // mark for gc
+          }
         }
       }
       return { ...state }
@@ -104,14 +115,21 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
         return state
       }
       // console.log('Sweeping expiresAt:', new Date(rant.expiresAt), ' now:', new Date(now()))
-      if (rant.expiresAt > now()) { // Not dead
+      if (!rant.overflowAt && rant.expiresAt > now()) { // Not dead
         // Create a new gc-mark with fresh expiry date
         mark(payload, rant.expiresAt)
       } else { // Dead
         drop() // cleanup block-repo
         delete state[btok(CHAIN)] // cleanup-state
       }
+
       return state
     }
   }
+}
+
+export function sortByWeight (rants) {
+  // I supposed we'd want to put some real
+  // weight-calculation here
+  return rants.sort((a, b) => b.expiresAt > a.expiresAt)
 }

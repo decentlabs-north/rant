@@ -31,16 +31,20 @@ test('Rants have a lifetime of 1hour', async t => {
   t.equal(rants.length, 0, 'Rant was garbage collected')
 })
 
-test.skip('Board message limit', async t => {
+test('Board message limit', async t => {
   const peers = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne', 'Gemma')
-  // 5 peers * 11msgs, (5 msgs should overflow)
+  // 5 peers * 11msgs = 55 unique, should cause overflow
   for (const peer of peers) {
     for (let i = 0; i < 11; i++) await peer.post()
   }
-  const rants = await until(
+  let rants = await until(
     peers[0].pub.$rants(),
     rs => rs.length >= 50
   )
+  const b = peers[0]
+  const dropped = await b.pub.gc(b.clock.now())
+  t.ok(dropped.length > 1, `Discarded ${dropped.lenght}`)
+  rants = get(b.pub.$rants())
   t.equals(rants.length, 50, 'Alice sees the 50rants and no more')
 })
 
