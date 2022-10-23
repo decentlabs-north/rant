@@ -85,6 +85,7 @@ export default function DraftsModule (db, config) {
     get $current () { return $current },
     get $draft () { return $draft },
     get drafts () { return reloadDrafts },
+    isEditing,
 
     // TODO: convert to getter (maybe)
     $drafts () { return $drafts },

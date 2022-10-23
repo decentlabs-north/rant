@@ -1,5 +1,5 @@
 import { SimpleKernel } from 'picostack'
-import { mute, get } from 'piconuro'
+import { mute } from 'piconuro'
 // Import Modules
 import ModuleInspect from './mod/inspect.js'
 import { mapRant } from './mod/draft.js'
@@ -27,8 +27,27 @@ export default class PublicKernel extends SimpleKernel {
     return mute($rs, state => Object.values(state).map(mapRant))
   }
 
-  // TODO: picostack/SimpleKernel - When detached mode is active this
-  // should be default behaviour
+  /**
+   * @override this function to inject
+   * external feeds into the network.
+   *
+   * Example: from a 'saved' notebook.
+   * External rants still have to follow consensus.
+   * They just don't count towards the 50 limit of local peer.
+   * @param {Object} params Query-request from remote peer.
+   * @return {Array<PicoFeed>} A list of rants as PicoFeed(s)
+   */
+  async externalRants (params) {} // => Feeds
+
+  async onquery (params) {
+    const feeds = await super.onquery(params)
+    if (typeof this.propaganda === 'function') {
+      await this.externalRants()
+    }
+    return feeds
+  }
+
+  /* Backported to picostack.
   async onquery () {
     const feeds = []
     const res = await this.repo.listFeeds()
@@ -42,6 +61,7 @@ export default class PublicKernel extends SimpleKernel {
     }
     return feeds
   }
+  */
 
   gc (at) {
     return this.store.gc(at)

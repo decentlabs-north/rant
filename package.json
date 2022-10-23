@@ -32,7 +32,7 @@
     "lzutf8": "^0.6.3",
     "marked": "^4.1.0",
     "mermaid": "^9.1.7",
-    "picostack": "^1.5.15",
+    "picostack": "^1.5.16",
     "qrcode-generator": "^1.4.4"
   },
   "resolutions": {
