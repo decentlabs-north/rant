@@ -115,7 +115,7 @@ async function pushSecret (secret) {
  * @param {*} mode lock/unlock mode
  * @returns secret
  */
-export async function promptPIN (mode) { // TODO: clean this up it looks terrible
+export async function promptPIN (mode) { // TODO: clean this up it looks terrible (but it works)
   if (mode) {
     nEl('edit-keypad-dlg2').open = true
     const secret = await next($secret)

@@ -44,7 +44,7 @@ Tonic.add(class MessagePreview extends Tonic {
     const rant = get(kernel.$rant(secret))
 
     /** a little hacky but it works for now */
-    nEl('markdown-area').value = rant.message // TODO: Alter the rendering process so that message-preview is rendered before the editor if possible
+    nEl('markdown-area').value = rant.message // Is there a better way to do this? does it matter?
 
     if (pickle) console.log('We have a pickle!', pickle)
     if (rant.message === '' && state !== 'draft') {
@@ -66,7 +66,7 @@ Tonic.add(class MessagePreview extends Tonic {
 
 /**
  * Recursive pin code prompt, it might need some tinkering
- * breaks after 3 tries and alerts the client
+ * breaks after 3 tries and returns false
  */
 export const promptUntilCorrect = async (s, i) => {
   if (s) {

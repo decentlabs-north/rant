@@ -298,7 +298,7 @@ export default function DraftsModule (db, config) {
     setTheme(rant.theme || get($theme))
     setEncryption(rant.encryption || get($encryption))
     setDate(rant.date || Date.now())
-    // setSecret(???) // don't know what to do. <-- // i added IsDraft param to not encrypt/decrypt on user input and crash the system
+    // setSecret(???) // don't know what to do. <-- // i added IsDraft param to not encrypt/decrypt on user input
   }
 
   async function reloadDrafts () {

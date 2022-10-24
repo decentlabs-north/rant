@@ -213,7 +213,7 @@ async function main () {
 
       case 'saved':
         await kernel.checkout(null) // checkout null so we dont show encrypted information when browsing saved rants
-        return 'onroute saved'
+        return 'onroute saved checking out(null)'
 
       default:
         return `onroute 404 - route not found (${path}, ${(id || '').substr(0, 24)})`
