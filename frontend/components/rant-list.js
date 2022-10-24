@@ -26,10 +26,10 @@ Tonic.add(class RantList extends Tonic {
 
     // Handle delete
     if (Tonic.match(ev.target, '.trash')) {
-      if (ev.target.dataset.encrypted === 'true') {
+      if (ev.target.dataset.encrypted === 'true') { // if the rant is encrypted, prompt PIN before continue
         await kernel.checkout(id)
         const secret = await promptUntilCorrect(null, 0)
-        if (secret) {
+        if (secret && secret !== 'EVENT:CLOSE') {
           console.info('deleteRant', id)
           await kernel.deleteRant(id)
         }
@@ -38,6 +38,7 @@ Tonic.add(class RantList extends Tonic {
         await kernel.deleteRant(id)
       }
       // TODO: refresh view?
+      await kernel.checkout(null)
       return
     }
 

@@ -102,6 +102,9 @@ async function main () {
     const encryptionLevel = get($encryption)
     if (encryptionLevel === 1) {
       const secret = await promptPIN(false)
+      if (!secret) {
+        return
+      }
       await kernel.setSecret(secret)
     }
     const id = await kernel.commit()

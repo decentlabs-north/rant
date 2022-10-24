@@ -36,6 +36,10 @@ Tonic.add(class MessagePreview extends Tonic {
         navigate('saved/')
         createAlert(nEl('saved-rants-alert'), 'danger', 'Too many attempts', true)
       }
+      if (secret === 'EVENT:CLOSE') {
+        navigate('saved/')
+        secret = false
+      }
     }
     const rant = get(kernel.$rant(secret))
 
@@ -54,11 +58,6 @@ Tonic.add(class MessagePreview extends Tonic {
       `
     }
 
-    if (this.props.id === 'cheatsheet') {
-      const md = this.preprocess(CHEATSHEET.text)
-      return this.html([md])
-    }
-
     nEl('render-ctrls')?.reRender({ state, rant: this.props.n })
     const md = this.preprocess(rant.message || CHEATSHEET.text)
     return this.html([md])
@@ -67,10 +66,11 @@ Tonic.add(class MessagePreview extends Tonic {
 
 /**
  * Recursive pin code prompt, it might need some tinkering
- * TODO: break after certain amount of failed tries
+ * breaks after 3 tries and alerts the client
  */
 export const promptUntilCorrect = async (s, i) => {
   if (s) {
+    if (s === 'EVENT:CLOSE') return 'EVENT:CLOSE'
     const rant = get(kernel.$rant(s))
     if (!rant.message) {
       i++

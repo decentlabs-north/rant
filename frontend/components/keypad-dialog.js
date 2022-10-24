@@ -37,6 +37,7 @@ Tonic.add(class KeypadDialog extends Tonic {
         if (nEl('edit-keypad-dlg').open) nEl('edit-keypad-dlg').open = false
         else if (nEl('edit-keypad-dlg2').open) nEl('edit-keypad-dlg2').open = false
         keyPad.value = ''
+        setSecret('EVENT:CLOSE')
         break
       /* Unlock KeyPad */
       case 'keyBtnUnlock':
@@ -124,6 +125,9 @@ export async function promptPIN (mode) { // TODO: clean this up it looks terribl
   } else {
     nEl('edit-keypad-dlg').open = true
     const secret = await next($secret)
+    if (secret === 'EVENT:CLOSE') {
+      return false
+    }
     nEl('edit-keypad-dlg').open = false
     setSecret(null)
     return secret
