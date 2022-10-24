@@ -26,13 +26,16 @@ Tonic.add(class RantList extends Tonic {
 
     // Handle delete
     if (Tonic.match(ev.target, '.trash')) {
-      if (ev.target.dataset.encrypted) {
+      if (ev.target.dataset.encrypted === 'true') {
         await kernel.checkout(id)
         const secret = await promptUntilCorrect(null, 0)
         if (secret) {
           console.info('deleteRant', id)
           await kernel.deleteRant(id)
         }
+      } else {
+        console.info('deleteRant', id)
+        await kernel.deleteRant(id)
       }
       // TODO: refresh view?
       return
@@ -71,6 +74,7 @@ Tonic.add(class RantList extends Tonic {
       ${(rants || []).map(rant => {
         let id = rant.id
         if (isRantID(rant.id)) id = id.toString('base64')
+        const sampl = (rant.encrypted && (!rant.decrypted || rant.decrypted === undefined)) ? '[Locked] 🔐' : `${rant.excerpt}...`
         return this.html`
           <rant class="row xcenter space-between"
             data-id="${id}"
@@ -80,7 +84,7 @@ Tonic.add(class RantList extends Tonic {
               <div class="col xstart">
                 <h6>${rant.title}</h6>
                 <small>${dayjs(rant.date).fromNow()}</small>
-                <div class="sampl">${rant.excerpt}...</div>
+                <div class="sampl">${sampl}</div>
               </div>
             </div>
             <b role="button" class="btn-round trash" data-encrypted=${rant.encrypted.toString()}></b>
