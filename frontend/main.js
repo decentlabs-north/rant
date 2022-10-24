@@ -172,6 +172,7 @@ async function main () {
     switch (path) {
       case 'r':
       case 'show': {
+        nEl('markdown-render')?.reRender()
         try {
           await kernel.import(id)
           const { title, excerpt } = get(kernel.$rant())
@@ -206,6 +207,10 @@ async function main () {
       case 'home':
         // no on-route logic - silent reroute
         break
+
+      case 'saved':
+        await kernel.checkout(null) // checkout null so we dont show encrypted information when browsing saved rants
+        return 'onroute saved'
 
       default:
         return `onroute 404 - route not found (${path}, ${(id || '').substr(0, 24)})`

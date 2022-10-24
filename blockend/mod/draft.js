@@ -328,6 +328,7 @@ export default function DraftsModule (db, config) {
  */
 export function mapRant (rant, current = null, secret) {
   if (!rant) throw new Error('NoRant')
+
   // console.log('mapRant()', rant)
   const isCurrent = isEqualID(current, rant.id)
   const isDraft = !rant.rev
@@ -341,7 +342,7 @@ export function mapRant (rant, current = null, secret) {
 
   return {
     ...rant,
-    message, // <-- this is what gets rendered rant.text remains in encrypted/original state
+    message, // <-- this is what gets rendered, rant.text remains in encrypted/original state
     state,
     selected: isCurrent,
     size,

@@ -8,6 +8,7 @@ import {
   setMode
 } from '../api.js'
 import { navigate } from '../router.js'
+import { promptUntilCorrect } from './message-preview.js'
 
 Tonic.add(class RantList extends Tonic {
   async click (ev) {
@@ -25,8 +26,14 @@ Tonic.add(class RantList extends Tonic {
 
     // Handle delete
     if (Tonic.match(ev.target, '.trash')) {
-      console.info('deleteRant', id)
-      await kernel.deleteRant(id)
+      if (ev.target.dataset.encrypted) {
+        await kernel.checkout(id)
+        const secret = await promptUntilCorrect(null, 0)
+        if (secret) {
+          console.info('deleteRant', id)
+          await kernel.deleteRant(id)
+        }
+      }
       // TODO: refresh view?
       return
     }
@@ -76,7 +83,7 @@ Tonic.add(class RantList extends Tonic {
                 <div class="sampl">${rant.excerpt}...</div>
               </div>
             </div>
-            <b role="button" class="btn-round trash"></b>
+            <b role="button" class="btn-round trash" data-encrypted=${rant.encrypted.toString()}></b>
           </rant>
         `
       })}

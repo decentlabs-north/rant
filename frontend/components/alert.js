@@ -1,0 +1,33 @@
+export function createAlert (parent, type, message, autohide) {
+  if (document.getElementById(`${parent.id}:alert-${message}`)) return
+
+  const alertBox = document.createElement('div')
+  alertBox.classList.add('alert-collapse')
+
+  const alert = document.createElement('div')
+  alert.classList.add(`alert-${type}`)
+  alert.id = `${parent.id}:alert-${message}`
+
+  const alertMsg = document.createElement('p')
+  alertMsg.innerText = message
+  alert.appendChild(alertMsg)
+
+  alertBox.appendChild(alert)
+
+  parent.appendChild(alertBox)
+  clearAlert(alertBox, parent)
+}
+
+function clearAlert (el, p) {
+  collapseAlert(el)
+  setTimeout(() => collapseAlert(el), 2000)
+  setTimeout(() => el.remove(), 2200)
+}
+
+function collapseAlert (el) {
+  if (el.style.maxHeight) {
+    el.style.maxHeight = null
+  } else {
+    el.style.maxHeight = el.scrollHeight + 'px'
+  }
+}

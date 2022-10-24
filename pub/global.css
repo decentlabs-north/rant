@@ -827,3 +827,24 @@ render[data-theme] {
   fill: var(--qr-bg) !important;
 }
 qr-code svg { max-width: 100%; }
+
+
+
+.alert-collapse{
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+.alert-danger {
+  background-color: rgba(220, 20, 60, 0.3);
+  padding: 1rem 0.6rem;
+  text-align: center;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.alert-danger p {
+  margin-bottom: 0.2rem;
+}
