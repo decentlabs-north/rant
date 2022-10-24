@@ -829,7 +829,7 @@ render[data-theme] {
 qr-code svg { max-width: 100%; }
 
 
-
+/* styling for the alert.js component */
 .alert-collapse{
   max-height: 0;
   overflow: hidden;

@@ -1,3 +1,11 @@
+/**
+ * A simple alert component that creates an alert and then dismisses it after 2s
+ * @param {Element} parent
+ * @param {string} type
+ * @param {string} message
+ * @param {boolean} autohide - NYI
+ * @returns
+ */
 export function createAlert (parent, type, message, autohide) {
   if (document.getElementById(`${parent.id}:alert-${message}`)) return
 
@@ -15,10 +23,10 @@ export function createAlert (parent, type, message, autohide) {
   alertBox.appendChild(alert)
 
   parent.appendChild(alertBox)
-  clearAlert(alertBox, parent)
+  clearAlert(alertBox)
 }
 
-function clearAlert (el, p) {
+function clearAlert (el) {
   collapseAlert(el)
   setTimeout(() => collapseAlert(el), 2000)
   setTimeout(() => el.remove(), 2200)

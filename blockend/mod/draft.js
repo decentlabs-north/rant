@@ -66,7 +66,7 @@ export default function DraftsModule (db, config) {
 
   /** Trying to create a global state hook to make the entire render process awaitable */
   /** Sounds super scary O_o */
-  const [$encrypted, setEncrypted] = write(false) // TODO: remember the purpose of this *facepalm*
+  const [$encrypted] = write(false) // TODO: remember the purpose of this *facepalm*
 
   // combine all outputs into a single object
   const $draft = memo(

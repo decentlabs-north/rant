@@ -4,7 +4,6 @@
  * @license AGPLv3
  */
 import { SimpleKernel } from 'picostack'
-import { get } from 'piconuro'
 
 // Import Slices
 import Notebook from './slices/notebook.js'
