@@ -11,7 +11,7 @@ import {
 import { randomBytes } from 'node:crypto'
 import { get } from 'piconuro'
 
-test.skip('Describe flow', async t => {
+test('Describe flow', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   t.notOk(get(k.$rant()).id) // current -> undefined
@@ -48,7 +48,7 @@ test.skip('Describe flow', async t => {
   // Enjoy rant.text
 })
 
-test.skip('serialization', async t => {
+test('serialization', async t => {
   const text = '# Hello World'
   const buffer = encode({ text, theme: 1, page: 4 })
   t.ok(Buffer.isBuffer(buffer))
@@ -74,7 +74,7 @@ test.skip('secret box encryption', async t => {
   t.equal(card.text, text)
 })
 
-test.skip('title extraction', async t => {
+test('title extraction', async t => {
   const ex1 = `
 title
 =====
@@ -94,7 +94,7 @@ some text
   t.equal(extractTitle(ex5), 'Hen &amp Egg')
 })
 
-test.skip('Excerpt extraction', async t => {
+test('Excerpt extraction', async t => {
   const ex1 = '!🥚!\n# Hen &amp; Egg\nIs a well known problem'
   t.equal(extractExcerpt(ex1), 'Is a well known problem')
   const ex2 = '# The Idea\nIt came to me when the time was right but the apple fell from the tree'
@@ -103,7 +103,7 @@ test.skip('Excerpt extraction', async t => {
   t.equal(extractExcerpt(ex3), extractExcerpt(ex2))
 })
 
-test.skip('Icon extraction', async t => {
+test('Icon extraction', async t => {
   const ex1 = '!🥚!\n# Hen &amp; Egg\nIs a well known problem'
   t.equal(extractIcon(ex1), '🥚')
   const ex2 = '# The Idea\nIt came to me when the time was right but the apple fell from the tree'
@@ -112,7 +112,7 @@ test.skip('Icon extraction', async t => {
   t.equal(extractIcon(ex3), '🥚')
 })
 
-test.skip('Drafts are saved', async t => {
+test('Drafts are saved', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
 
@@ -137,7 +137,7 @@ test.skip('Drafts are saved', async t => {
   t.equal(rant.text, 'Peer Up!')
 })
 
-test.skip('Persistent Config', async t => {
+test('Persistent Config', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   const [$v, setV] = k.config('theme', true)
@@ -146,7 +146,7 @@ test.skip('Persistent Config', async t => {
   t.equal(get($v), false)
 })
 
-test.skip('Delete Rants', async t => {
+test('Delete Rants', async t => {
   const k = new Kernel(makeDB())
   await k.boot()
   await k.checkout(null)
@@ -171,7 +171,7 @@ test.skip('Delete Rants', async t => {
   t.equal(rants.length, 0)
 })
 
-test.skip('Delete others rants', async t => {
+test('Delete others rants', async t => {
   const a = new Kernel(makeDB())
   await a.boot()
   await a.checkout(null)
@@ -188,44 +188,6 @@ test.skip('Delete others rants', async t => {
   await b.deleteRant(id)
   rants = get(b.$rants())
   t.equal(rants.length, 0, 'Imported rant Deleted')
-})
-
-test.skip('... modem time', async t => {
-  const a = new Kernel(makeDB())
-  await a.boot()
-  const b = new Kernel(makeDB())
-  await b.boot()
-  // Shit
-  a.spawnWire().open(b.spawnWire())
-  const text = 'This message was brought to you through the ether'
-  await a.checkout(null)
-  await a.setText(text)
-  await a.commit()
-
-  const rants = await until(b.$rants(), r => r.length)
-  t.equal(rants.length, 1, 'Rant imported')
-  t.equal(rants[0].text, text, 'Message transferred')
-})
-
-/**
- * Todo: move secondary kernel code from frontend to
-  */
-test.skip('glue', async t => {
-  const a = new Kernel(makeDB())
-  await a.boot()
-  const b = new Kernel(makeDB())
-  await b.boot()
-  // Shit
-  const text = 'This message was brought to you through the ether'
-  for (let i = 0; i < 10; i++) {
-    await a.checkout(null)
-    await a.setText(text)
-    await a.commit()
-  }
-
-  a.spawnWire().open(b.spawnWire())
-  const rants = await until(b.$rants(), r => r.length > 9)
-  t.equal(rants.length, 10, 'Rant imported')
 })
 
 function makeDB () {
