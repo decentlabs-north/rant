@@ -1,5 +1,4 @@
 import test from 'tape'
-import { MemoryLevel } from 'memory-level'
 import Kernel from '../blockend/kernel.js'
 import {
   encode,
@@ -10,6 +9,7 @@ import {
 } from '../blockend/picocard.js'
 import { randomBytes } from 'node:crypto'
 import { get } from 'piconuro'
+import { makeDB } from './helpers.js'
 
 test('Describe flow', async t => {
   const k = new Kernel(makeDB())
@@ -43,7 +43,7 @@ test('Describe flow', async t => {
   t.ok(id.equals(impId), 'id is same')
   rant = get(k2.$rant()) // imported
   t.equal(rant.title, 'Hack', 'title Imported')
-  // t.ok(rant.decrypted, 'Not encrypted') // TODO: was prop removed?
+  t.ok(rant.decrypted, 'Not encrypted')
   t.equal(rant.state, 'signed', 'state is "signed"')
   // Enjoy rant.text
 })
@@ -189,7 +189,3 @@ test('Delete others rants', async t => {
   rants = get(b.$rants())
   t.equal(rants.length, 0, 'Imported rant Deleted')
 })
-
-function makeDB () {
-  return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
-}

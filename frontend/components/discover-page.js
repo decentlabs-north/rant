@@ -1,48 +1,27 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { gate, combine, mute, get } from 'piconuro'
-import { kernel, setMode, $mode } from '../api.js'
-import Kernel, { isRantID, isEqualID, btok } from '../../blockend/kernel.js'
+import { kernel, publicKernel as pub } from '../api.js'
+import { isRantID, isEqualID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
 import Modem56 from 'picostack/modem56.js'
 import dayjs from '../day.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'
-/* Spin up a disposable kernel to avoid pollute local notebook */
-// TODO: Move subkernel into blockend folder
-class DualCoreTM extends Kernel {
-  async onquery (...args) {
-    const tmpFeeds = await super.onquery(...args)
-    const localFeeds = await kernel.onquery(...args)
-    // TODO: don't share privately published/shared notes
-    // localFeeds.filter(rant.topic|rant.image|!rant.private)
-    return [...tmpFeeds, ...localFeeds]
-  }
-}
 
 export class DiscoverPage extends Tonic {
   constructor () {
     super()
     this.modem = new Modem56()
-    this.db = kernel.db.sublevel('TMP', {
-      keyEncoding: 'buffer',
-      valueEncoding: 'buffer'
-    })
-    this.dcore = new DualCoreTM(this.db)
     this.isSwarming = false
   }
 
   connected () {
     // Filter rants that exist in local notebook.
-    const $rants = mute(
-      combine(this.dcore.$rants(), kernel.$rants()),
-      ([remote, local]) => remote.filter(r =>
-        !local.find(l => isEqualID(r, l))
-      )
-    )
+    const $rants = pub.$rants()
     const $state = gate(
       combine({
         rants: $rants,
-        peers: mute(this.dcore.$connections(), c => c.length)
+        peers: mute(pub.$connections(), c => c.length)
       })
     )
     this.unsub = $state(state => {
@@ -61,16 +40,7 @@ export class DiscoverPage extends Tonic {
   async click (ev) {
     const el = Tonic.match(ev.target, 'rant[data-id]')
     if (el) {
-      const id = Buffer.from(el.dataset.id, 'base64')
-      this.dcore.checkout(id)
-      window.____(get(this.dcore.$rant())) // look away
-      if (!this._____m) {
-        this._____m = $mode(editMode => {
-          console.log('Current Mode', editMode)
-          if (editMode) window.____(0) // look away
-        })
-      }
-      setMode(false)
+      // const id = Buffer.from(el.dataset.id, 'base64')
     }
   }
 
@@ -111,9 +81,7 @@ export class DiscoverPage extends Tonic {
 
   async toggleSwarm (on) {
     if (on) {
-      await this.db.clear()
-      await this.dcore.boot()
-      this.modem.join(TOPIC, (...a) => this.dcore.spawnWire(...a))
+      this.modem.join(TOPIC, (...a) => pub.spawnWire(...a))
       console.log('second kernel booted, topic joined', TOPIC)
       this.reRender(p => p)
     } else {

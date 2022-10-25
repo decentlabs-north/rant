@@ -15,6 +15,7 @@ import {
 } from './surgeon.js'
 import {
   kernel,
+  publicKernel,
   $mode,
   setMode,
   shareDefault
@@ -40,6 +41,9 @@ async function main () {
   await kernel.boot()
     .then(console.info('Kernel booted'))
   // await kernel.store.reload()
+
+  await publicKernel.boot()
+    .then(console.info('Kernel booted'))
 
   nAttr('main', 'view', mute($route, r => r?.path))
   nClass('main', 'mode-edit', $mode)
@@ -222,9 +226,11 @@ async function main () {
 
   /* Clear pending draft save on leave */
   window.addEventListener('beforeunload', async () => {
-    console.info('Saving Draft beforeunload')
-    await kernel.saveDraft()
-    console.info('Draft Saved!')
+    if (kernel.isEditing()) {
+      console.info('Saving Draft beforeunload')
+      await kernel.saveDraft()
+      console.info('Draft Saved!')
+    }
   })
 
   // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release

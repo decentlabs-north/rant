@@ -51,7 +51,13 @@ export default class Kernel extends SimpleKernel {
 
   // TODO: picostack/SimpleKernel - When detached mode is active this
   // should be default behaviour
-  async onquery () {
-    return [] // Private kernel does not sync
+  async onquery (params = {}) {
+    const rants = get(this.$rants())
+      .filter(r => !params.onlyPublic || r.public)
+    const feeds = []
+    for (const r of rants) {
+      const feed = await this.repo.resolveFeed(r.id)
+      feeds.push(feed)
+    }
   }
 }

@@ -87,6 +87,7 @@ export default function DraftsModule (db, config) {
     get $current () { return $current },
     get $draft () { return $draft },
     get drafts () { return reloadDrafts },
+    isEditing,
 
     // TODO: convert to getter (maybe)
     $drafts () { return $drafts },
@@ -337,8 +338,8 @@ export function mapRant (rant, current = null, secret) {
   // console.log('DBG id:', rant.id, 'current:', isCurrent, 'draft:', isDraft, 'size:', size)
 
   const state = isDraft ? 'draft' : 'signed'
-  const decrypted = (secret && rant.encrypted)
-  const message = decrypted ? decrypt(rant.text, secret) : rant.text // separates the encrypted and decrypted values for security reasons
+  const canDecrypt = (secret && rant.encrypted)
+  const message = canDecrypt ? decrypt(rant.text, secret) : rant.text // separates the encrypted and decrypted values for security reasons
 
   return {
     ...rant,
@@ -349,7 +350,6 @@ export function mapRant (rant, current = null, secret) {
     title: extractTitle(rant.text),
     excerpt: extractExcerpt(rant.text),
     icon: extractIcon(rant.text),
-    // TODO: ✔️ Only true if encryption is plain or correct secret applied
-    decrypted: !message ? false : decrypted
+    decrypted: !rant.encrypted ? true : !!message
   }
 }

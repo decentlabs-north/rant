@@ -8,6 +8,7 @@
 import { BrowserLevel } from 'browser-level'
 import { write, mute, get, combine } from 'piconuro'
 import Kernel, { isDraftID } from '../blockend/kernel.js'
+import PublicKernel from '../blockend/public-kernel.js'
 import { $page, navigate } from './router.js'
 
 const DB = new BrowserLevel('rant.lvl', {
@@ -15,6 +16,18 @@ const DB = new BrowserLevel('rant.lvl', {
   keyEncoding: 'buffer'
 })
 export const kernel = new Kernel(DB)
+
+export const publicKernel = new PublicKernel(
+  DB.sublevel('PUB', {
+    keyEncoding: 'buffer',
+    valueEncoding: 'buffer'
+  })
+)
+// Share locally-saved public rants.
+publicKernel.externalRants = params => kernel.onquery({
+  ...params, // limit, age, etc.
+  onlyPublic: true
+})
 
 const [_mode, _setMode] = write(false) // true: Show editor
 export const setMode = _setMode

@@ -1,5 +1,5 @@
 import { SimpleKernel } from 'picostack'
-import { mute, get } from 'piconuro'
+import { mute } from 'piconuro'
 // Import Modules
 import ModuleInspect from './mod/inspect.js'
 import { mapRant } from './mod/draft.js'
@@ -11,12 +11,12 @@ const { decodeBlock } = SimpleKernel
 const TYPE_BUMP = 'shit'
 
 export default class PublicKernel extends SimpleKernel {
-  constructor (db) {
+  constructor (db, now = Date.now) {
     super(db)
     this.repo.allowDetached = true // enable multiple chains per author
 
     // Register consensus slices
-    this.store.register(TinyBoard())
+    this.store.register(TinyBoard(undefined, undefined, now))
 
     // Register modules
     Object.assign(this, ModuleInspect())
@@ -27,8 +27,27 @@ export default class PublicKernel extends SimpleKernel {
     return mute($rs, state => Object.values(state).map(mapRant))
   }
 
-  // TODO: picostack/SimpleKernel - When detached mode is active this
-  // should be default behaviour
+  /**
+   * @override this function to inject
+   * external feeds into the network.
+   *
+   * Example: from a 'saved' notebook.
+   * External rants still have to follow consensus.
+   * They just don't count towards the 50 limit of local peer.
+   * @param {Object} params Query-request from remote peer.
+   * @return {Array<PicoFeed>} A list of rants as PicoFeed(s)
+   */
+  async externalRants (params) {} // => Feeds
+
+  async onquery (params) {
+    const feeds = await super.onquery(params)
+    if (typeof this.propaganda === 'function') {
+      await this.externalRants()
+    }
+    return feeds
+  }
+
+  /* Backported to picostack.
   async onquery () {
     const feeds = []
     const res = await this.repo.listFeeds()
@@ -41,6 +60,11 @@ export default class PublicKernel extends SimpleKernel {
       feeds.push(feed)
     }
     return feeds
+  }
+  */
+
+  gc (at) {
+    return this.store.gc(at)
   }
 }
 
@@ -85,27 +109,47 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             author: block.key,
             rev: block.sig,
             size: block.body.length,
-            expiresAt: rant.date + ttl // - current stunLock
+            expiresAt: rant.date + ttl, // - current stunLock
+            overflowAt: 0
+          }
+          mark(btok(CHAIN), state[btok(CHAIN)].expiresAt)
+
+          // If board-capacity reached.
+          // Mark lowest scored rant for deletion
+          const rants = Object.values(state)
+            .filter(r => !r.overflowAt)
+          if (rants.length > size) {
+            const last = sortByWeight(rants)[rants.length - 1]
+            last.overflowAt = now()
+            mark(btok(last.id)) // mark for gc
           }
         }
       }
       return { ...state }
     },
 
-    sweep ({ state, CHAIN, mark, drop }) {
+    sweep ({ state, CHAIN, mark, drop, payload }) {
       const rant = state[btok(CHAIN)]
       if (!rant) {
         console.warning('RantAlreadyGone')
         return state
       }
-
-      if (rant.expiresAt < now()) { // Not dead
-        // TODO: reschedule
+      // console.log('Sweeping expiresAt:', new Date(rant.expiresAt), ' now:', new Date(now()))
+      if (!rant.overflowAt && rant.expiresAt > now()) { // Not dead
+        // Create a new gc-mark with fresh expiry date
+        mark(payload, rant.expiresAt)
       } else { // Dead
         drop() // cleanup block-repo
         delete state[btok(CHAIN)] // cleanup-state
       }
+
       return state
     }
   }
+}
+
+export function sortByWeight (rants) {
+  // I supposed we'd want to put some real
+  // weight-calculation here
+  return rants.sort((a, b) => b.expiresAt > a.expiresAt)
 }
