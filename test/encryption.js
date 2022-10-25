@@ -6,7 +6,7 @@ import { get } from 'piconuro'
 
 import { encrypt, decrypt } from '../blockend/mod/encryption.js'
 
-test('Encrypt Rant', async t => {
+test.skip('Encrypt Rant', async t => {
   const message = 'sample message'
   const secret = '1337'
   const k = new Kernel(makeDB())
