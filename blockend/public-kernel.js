@@ -134,6 +134,19 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
         console.warning('RantAlreadyGone')
         return state
       }
+
+      // If capacity not yet reached then
+      // then postpone deletion another 30 min
+      // (makes sense for ultra small networks / long decay)
+      /* Help! Don't know how to write test for this! :(
+      const totalActive = Object.values(state)
+        .filter(r => !r.overflowAt).length
+      if (!rant.overflowAt && totalActive < size) {
+        mark(payload, rant.expiresAt + 30 * 60000)
+        return
+      } */
+
+      // Remove outdated/overflow rants.
       // console.log('Sweeping expiresAt:', new Date(rant.expiresAt), ' now:', new Date(now()))
       if (!rant.overflowAt && rant.expiresAt > now()) { // Not dead
         // Create a new gc-mark with fresh expiry date
