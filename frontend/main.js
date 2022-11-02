@@ -26,6 +26,7 @@ import {
   $route
 } from './router.js'
 // import './components/router-view.js' // WIP;
+import './components/frontpage-feed.js'
 import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
