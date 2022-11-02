@@ -123,11 +123,14 @@
     </settings>
 
     <!----- DISCOVER/Swarm! ------------->
-    <discover class="west">
+    <div id="discover-render"> <!--class="west"-->
+
+    </div>
+    <!-- <discover class="west">
       <main-menu></main-menu>
-      <discover-page>
+      <discover-page id="discover-page">
       </discover-page>
-    </discover>
+    </discover> -->
 
     <!----- EDITOR ------------->
     <editor id="view-editor" class="west col space-between">
@@ -223,7 +226,7 @@
     <!-- Front Page-->
     <frontpage class="east pad">
       <render-ctrls state="pitch"></render-ctrls>
-      <frontpage-feed></frontpage-feed>
+      <frontpage-feed id="frontpage-feed" data-ready="false"></frontpage-feed>
       <footer class="text-center">
         <sub>1k Rant ©<!--<sub>left</sub>--> Decent Labs 2022 ¤ Powered by <a href="https://github.com/telamon/picostack">picostack</a> ¤</sub>
       </footer>

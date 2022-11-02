@@ -27,6 +27,8 @@ export class DiscoverPage extends Tonic {
     this.unsub = $state(state => {
       this.reRender(prev => ({ ...prev, ...state }))
     })
+
+    console.log('DISCOVER: ', $rants)
   }
 
   disconnected () { this.unsub() }
