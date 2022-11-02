@@ -1,4 +1,4 @@
-import Bot from './bot.js'
+import { HappyPeer } from './bot.js'
 import hyperswarmweb from 'hyperswarm-web'
 import wrtc from 'wrtc'
 
@@ -6,7 +6,7 @@ const TOPIC = 'GLOBAL_RANT_WARNING'
 
 for (let i = 0; i < 10; i++) {
   const swarm = hyperswarmweb({ simplePeer: { wrtc } })
-  const a = new Bot()
+  const a = new HappyPeer()
   const ctx = {
     name: `Daphne ${i}`,
     swarm,

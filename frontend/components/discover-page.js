@@ -6,6 +6,11 @@ import { processText, THEMES } from '../../blockend/picocard.js'
 import Modem56 from 'picostack/modem56.js'
 import dayjs from '../day.js'
 
+/**
+ * THIS FILE WILL BE DELETED.
+ * IM ONLY KEEPING IT IN CASE I FUDGE SOMETHING UP ON THE FRONTPAGE-
+ */
+
 const TOPIC = 'GLOBAL_RANT_WARNING'
 
 export class DiscoverPage extends Tonic {
@@ -28,7 +33,7 @@ export class DiscoverPage extends Tonic {
       this.reRender(prev => ({ ...prev, ...state }))
     })
 
-    console.log('DISCOVER: ', $rants)
+    // console.log('DISCOVER: ', $rants)
   }
 
   disconnected () { this.unsub() }

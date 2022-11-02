@@ -33,7 +33,6 @@ import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
-import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
 /* #endif */
@@ -46,15 +45,7 @@ async function main () {
   await publicKernel.boot()
     .then(console.info('Kernel booted'))
     .then(() => {
-      nEl('frontpage-feed').reRender() // <-- den är chill
-      // nEl('discover-page').reRender()
-
-      nEl('discover-render').innerHTML =
-      `<discover>
-      <main-menu></main-menu>
-      <discover-page id="discover-page">
-      </discover-page>
-    </discover>`
+      nEl('frontpage-feed').reRender() // <-- Re render the frontpage once the kernel has booted
     })
 
   // nAttr('frontpage-feed', 'ready', mute($mode, m => !m)) // <-- im not sure if $mode is the right prop here

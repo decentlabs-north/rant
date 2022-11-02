@@ -16,7 +16,6 @@ Tonic.add(class MainMenu extends Tonic {
         <button data-route="/" data-toltip="Home"><ico>🏠</ico></button>
         <button data-route="home" data-toltip="Drafts"><ico>📑</ico></button>
         <button data-route="saved" data-toltip="Saved"><ico>🌟</ico></button>
-        <button data-route="discover" data-toltip="Discover"><ico>🧭</ico></button>
         <button data-route="settings" data-toltip="Settings"><ico>⚙️</ico></button>
       </nav>
     `

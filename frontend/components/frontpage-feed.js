@@ -1,43 +1,123 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { publicKernel as pub } from '../api.js'
-import { get, next, write } from 'piconuro'
+import { gate, combine, mute, nfo } from 'piconuro'
+import { isRantID, btok } from '../../blockend/kernel.js'
+import { processText, THEMES } from '../../blockend/picocard.js'
+import Modem56 from 'picostack/modem56.js'
+import dayjs from '../day.js'
 
+const TOPIC = 'GLOBAL_RANT_WARNING'
+
+/**
+ * frontpage is working as intended!
+ * TODO: clean up and remove all unused stuff. also remove discover-page since we dont need it anymore.
+ *
+ */
 Tonic.add(class FrontpageFeed extends Tonic {
-  // constructor () {
-  //   super()
-  //   // this.attachShadow({ mode: 'open' }) // <-- Shadow DOM
-  // }
+  constructor () {
+    super()
+    this.modem = new Modem56()
+    this.isSwarming = true
 
-  connected () {
-    // this.rants = get(pub.$rants())
-    // const $ready = this.dataset.ready === 'true'
-    // this.ready = this.dataset.ready === 'true'
-    // console.log('brefore next: ', this.$readyState)
-    // await next(this.$readyState)
-    // console.log('after next: ', this.$readyState)
-    // if (this.$readyState) { this.reRender() }
+    this.modem.join(TOPIC, (...a) => pub.spawnWire(...a))
+    console.log('second kernel booted, topic joined', TOPIC)
+    this.reRender(p => p)
+    // this.attachShadow({ mode: 'open' }) // <-- Shadow DOM
   }
 
-  updated () {
+  connected () {
     this.ready = this.dataset.ready === 'true'
-    const rants = get(pub.$rants())
-    console.log('CONNECTED: ', rants)
+
+    // Filter rants that exist in local notebook.
+    const $rants = pub.$rants()
+    const $state = gate(
+      combine({
+        rants: $rants,
+        peers: mute(pub.$connections(), c => c.length)
+      })
+    )
+    this.unsub = nfo($state(state => {
+      this.reRender(prev => ({ ...prev, ...state }))
+    }))
+  }
+
+  disconnected () { this.unsub() }
+
+  change (ev) {
+    if (Tonic.match(ev.target, '#toggle-swarm')) {
+      this.toggleSwarm(ev.target.checked)
+    }
+  }
+
+  async click (ev) {
+    const el = Tonic.match(ev.target, 'rant[data-id]')
+    if (el) {
+      // const id = Buffer.from(el.dataset.id, 'base64')
+    }
   }
 
   render () {
-    // if (this.dataset.ready !== 'true') {
-    //   return this.html('<p>Loading...</p>')
-    // }
-    const rants = get(pub.$rants())
-    return this.html(/* html */`
-    <div>
+    const rants = this.props.rants || []
+    const peers = this.props.peers || 0
+    this.classList.add('pad')
+
+    const listRants = () => {
+      if (!rants.length) {
+        return this.html`
+          <h5 aria-busy="true">Searching for peers...</h5>
+        `
+      }
+      return rants.map(rant => {
+        return this.html`
+          <rant-card rant=${rant}></rant-card>
+        `
+      })
+    }
+
+    return this.html`
+      <h3>Discover</h3>
       <div>
-        <h1>1k</h1>
-        <ul>
-        <li>Rants will be displayed here</li>
-        </ul>
+        Peers: ${peers + ''}
       </div>
-    </div>
-  `)
+      ${listRants()}
+    `
+  }
+
+  static stylesheet () {
+    return `
+      discover-page { display: block; }
+    `
   }
 })
+
+class RantCard extends Tonic {
+  render () {
+    const rant = this.props.rant
+    if (!isRantID(rant?.id)) return this.html`<error>Invalid rant</error>`
+
+    const id = btok(rant.id)
+    const text = this.html([processText(rant.text)])
+    return this.html`
+      <article class="rant" data-id="${id}" data-theme="${THEMES[rant.theme]}">
+        <div class="contents">
+          ${text}
+        </div>
+        <footer class="row space-between">
+          <!-- picoshit rebirth -->
+          <small>${dayjs(rant.date).fromNow()}</small>
+          <b role="button" class="btn-round">💩+4</b>
+        </foot>
+      </article>
+    `
+  }
+
+  static stylesheet () {
+    return `
+      article.rant .contents {
+        max-height: 400px;
+        overflow: hidden;
+      }
+    `
+  }
+}
+Tonic.add(RantCard)
