@@ -26,13 +26,13 @@ import {
   $route
 } from './router.js'
 // import './components/router-view.js' // WIP;
+import './components/frontpage-feed.js'
 import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
-import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
 /* #endif */
@@ -44,6 +44,11 @@ async function main () {
 
   await publicKernel.boot()
     .then(console.info('Kernel booted'))
+    .then(() => {
+      nEl('frontpage-feed').reRender() // <-- Re render the frontpage once the kernel has booted
+    })
+
+  // nAttr('frontpage-feed', 'ready', mute($mode, m => !m)) // <-- im not sure if $mode is the right prop here
 
   nAttr('main', 'view', mute($route, r => r?.path))
   nClass('main', 'mode-edit', $mode)
@@ -111,7 +116,7 @@ async function main () {
       }
       await kernel.setSecret(secret)
     }
-    const id = await kernel.commit()
+    const id = await kernel.commit(true)
     const pickle = await kernel.pickle(id)
     navigate(`show/${pickle}`)
     setMode(false)
@@ -212,8 +217,11 @@ async function main () {
 
       case 'pitch':
       case 'home':
+      case '':
         // no on-route logic - silent reroute
-        break
+        nEl('frontpage-feed').reRender()
+        return 'frontpage'
+        // break
 
       case 'saved':
         await kernel.checkout(null) // checkout null so we dont show encrypted information when browsing saved rants
