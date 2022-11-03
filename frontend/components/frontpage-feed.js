@@ -4,7 +4,7 @@ import { gate, combine, mute, nfo } from 'piconuro'
 import { isRantID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
 import Modem56 from 'picostack/modem56.js'
-import dayjs from '../day.js'
+import { nEl } from '../surgeon.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'
 
@@ -93,9 +93,42 @@ Tonic.add(class FrontpageFeed extends Tonic {
   }
 })
 
+/**
+ * converts expire date to a readble format
+ * @param {Number} ms
+ * @returns readable time format
+ */
+const convertToReadableLifeSpan = (ms) => {
+  const minutes = Math.floor(ms / 60000)
+  const seconds = ((ms % 60000) / 1000).toFixed(0)
+  return minutes + ':' + (seconds < 10 ? '0' : '') + seconds
+}
+
+/**
+ * Updates the lifetime of rant
+ * @param {Element} el
+ * @param {Number} expiresAt
+ */
+const timeTick = (el, expiresAt) => {
+  el.innerText = convertToReadableLifeSpan(expiresAt - Date.now())
+}
+
 class RantCard extends Tonic {
+  /**
+   * After render adds interval to update the rant lifetime
+   */
+  connected () {
+    const rant = this.props.rant
+    const id = btok(rant.id)
+    const lifeSpanEl = nEl(`lifespan-${id}`)
+    setInterval(() => timeTick(lifeSpanEl, rant.expiresAt), 1000)
+  }
+
   render () {
     const rant = this.props.rant
+
+    const lifeTime = convertToReadableLifeSpan(rant.expiresAt - Date.now())
+
     if (!isRantID(rant?.id)) return this.html`<error>Invalid rant</error>`
 
     const id = btok(rant.id)
@@ -107,7 +140,7 @@ class RantCard extends Tonic {
         </div>
         <footer class="row space-between">
           <!-- picoshit rebirth -->
-          <small>${dayjs(rant.date).fromNow()}</small>
+          <small id="lifespan-${id}">${lifeTime}</small>
           <b role="button" class="btn-round">💩+4</b>
         </foot>
       </article>
