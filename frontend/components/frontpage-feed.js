@@ -5,6 +5,7 @@ import { isRantID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
 import Modem56 from 'picostack/modem56.js'
 import { nEl } from '../surgeon.js'
+import { createAlert } from './alert.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'
 
@@ -118,7 +119,21 @@ class RantCard extends Tonic {
     const el = Tonic.match(ev.target, 'b[data-id]')
     if (el) {
       const rantId = el.dataset.id
-      await pub.bump(rantId)
+      try {
+        await pub.bump(rantId)
+      } catch (e) {
+        e.message = e.toString().split('Error: InvalidBlock: ')[1]
+        switch (e.message) {
+          case 'TooSoonToBump':
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'You are doing this too fast!', true)
+            el.setAttribute('disabled', 'true')
+            setTimeout(() => el.removeAttribute('disabled'), 1000)
+            break
+          case 'BumpLimitReached':
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Bump Limit Reached', true)
+            break
+        }
+      }
     }
   }
 
@@ -141,7 +156,9 @@ class RantCard extends Tonic {
 
     const id = btok(rant.id)
     const text = this.html([processText(rant.text)])
+    const dopeButton = (rant.bumpCount < 10) ? this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>` : this.html`<small>bump limit reached</small>`
     return this.html`
+    <div id="frontpage-alert-${id}"></div>
       <article class="rant" data-id="${id}" data-theme="${THEMES[rant.theme]}">
         <div class="contents">
           ${text}
@@ -149,7 +166,7 @@ class RantCard extends Tonic {
         <footer class="row space-between">
           <!-- picoshit rebirth -->
           <small id="lifespan-${id}">${lifeTime}</small>
-          <b role="button" class="btn-round" data-id="${id}">💩+4</b>
+          <div class="btn-dope-container">${dopeButton}</div>
         </foot>
       </article>
     `

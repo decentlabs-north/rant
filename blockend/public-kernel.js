@@ -106,6 +106,14 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
 
         case TYPE_BUMP:{
           // TODO: model stun-lock with diminishing returns
+          const pData = decodeBlock(parentBlock.body)
+          const bumpStamp = new Date(pData.date)
+          console.log(bumpStamp)
+
+          const timeSinceLastBump = (new Date().getTime() - pData.date)
+          console.log(timeSinceLastBump)
+          if (timeSinceLastBump < 1000) return 'TooSoonToBump'
+
           const rant = state[btok(CHAIN)]
           if (rant.bumpCount >= 10) return 'BumpLimitReached'
         } break
