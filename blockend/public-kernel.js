@@ -6,6 +6,7 @@ import { mapRant } from './mod/draft.js'
 // Slice imports
 import { TYPE_RANT, btok } from './util.js'
 import { unpack } from './picocard.js'
+
 const { decodeBlock } = SimpleKernel
 
 const TYPE_BUMP = 'shit'
@@ -66,6 +67,20 @@ export default class PublicKernel extends SimpleKernel {
   gc (at) {
     return this.store.gc(at)
   }
+
+  /**
+   * Bump function
+   */
+  async bump (rantId) {
+    if (!Buffer.isBuffer(rantId)) rantId = Buffer.from(rantId, 'hex')
+    const branch = await this.repo.resolveFeed(rantId)
+    const data = {
+      emo: '💩'
+    }
+    await this.createBlock(branch, TYPE_BUMP, data)
+
+    branch.inspect()
+  }
 }
 
 /**
@@ -76,7 +91,7 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
   return {
     name: 'rants',
     initialValue: {},
-    filter ({ block, parentBlock }) {
+    filter ({ state, block, parentBlock, CHAIN, mark }) {
       const data = decodeBlock(block.body)
       const { type } = data
       switch (type) {
@@ -89,9 +104,11 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           if (expiresAt < now()) return 'RantExpired'
         } break
 
-        case TYPE_BUMP:
+        case TYPE_BUMP:{
           // TODO: model stun-lock with diminishing returns
-          break
+          const rant = state[btok(CHAIN)]
+          if (rant.bumpCount >= 10) return 'BumpLimitReached'
+        } break
         default: return 'UnknownBlock'
       }
       return false
@@ -110,7 +127,8 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             rev: block.sig,
             size: block.body.length,
             expiresAt: rant.date + ttl, // - current stunLock
-            overflowAt: 0
+            overflowAt: 0,
+            bumpCount: 0
           }
           mark(btok(CHAIN), state[btok(CHAIN)].expiresAt)
 
@@ -123,6 +141,13 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             last.overflowAt = now()
             mark(btok(last.id)) // mark for gc
           }
+        }
+          break
+        case TYPE_BUMP: {
+          const rant = state[btok(CHAIN)]
+          rant.expiresAt += (1000 * 60 * 5)
+          rant.bumpCount += 1
+          console.log(`Bumped rant to ${rant.bumpCount}`)
         }
       }
       return { ...state }

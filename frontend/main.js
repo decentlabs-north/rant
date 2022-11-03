@@ -244,8 +244,8 @@ async function main () {
   // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release
   setInterval(async () => {
     try {
-      // const evicted = await kernel.store.gc()
-      // if (evicted.length) console.log('GC Expunged', evicted)
+      const evicted = await publicKernel.store.gc()
+      if (evicted.length) console.log('GC Expunged', evicted)
     } catch (err) { console.error('GC Failed:', err) }
   }, 3000)
 }

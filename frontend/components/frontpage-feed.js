@@ -114,6 +114,14 @@ const timeTick = (el, expiresAt) => {
 }
 
 class RantCard extends Tonic {
+  async click (ev) {
+    const el = Tonic.match(ev.target, 'b[data-id]')
+    if (el) {
+      const rantId = el.dataset.id
+      await pub.bump(rantId)
+    }
+  }
+
   /**
    * After render adds interval to update the rant lifetime
    */
@@ -141,7 +149,7 @@ class RantCard extends Tonic {
         <footer class="row space-between">
           <!-- picoshit rebirth -->
           <small id="lifespan-${id}">${lifeTime}</small>
-          <b role="button" class="btn-round">💩+4</b>
+          <b role="button" class="btn-round" data-id="${id}">💩+4</b>
         </foot>
       </article>
     `
