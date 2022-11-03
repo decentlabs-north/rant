@@ -64,16 +64,17 @@ Tonic.add(class FrontpageFeed extends Tonic {
   }
 
   render () {
-    const rants = this.props.rants || []
+    const unSortedRants = this.props.rants || []
     const peers = this.props.peers || 0
     this.classList.add('pad')
 
     const listRants = () => {
-      if (!rants.length) {
+      if (!unSortedRants.length) {
         return this.html`
           <h5 aria-busy="true">Searching for peers...</h5>
         `
       }
+      const rants = unSortedRants.sort((a, b) => b.expiresAt - a.expiresAt) // sort the rants. Display long lived at top.
       return rants.map(rant => {
         return this.html`
           <rant-card rant=${rant} key=${this.key}></rant-card>
