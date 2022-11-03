@@ -75,10 +75,13 @@ Tonic.add(class FrontpageFeed extends Tonic {
     }
 
     return this.html`
-      <h3>Discover</h3>
-      <div>
-        Peers: ${peers + ''}
-      </div>
+    <div style="text-align: center;">
+      <h1 style="font-size: 6rem; margin-bottom:0.25rem;">1k</h1>
+      <p>Tin Foil Twitter</p>
+    </div>
+    <div>
+      Peers: ${peers + ''}
+    </div>
       ${listRants()}
     `
   }
