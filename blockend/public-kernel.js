@@ -6,9 +6,11 @@ import { mapRant } from './mod/draft.js'
 // Slice imports
 import { TYPE_RANT, btok } from './util.js'
 import { unpack } from './picocard.js'
+
 const { decodeBlock } = SimpleKernel
 
 const TYPE_BUMP = 'shit'
+const TYPE_FAKE = 'fake_block'
 
 export default class PublicKernel extends SimpleKernel {
   constructor (db, now = Date.now) {
@@ -66,6 +68,33 @@ export default class PublicKernel extends SimpleKernel {
   gc (at) {
     return this.store.gc(at)
   }
+
+  /**
+   * Bump function
+   */
+  async bump (rantId) {
+    if (!Buffer.isBuffer(rantId)) rantId = Buffer.from(rantId, 'hex')
+    const branch = await this.repo.resolveFeed(rantId)
+    const data = {
+      emo: '💩'
+    }
+    await this.createBlock(branch, TYPE_BUMP, data)
+
+    // branch.inspect() <-- debugging purposes
+  }
+
+  /**
+   * This is used to get the clients key before any actions have been made.
+   * There is probably a better and less hacky way to do it.
+   */
+  async $key () {
+    // This is intended to throw an error and catch the block.key :|
+    try {
+      await this.createBlock(null, TYPE_FAKE, { emo: '🤡' })
+    } catch (key) {
+      return key
+    }
+  }
 }
 
 /**
@@ -76,7 +105,7 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
   return {
     name: 'rants',
     initialValue: {},
-    filter ({ block, parentBlock }) {
+    filter ({ state, block, parentBlock, CHAIN, mark }) {
       const data = decodeBlock(block.body)
       const { type } = data
       switch (type) {
@@ -89,9 +118,27 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           if (expiresAt < now()) return 'RantExpired'
         } break
 
-        case TYPE_BUMP:
+        case TYPE_BUMP:{
           // TODO: model stun-lock with diminishing returns
-          break
+          const rant = state[btok(CHAIN)] // rant
+
+          // get who is bumping
+          const hasBumped = rant.bumpedBy.some((key) => btok(key) === btok(block.key))
+          if (hasBumped) return 'AlreadyBumped'
+
+          if (data.date > now()) return 'TimeManipulation'
+
+          if (data.date > rant.expiresAt) return 'TooLate'
+
+          if (data.date < rant.lastBumpAt) return 'TimeManipulation'
+
+          const timeSinceLastBump = (now() - rant.lastBumpAt)
+          if (timeSinceLastBump < 1000) return 'TooSoonToBump'
+
+          if (rant.bumpCount >= 10) return 'BumpLimitReached'
+        } break
+        case TYPE_FAKE:
+          return block.key
         default: return 'UnknownBlock'
       }
       return false
@@ -110,7 +157,10 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             rev: block.sig,
             size: block.body.length,
             expiresAt: rant.date + ttl, // - current stunLock
-            overflowAt: 0
+            overflowAt: 0,
+            bumpCount: 0,
+            lastBumpAt: now(),
+            bumpedBy: [block.key]
           }
           mark(btok(CHAIN), state[btok(CHAIN)].expiresAt)
 
@@ -123,6 +173,16 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
             last.overflowAt = now()
             mark(btok(last.id)) // mark for gc
           }
+        }
+          break
+        case TYPE_BUMP: {
+          const rant = state[btok(CHAIN)]
+          rant.expiresAt += (1000 * 60 * 5)
+          // rant.expiresAt = new Date().getTime() + (1000 * 60 * 5)
+          rant.bumpCount += 1
+          rant.lastBumpAt = now()
+          rant.bumpedBy.push(block.key)
+          console.info(`bump count: ${rant.bumpCount}`)
         }
       }
       return { ...state }

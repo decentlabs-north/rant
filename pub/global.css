@@ -849,3 +849,18 @@ qr-code svg { max-width: 100%; }
 .alert-danger p {
   margin-bottom: 0.2rem;
 }
+.btn-dope-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+.btn-dope-container b{
+  margin: auto;
+}
+.btn-dope-text{
+  display: inline-block;
+  font-weight: bold;
+  color: var(--primary);
+}
