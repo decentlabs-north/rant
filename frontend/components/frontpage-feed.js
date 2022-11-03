@@ -1,6 +1,6 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
 import { publicKernel as pub } from '../api.js'
-import { gate, combine, mute, nfo } from 'piconuro'
+import { gate, combine, mute } from 'piconuro'
 import { isRantID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
 import Modem56 from 'picostack/modem56.js'
@@ -37,9 +37,15 @@ Tonic.add(class FrontpageFeed extends Tonic {
         peers: mute(pub.$connections(), c => c.length)
       })
     )
-    this.unsub = nfo($state(state => {
+    this.unsub = $state(state => {
       this.reRender(prev => ({ ...prev, ...state }))
-    }))
+    })
+    const getKey = async () => {
+      const key = await pub.$key()
+      this.key = btok(key)
+      this.reRender()
+    }
+    getKey()
   }
 
   disconnected () { this.unsub() }
@@ -70,7 +76,7 @@ Tonic.add(class FrontpageFeed extends Tonic {
       }
       return rants.map(rant => {
         return this.html`
-          <rant-card rant=${rant}></rant-card>
+          <rant-card rant=${rant} key=${this.key}></rant-card>
         `
       })
     }
@@ -119,18 +125,32 @@ class RantCard extends Tonic {
     const el = Tonic.match(ev.target, 'b[data-id]')
     if (el) {
       const rantId = el.dataset.id
+
       try {
         await pub.bump(rantId)
       } catch (e) {
+        console.error(e)
         e.message = e.toString().split('Error: InvalidBlock: ')[1]
         switch (e.message) {
           case 'TooSoonToBump':
-            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'You are doing this too fast!', true)
             el.setAttribute('disabled', 'true')
-            setTimeout(() => el.removeAttribute('disabled'), 1000)
+            setTimeout(() => el.removeAttribute('disabled'), 2000)
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'You are doing this too fast!', true)
+
             break
           case 'BumpLimitReached':
             createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Bump Limit Reached', true)
+            break
+          case 'TimeManipulation':
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Time Manipulation Detected!', true)
+            break
+          case 'TooLate':
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Rant already expired 😢', true)
+            break
+          case 'AlreadyBumped':
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'You have alerady bumped this rant!', true)
+            break
+          default:
             break
         }
       }
@@ -149,6 +169,7 @@ class RantCard extends Tonic {
 
   render () {
     const rant = this.props.rant
+    const key = this.props.key
 
     const lifeTime = convertToReadableLifeSpan(rant.expiresAt - Date.now())
 
@@ -156,7 +177,15 @@ class RantCard extends Tonic {
 
     const id = btok(rant.id)
     const text = this.html([processText(rant.text)])
-    const dopeButton = (rant.bumpCount < 10) ? this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>` : this.html`<small>bump limit reached</small>`
+
+    const hasBumped = rant.bumpedBy.some((bumper) => btok(bumper) === key)
+
+    const dopeButton = (rant.bumpCount < 10 && !hasBumped)
+      ? this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>`
+      : hasBumped
+        ? this.html`<small>You bumped this</small>`
+        : this.html`<small>bump limit reached</small>`
+
     return this.html`
     <div id="frontpage-alert-${id}"></div>
       <article class="rant" data-id="${id}" data-theme="${THEMES[rant.theme]}">
