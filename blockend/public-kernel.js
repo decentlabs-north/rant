@@ -109,7 +109,8 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           const rant = state[btok(CHAIN)] // rant
 
           // get who is bumping
-          const hasBumped = rant.bumpedBy.some((key) => btok(key) === btok(block.key))
+          // const hasBumped = rant.bumpedBy.some((key) => btok(key) === btok(block.key))
+          const hasBumped = rant.bumpedBy.some((key) => key.equals(block.key))
           if (hasBumped) return 'AlreadyBumped'
 
           if (data.date > now()) return 'TimeManipulation'

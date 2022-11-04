@@ -19,7 +19,6 @@ Tonic.add(class FrontpageFeed extends Tonic {
     super()
     this.modem = new Modem56()
     this.isSwarming = true
-    this.key = btok(pub.pk)
     this.modem.join(TOPIC, (...a) => pub.spawnWire(...a))
     console.log('second kernel booted, topic joined', TOPIC)
     this.reRender(p => p)
@@ -58,7 +57,7 @@ Tonic.add(class FrontpageFeed extends Tonic {
       const rants = unSortedRants.sort((a, b) => b.expiresAt - a.expiresAt) // sort the rants. Display long lived at top.
       return rants.map(rant => {
         return this.html`
-          <rant-card rant=${rant} key=${this.key}></rant-card>
+          <rant-card rant=${rant}></rant-card>
         `
       })
     }
@@ -149,7 +148,7 @@ class RantCard extends Tonic {
 
   render () {
     const rant = this.props.rant
-    const key = this.props.key
+    const key = pub.pk
 
     const lifeTime = convertToReadableLifeSpan(rant.expiresAt - Date.now())
 
@@ -158,7 +157,7 @@ class RantCard extends Tonic {
     const id = btok(rant.id)
     const text = this.html([processText(rant.text)])
 
-    const hasBumped = rant.bumpedBy.some((bumper) => btok(bumper) === key)
+    const hasBumped = rant.bumpedBy.some((bumper) => bumper.equals(key))
 
     const dopeButton = (rant.bumpCount < 10 && !hasBumped)
       ? this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>`
