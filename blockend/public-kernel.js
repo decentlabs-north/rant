@@ -162,6 +162,9 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           break
         case TYPE_BUMP: {
           const rant = state[btok(CHAIN)]
+          /**
+           * TODO: bump expiresAt based on now() insted of adding 5minutes flat
+           */
           rant.expiresAt += (1000 * 60 * 5)
           // rant.expiresAt = new Date().getTime() + (1000 * 60 * 5)
           rant.bumpCount += 1

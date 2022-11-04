@@ -16,6 +16,7 @@ const DB = new BrowserLevel('rant.lvl', {
   keyEncoding: 'buffer'
 })
 export const kernel = new Kernel(DB)
+await kernel.boot()
 
 export const publicKernel = new PublicKernel(
   DB.sublevel('PUB', {
