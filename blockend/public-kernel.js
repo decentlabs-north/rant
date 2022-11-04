@@ -9,7 +9,7 @@ import { unpack } from './picocard.js'
 
 const { decodeBlock } = SimpleKernel
 
-const TYPE_BUMP = 'shit'
+const TYPE_BUMP = 'bump'
 
 export default class PublicKernel extends SimpleKernel {
   constructor (db, now = Date.now) {

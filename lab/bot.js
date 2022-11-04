@@ -1,5 +1,8 @@
 import { spawnPeer } from '../test/helpers.js'
 import Modem56 from 'picostack/modem56.js'
+import { get } from 'piconuro'
+import { writeFileSync } from 'node:fs'
+
 const FAILFAST = !!process.env.FAILFAST
 
 export default class Bot {
@@ -24,6 +27,11 @@ export default class Bot {
     throw new Error('kernel not booted')
   }
 
+  async dump () {
+    const dotString = await this.pub.inspect()
+    writeFileSync(`${this.name}-repo.dot`, dotString)
+  }
+
   async boot (ctx, done, topic = 'PicoBotnet') {
     if (!done) done = () => console.log(`<${name}> färdig!`)
     // stub signal when bot is used outside of simulator / standalone bot
@@ -42,7 +50,6 @@ export default class Bot {
     this.prv = prv
 
     this.signal = signal
-    this.dump = () => console.log('where is dump?') // dump
     this.name = name
 
     ctx.ontick(tick => {
@@ -80,5 +87,30 @@ export class HappyPeer extends Bot {
     ]
     const i = Math.floor((Math.random() * (contents.length - 1)))
     await this.post(contents[i])
+    setInterval(async () => {
+      const rants = get(this.pub.$rants())
+
+      for (const rant of rants) {
+        try {
+          await this.pub.bump(rant.id)
+        } catch (err) {
+          switch (err.message) {
+            case 'InvalidBlock: TooSoonToBump':
+            case 'InvalidBlock: AlreadyBumped':
+              break
+            default:
+              console.log(err.message)
+          }
+        }
+      }
+      await this.dump()
+    }, 1000)
+  }
+
+  async onRants (rants) {
+    // Bump stuff.
+    for (const rant of rants) {
+      this.signal('Bump x' + rant.bumpedBy.length)
+    }
   }
 }

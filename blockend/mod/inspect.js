@@ -5,7 +5,7 @@
  */
 import { inspect as dumpDot } from 'picorepo/dot.js'
 import {
-  decode,
+  unpack,
   extractTitle,
   extractIcon,
   extractExcerpt,
@@ -15,6 +15,8 @@ import {
   TYPE_RANT,
   btok
 } from '../util.js'
+import { SimpleKernel } from 'picostack'
+const { decodeBlock } = SimpleKernel
 
 export default function InspectModule () {
   return {
@@ -23,28 +25,34 @@ export default function InspectModule () {
       const dot = await dumpDot(this.repo, {
         blockLabel (block, { link }) {
           const author = btok(block.key, 3)
-          const data = decode(block.body)
+          const data = decodeBlock(block.body)
+          // default text, short-sig + author
           const str = bq`
             [${btok(block.sig, 3)}]
             ${data.seq}:${author}
           `
+
+          // If not a rant then return only block-type as description.
           if (data.type !== TYPE_RANT) {
             return bq`
-            ${str}
-            UnknownBlock
-          `
+              ${str}
+              ${data.type}
+            `
           }
+
+          // otherwise unpack rant and present cool stats.
+          const rant = unpack(data)
           return bq`
           ${str}
-          ${extractIcon(data.text)}
-          ${extractTitle(data.text)}
-          ${extractExcerpt(data.text, 12)}
-          🎨${data.theme} 🔒${data.encryption} 🗜️${data.compression}
+          ${extractIcon(rant.text)}
+          ${extractTitle(rant.text)}
+          ${extractExcerpt(rant.text, 12)}
+          🎨${rant.theme} 🔒${rant.encryption} 🗜️${rant.compression}
         `
         }
       })
       // console.info('$ xdot rant.dot')
-      console.info(dot)
+      // console.info(dot)
       return dot
     }
   }
