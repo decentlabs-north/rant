@@ -89,7 +89,7 @@
 
 /* Global style */
 body {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh; /*vh causes addressbar overlap */
   /* min-height: calc(100vh - calc(100vh - 100%));*/
   background-color: var(--background-color);
@@ -98,10 +98,11 @@ body {
 /* hsplit grid setup */
 main {
   display: grid;
-  grid-template-columns: 50vw 50vw;
+  grid-template-columns: 50% 50%;
   grid-template-rows: auto;
   grid-template-areas: "west east";
 }
+
 
 render,
 message-preview,
@@ -116,14 +117,14 @@ render { min-height: 100vh; }
 /* main { transition: grid-template-columns 1s; } */
 /* main.mode-show editor { overflow-x: hidden; width: 0; }*/
 main[data-mirror=true] { grid-template-areas: "east west"; }
-main.mode-show:not([data-mirror=true]) { grid-template-columns: 0vw 100vw; }
-main.mode-show[data-mirror=true] { grid-template-columns: 100vw 0vw; }
+main.mode-show:not([data-mirror=true]) { grid-template-columns: 0vw 100%; }
+main.mode-show[data-mirror=true] { grid-template-columns: 100% 0vw; }
 main.mode-show .west { display: none; }
 
 /* No Split  on .mode-edit - use full sceen */
 @media (max-width: 768px) {
-  main.mode-edit:not([data-mirror=true]) { grid-template-columns: 100vw 0vw; }
-  main.mode-edit[data-mirror=true] { grid-template-columns: 0vw 100vw; }
+  main.mode-edit:not([data-mirror=true]) { grid-template-columns: 100% 0vw; }
+  main.mode-edit[data-mirror=true] { grid-template-columns: 0vw 100%; }
   main.mode-edit render { display: none; }
 }
 /* Horizontal Split on mode-edit,
@@ -847,4 +848,39 @@ qr-code svg { max-width: 100%; }
 }
 .alert-danger p {
   margin-bottom: 0.2rem;
+}
+.btn-dope-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+.btn-dope-container b{
+  margin: auto;
+}
+.btn-dope-text{
+  display: inline-block;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.edit-pub-toggle{
+margin-left: 0.25rem;
+}
+.edit-pub-toggle label {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+.editor-bottom-row{
+  align-items: center;
+  max-width: 100%;
+  padding-right:1rem;
+  padding-left: 0.25rem;
+}
+.editor-bottom-row samp{
+height: 100%;
+align-items: center;
+margin-right: 0.25rem;
 }

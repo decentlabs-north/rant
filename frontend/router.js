@@ -1,4 +1,5 @@
 import { write, mute } from 'piconuro'
+import { nEl } from './surgeon.js'
 export const [$route, _setRoute] = write({})
 
 // TODO: Removing routing table, footgun, just hard to read.
@@ -23,6 +24,24 @@ export const $page = mute($route, r => r?.path || 'pitch')
  */
 export function apply () {
   const { origin, hash } = window.location
+
+  /**
+   * CSS based routing :D
+   * this justs hides the frontpage when client is not on frontpage
+   */
+  if (hash !== '#/' && hash !== '') {
+    nEl('frontPage').style.display = 'none'
+  } else {
+    nEl('frontPage').style.display = ''
+  }
+
+  // if not editing public option is hidden
+  if (hash.split('/')[0] !== '#edit') {
+    nEl('edit-pub-toggle').style.display = 'none'
+  } else {
+    nEl('edit-pub-toggle').style.display = ''
+  }
+
   // Replace window.pathname with window.hash
   const virt = new URL(origin + '/' + hash.replace(/^#\/?/, ''))
   // console.log('VirtualURL', virt)

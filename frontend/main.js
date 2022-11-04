@@ -1,5 +1,5 @@
 import '@picocss/pico'
-import { gate, nfo, mute, get, init, memo } from 'piconuro'
+import { gate, nfo, mute, get, init, memo, write } from 'piconuro'
 import { isDraftID } from '../blockend/kernel.js'
 import { THEMES } from '../blockend/picocard.js'
 import { promptPIN } from '../frontend/components/keypad-dialog.js'
@@ -26,15 +26,16 @@ import {
   $route
 } from './router.js'
 // import './components/router-view.js' // WIP;
+import './components/frontpage-feed.js'
 import './components/install-button.js'
 import './components/main-menu.js'
 import './components/render-ctrls.js'
 import './components/rant-list.js'
 import './components/message-preview.js'
 import './components/qr-code.js'
-import './components/discover-page.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
+import { Feed } from 'picostack'
 /* #endif */
 
 async function main () {
@@ -44,6 +45,11 @@ async function main () {
 
   await publicKernel.boot()
     .then(console.info('Kernel booted'))
+    .then(() => {
+      nEl('frontpage-feed').reRender() // <-- Re render the frontpage once the kernel has booted
+    })
+
+  // nAttr('frontpage-feed', 'ready', mute($mode, m => !m)) // <-- im not sure if $mode is the right prop here
 
   nAttr('main', 'view', mute($route, r => r?.path))
   nClass('main', 'mode-edit', $mode)
@@ -102,6 +108,11 @@ async function main () {
   })
   nClick('edit-preview', () => setMode(!get($mode)))
 
+  // isPublic sets the public state of rant
+  const [isPublic, setIsPublic] = write(false)
+
+  nValue('opt-is-public', isPublic, setIsPublic)
+
   nClick('edit-publish', async () => {
     const encryptionLevel = get($encryption)
     if (encryptionLevel === 1) {
@@ -111,11 +122,16 @@ async function main () {
       }
       await kernel.setSecret(secret)
     }
-    const id = await kernel.commit()
+    const id = await kernel.commit(get(isPublic))
     const pickle = await kernel.pickle(id)
     navigate(`show/${pickle}`)
     setMode(false)
     console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+
+    if (get(isPublic)) {
+      const rant = Feed.from(pickle)
+      await publicKernel.dispatch(rant, true)
+    }
   })
 
   nValue('edit-opt-encryption',
@@ -212,8 +228,11 @@ async function main () {
 
       case 'pitch':
       case 'home':
+      case '':
         // no on-route logic - silent reroute
-        break
+        nEl('frontpage-feed').reRender()
+        return 'frontpage'
+        // break
 
       case 'saved':
         await kernel.checkout(null) // checkout null so we dont show encrypted information when browsing saved rants
@@ -236,8 +255,8 @@ async function main () {
   // TODO: forgot to expose store._gc.start(interval) / store._.stop() in prev release
   setInterval(async () => {
     try {
-      // const evicted = await kernel.store.gc()
-      // if (evicted.length) console.log('GC Expunged', evicted)
+      const evicted = await publicKernel.store.gc()
+      if (evicted.length) console.log('GC Expunged', evicted)
     } catch (err) { console.error('GC Failed:', err) }
   }, 3000)
 }

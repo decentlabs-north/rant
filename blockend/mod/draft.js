@@ -164,6 +164,7 @@ export default function DraftsModule (db, config) {
       }
       // Prepack / apply text encryption & compression
       const data = pack(rant, get($secret), false)
+
       await this.createBlock(branch, TYPE_RANT, data)
 
       const id = branch.last.sig
