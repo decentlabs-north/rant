@@ -22,7 +22,7 @@ Tonic.add(class FrontpageFeed extends Tonic {
     this.modem.join(TOPIC, (...a) => pub.spawnWire(...a))
     console.log('second kernel booted, topic joined', TOPIC)
     this.reRender(p => p)
-    // this.attachShadow({ mode: 'open' }) // <-- Shadow DOM
+    // this.attachShadow({ mode: 'open' }) // <-- Shadow DOM | i leave this here since we might need it when we configure html sanitize for Marked
   }
 
   connected () {
@@ -54,7 +54,8 @@ Tonic.add(class FrontpageFeed extends Tonic {
           <h5 aria-busy="true">Searching for peers...</h5>
         `
       }
-      const rants = unSortedRants.sort((a, b) => b.expiresAt - a.expiresAt) // sort the rants. Display long lived at top.
+      // sort the rants. Display long lived at top.
+      const rants = unSortedRants.sort((a, b) => b.expiresAt - a.expiresAt)
       return rants.map(rant => {
         return this.html`
           <rant-card rant=${rant}></rant-card>

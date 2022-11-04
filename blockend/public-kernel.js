@@ -120,7 +120,7 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           if (data.date < rant.lastBumpAt) return 'TimeManipulation'
 
           const timeSinceLastBump = (now() - rant.lastBumpAt)
-          if (timeSinceLastBump < 1000) return 'TooSoonToBump'
+          if (timeSinceLastBump < 10000) return 'TooSoonToBump'
 
           if (rant.bumpCount >= 10) return 'BumpLimitReached'
         } break
