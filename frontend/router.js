@@ -35,6 +35,13 @@ export function apply () {
     nEl('frontPage').style.display = ''
   }
 
+  // if not editing public option is hidden
+  if (hash.split('/')[0] !== '#edit') {
+    nEl('edit-pub-toggle').style.display = 'none'
+  } else {
+    nEl('edit-pub-toggle').style.display = ''
+  }
+
   // Replace window.pathname with window.hash
   const virt = new URL(origin + '/' + hash.replace(/^#\/?/, ''))
   // console.log('VirtualURL', virt)

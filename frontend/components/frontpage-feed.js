@@ -9,11 +9,6 @@ import { createAlert } from './alert.js'
 
 const TOPIC = 'GLOBAL_RANT_WARNING'
 
-/**
- * frontpage is working as intended!
- * TODO: clean up and remove all unused stuff. also remove discover-page since we dont need it anymore.
- *
- */
 Tonic.add(class FrontpageFeed extends Tonic {
   constructor () {
     super()
@@ -162,9 +157,6 @@ class RantCard extends Tonic {
 
     const hasBumped = rant.bumpedBy.some((bumper) => bumper.equals(key))
     const isOwnRant = rant.author.equals(prev.pk)
-
-    console.log(isOwnRant)
-    // console.log(rant.author)
 
     const dopeButton = (rant.bumpCount < 10 && !hasBumped)
       ? isOwnRant ? this.html`<small>Your Rant</small>` : this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>`
