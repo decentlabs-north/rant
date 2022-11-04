@@ -35,6 +35,7 @@ import './components/message-preview.js'
 import './components/qr-code.js'
 /* #if _MERMAID */ // TODO: https://github.com/aMarCruz/rollup-plugin-jscc
 import './components/mermaid-graph.js'
+import { Feed } from 'picostack'
 /* #endif */
 
 async function main () {
@@ -107,6 +108,9 @@ async function main () {
   })
   nClick('edit-preview', () => setMode(!get($mode)))
 
+  // isPublic sets the public state of rant
+  const isPublic = false
+
   nClick('edit-publish', async () => {
     const encryptionLevel = get($encryption)
     if (encryptionLevel === 1) {
@@ -116,11 +120,16 @@ async function main () {
       }
       await kernel.setSecret(secret)
     }
-    const id = await kernel.commit(true)
+    const id = await kernel.commit(isPublic)
     const pickle = await kernel.pickle(id)
     navigate(`show/${pickle}`)
     setMode(false)
     console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
+
+    // if (isPublic) {
+    const rant = Feed.from(pickle)
+    await publicKernel.dispatch(rant, true)
+    // }
   })
 
   nValue('edit-opt-encryption',

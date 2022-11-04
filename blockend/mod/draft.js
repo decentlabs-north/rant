@@ -154,6 +154,9 @@ export default function DraftsModule (db, config) {
 
     async commit (isPublic = false) {
       if (!isEditing()) throw new Error('EditMode not active')
+
+      console.log('isPublic? ', isPublic)
+
       const branch = new Feed()
       const current = get($current)
       const rant = {
