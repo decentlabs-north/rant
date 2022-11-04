@@ -19,7 +19,7 @@ Tonic.add(class FrontpageFeed extends Tonic {
     super()
     this.modem = new Modem56()
     this.isSwarming = true
-
+    this.key = btok(pub.pk)
     this.modem.join(TOPIC, (...a) => pub.spawnWire(...a))
     console.log('second kernel booted, topic joined', TOPIC)
     this.reRender(p => p)
@@ -40,28 +40,9 @@ Tonic.add(class FrontpageFeed extends Tonic {
     this.unsub = $state(state => {
       this.reRender(prev => ({ ...prev, ...state }))
     })
-    const getKey = async () => {
-      const key = await pub.$key()
-      this.key = btok(key)
-      this.reRender()
-    }
-    getKey()
   }
 
   disconnected () { this.unsub() }
-
-  change (ev) {
-    if (Tonic.match(ev.target, '#toggle-swarm')) {
-      this.toggleSwarm(ev.target.checked)
-    }
-  }
-
-  async click (ev) {
-    const el = Tonic.match(ev.target, 'rant[data-id]')
-    if (el) {
-      // const id = Buffer.from(el.dataset.id, 'base64')
-    }
-  }
 
   render () {
     const unSortedRants = this.props.rants || []
@@ -126,18 +107,16 @@ class RantCard extends Tonic {
     const el = Tonic.match(ev.target, 'b[data-id]')
     if (el) {
       const rantId = el.dataset.id
-
       try {
         await pub.bump(rantId)
       } catch (e) {
-        console.error(e)
+        // console.error(e) <-- uncomment this is debugging filter
         e.message = e.toString().split('Error: InvalidBlock: ')[1]
         switch (e.message) {
           case 'TooSoonToBump':
             el.setAttribute('disabled', 'true')
             setTimeout(() => el.removeAttribute('disabled'), 2000)
-            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'You are doing this too fast!', true)
-
+            createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Rant was recently bumped. Try again in a couple of seconds!', true)
             break
           case 'BumpLimitReached':
             createAlert(nEl(`frontpage-alert-${rantId}`), 'danger', 'Bump Limit Reached', true)

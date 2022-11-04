@@ -10,7 +10,6 @@ import { unpack } from './picocard.js'
 const { decodeBlock } = SimpleKernel
 
 const TYPE_BUMP = 'shit'
-const TYPE_FAKE = 'fake_block'
 
 export default class PublicKernel extends SimpleKernel {
   constructor (db, now = Date.now) {
@@ -82,19 +81,6 @@ export default class PublicKernel extends SimpleKernel {
 
     // branch.inspect() <-- debugging purposes
   }
-
-  /**
-   * This is used to get the clients key before any actions have been made.
-   * There is probably a better and less hacky way to do it.
-   */
-  async $key () {
-    // This is intended to throw an error and catch the block.key :|
-    try {
-      await this.createBlock(null, TYPE_FAKE, { emo: '🤡' })
-    } catch (key) {
-      return key
-    }
-  }
 }
 
 /**
@@ -137,8 +123,6 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
 
           if (rant.bumpCount >= 10) return 'BumpLimitReached'
         } break
-        case TYPE_FAKE:
-          return block.key
         default: return 'UnknownBlock'
       }
       return false
