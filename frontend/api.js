@@ -16,6 +16,7 @@ const DB = new BrowserLevel('rant.lvl', {
   keyEncoding: 'buffer'
 })
 export const kernel = new Kernel(DB)
+await kernel.boot()
 
 export const publicKernel = new PublicKernel(
   DB.sublevel('PUB', {
@@ -23,11 +24,14 @@ export const publicKernel = new PublicKernel(
     valueEncoding: 'buffer'
   })
 )
+
 // Share locally-saved public rants.
 publicKernel.externalRants = params => kernel.onquery({
   ...params, // limit, age, etc.
   onlyPublic: true
 })
+
+await publicKernel.boot()
 
 const [_mode, _setMode] = write(false) // true: Show editor
 export const setMode = _setMode
