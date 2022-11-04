@@ -66,7 +66,7 @@ Tonic.add(class FrontpageFeed extends Tonic {
     return this.html`
     <div style="text-align: center;">
       <h1 style="font-size: 6rem; margin-bottom:0.25rem;">1k</h1>
-      <p>Tin Foil Twitter</p>
+      <p>Real Times News Network</p>
     </div>
     <div>
       Peers: ${peers + ''}
