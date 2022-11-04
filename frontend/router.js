@@ -29,7 +29,7 @@ export function apply () {
    * CSS based routing :D
    * this justs hides the frontpage when client is not on frontpage
    */
-  if (hash !== '#/') {
+  if (hash !== '#/' && hash !== '') {
     nEl('frontPage').style.display = 'none'
   } else {
     nEl('frontPage').style.display = ''
