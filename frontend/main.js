@@ -1,5 +1,5 @@
 import '@picocss/pico'
-import { gate, nfo, mute, get, init, memo } from 'piconuro'
+import { gate, nfo, mute, get, init, memo, write } from 'piconuro'
 import { isDraftID } from '../blockend/kernel.js'
 import { THEMES } from '../blockend/picocard.js'
 import { promptPIN } from '../frontend/components/keypad-dialog.js'
@@ -109,7 +109,9 @@ async function main () {
   nClick('edit-preview', () => setMode(!get($mode)))
 
   // isPublic sets the public state of rant
-  const isPublic = false
+  const [isPublic, setIsPublic] = write(false)
+
+  nValue('opt-is-public', isPublic, setIsPublic)
 
   nClick('edit-publish', async () => {
     const encryptionLevel = get($encryption)
@@ -120,16 +122,16 @@ async function main () {
       }
       await kernel.setSecret(secret)
     }
-    const id = await kernel.commit(isPublic)
+    const id = await kernel.commit(get(isPublic))
     const pickle = await kernel.pickle(id)
     navigate(`show/${pickle}`)
     setMode(false)
     console.log('Comitted', id.toString('hex')) // , get(kernel.$rant()))
 
-    // if (isPublic) {
-    const rant = Feed.from(pickle)
-    await publicKernel.dispatch(rant, true)
-    // }
+    if (get(isPublic)) {
+      const rant = Feed.from(pickle)
+      await publicKernel.dispatch(rant, true)
+    }
   })
 
   nValue('edit-opt-encryption',

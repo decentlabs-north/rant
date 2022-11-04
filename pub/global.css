@@ -864,3 +864,23 @@ qr-code svg { max-width: 100%; }
   font-weight: bold;
   color: var(--primary);
 }
+
+.edit-pub-toggle{
+margin-left: 0.25rem;
+}
+.edit-pub-toggle label {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+.editor-bottom-row{
+  align-items: center;
+  max-width: 100%;
+  padding-right:1rem;
+  padding-left: 0.25rem;
+}
+.editor-bottom-row samp{
+height: 100%;
+align-items: center;
+margin-right: 0.25rem;
+}

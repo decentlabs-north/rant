@@ -1,5 +1,5 @@
 import Tonic from '@socketsupply/tonic/index.esm.js'
-import { publicKernel as pub } from '../api.js'
+import { publicKernel as pub, kernel as prev } from '../api.js'
 import { gate, combine, mute } from 'piconuro'
 import { isRantID, btok } from '../../blockend/kernel.js'
 import { processText, THEMES } from '../../blockend/picocard.js'
@@ -145,6 +145,8 @@ class RantCard extends Tonic {
     const id = btok(rant.id)
     const lifeSpanEl = nEl(`lifespan-${id}`)
     setInterval(() => timeTick(lifeSpanEl, rant.expiresAt), 1000)
+
+    // console.log(rant.bumpedBy[0].equals(prev.pk))
   }
 
   render () {
@@ -159,9 +161,13 @@ class RantCard extends Tonic {
     const text = this.html([processText(rant.text)])
 
     const hasBumped = rant.bumpedBy.some((bumper) => bumper.equals(key))
+    const isOwnRant = rant.author.equals(prev.pk)
+
+    console.log(isOwnRant)
+    // console.log(rant.author)
 
     const dopeButton = (rant.bumpCount < 10 && !hasBumped)
-      ? this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>`
+      ? isOwnRant ? this.html`<small>Your Rant</small>` : this.html`<b role="button" class="btn-round" data-id="${id}"><span>💩</span></b> <span class="btn-dope-text">+5min</span>`
       : hasBumped
         ? this.html`<small>You bumped this</small>`
         : this.html`<small>bump limit reached</small>`

@@ -130,10 +130,20 @@
         <hr/>
       </div>
       <textarea id="markdown-area" placeholder="Type your note here, but watch out for the bytecount below. You can type as much as you want, but publishing is limited to 1024bytes; Keep it short - 1K"></textarea>
-      <div class="row xend">
+      <div class="row xend editor-bottom-row">
         <samp><span id="edit-capacity-bytes"></span>/1024</samp>
         <progress id="edit-capacity-meter" max=100></progress>
+        <!-- Toggle for isPublic -->
+        <div class="edit-pub-toggle">
+          <label for="opt-is-public">
+            <input type="checkbox" role="switch" name="opt-is-public" id="opt-is-public" />
+            Public
+          </label>
+        </div>
       </div>
+
+
+
       <!-- Rant Menu -->
       <nav class="row bottom">
         <button id="edit-back" data-tooltip="Back"><ico>🔙</ico></button>
