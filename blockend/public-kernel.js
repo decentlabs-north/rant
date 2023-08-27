@@ -81,6 +81,18 @@ export default class PublicKernel extends SimpleKernel {
 
     // branch.inspect() <-- debugging purposes
   }
+
+  /**
+   * Conflict resolution as a total monkey-patch
+   * This wont work..
+   */
+  async onblocks (feed) {
+    // Shortcircuit single block rants
+    if (!feed.partial && feed.length === 1) return super.onblocks(feed)
+
+    // Assume bumps
+    debugger
+  }
 }
 
 /**
@@ -105,7 +117,6 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
         } break
 
         case TYPE_BUMP:{
-          // TODO: model stun-lock with diminishing returns
           const rant = state[btok(CHAIN)] // rant
 
           // get who is bumping
@@ -113,14 +124,14 @@ function TinyBoard (size = 50, ttl = ONE_HOUR, now = Date.now) {
           const hasBumped = rant.bumpedBy.some((key) => key.equals(block.key))
           if (hasBumped) return 'AlreadyBumped'
 
-          if (data.date > now()) return 'TimeManipulation'
+          if (data.date > now()) return 'BumpFromFuture'
 
           if (data.date > rant.expiresAt) return 'TooLate'
 
           if (data.date < rant.lastBumpAt) return 'TimeManipulation'
 
-          const timeSinceLastBump = (now() - rant.lastBumpAt)
-          if (timeSinceLastBump < 10000) return 'TooSoonToBump'
+          //const timeSinceLastBump = (now() - rant.lastBumpAt)
+          //if (timeSinceLastBump < 10000) return 'TooSoonToBump'
 
           if (rant.bumpCount >= 10) return 'BumpLimitReached'
         } break

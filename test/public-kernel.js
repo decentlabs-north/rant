@@ -48,6 +48,23 @@ test('Board message limit', async t => {
   t.equals(rants.length, 50, 'Alice sees the 50rants and no more')
 })
 
+test.only('Kernel resolves bump conflicts', async t => {
+  const [a, b, c, d] = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne')
+  const id = await a.post('Cats are cool')
+  await until(c.pub.$rants(), rs => rs.find(r => r.id.equals(id)))
+  await Promise.all([
+    b.pub.bump(id),
+    c.pub.bump(id),
+    d.pub.bump(id)
+  ]) // race for conflict. can't do in tests with preconnected peers..
+  // TODO: pubkernel.onblocks(feed => {
+  //  ¸¸
+  // })
+
+  // Now let's pretend there's a bump button calling:
+  await a.pub.bump(id) // Appends a bump/poop block
+})
+
 // Conensus draft. (TYPE_BUMP block)
 test.skip('Bumping a post should induce stunlock-mechanics', async t => {
   const [a, b] = await spawnSwarm('Alice', 'Bob')

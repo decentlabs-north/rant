@@ -41,6 +41,7 @@ export async function spawnPeer (name) {
       const id = await prv.commit(1)
       const rant = Feed.from(await prv.pickle(id))
       await pub.dispatch(rant, true)
+      return id
     }
   }
 }
