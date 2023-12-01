@@ -72,8 +72,13 @@ export default class Kernel extends SimpleKernel {
     const iter = this._drafts.iterator()
     const drafts = []
     for await (const [id, value] of iter) {
-      const draft = unpack(value)
-      drafts.push(this._mapRant({ id, ...draft }))
+      try {
+        const draft = unpack(value)
+        drafts.push(this._mapRant({ id, ...draft }))
+      } catch (err) {
+        if (err.message === 'ContentEncrypted') console.warn('Failed to unpack rant', btok(id))
+        else throw err
+      }
     }
     this._w.setDrafts(drafts) // Fugly hack
     return drafts.sort((a, b) => b.date - a.date)
@@ -357,7 +362,7 @@ export default class Kernel extends SimpleKernel {
     }
 
     return {
-      secret: this._secret,
+      secret: btok(this._secret),
       drafts,
       rants,
       feeds

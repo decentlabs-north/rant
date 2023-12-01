@@ -107,10 +107,23 @@ async function main () {
   })
 
   nClick('opt-btn-purge', async function purge () {
-    const msg = 'You are about to burn your passport and everything with it...\nyou sure about this?'
+    const msg = 'You are about to burn your identity and everything with it...\nyou sure about this?'
     if (!window.confirm(msg)) return
     await kernel.db.clear()
     window.location.reload()
+  })
+
+  nClick('opt-btn-backup', async () => {
+    const b = await kernel.backup()
+    const json = JSON.stringify(b, null, 2)
+    nEl('opt-area-backup').value = json
+    nEl('opt-wrap-backup').style.display = null
+    // rig the download link
+    const blob = new window.Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const downloadAnchor = nEl('opt-a-backup')
+    downloadAnchor.href = url
+    downloadAnchor.download = '1k-backup.json'
   })
 
   /* Home-view controls */
