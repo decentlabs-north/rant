@@ -338,9 +338,23 @@ export default class Kernel extends SimpleKernel {
 
   async backup () {
     console.log('Performing backup')
-    const drafts = get(this.$drafts())
-    const rants = get(this.$rants())
-    const feeds = await this.repo.listFeeds()
+    const drafts = get(this.$drafts()) // <-- the important one IMHO
+    const rants = get(this.$rants()).map(r => ({
+      ...r,
+      // Hex all buffers
+      id: btok(r.id),
+      author: btok(r.author),
+      rev: btok(r.rev)
+    }))
+    const res = await this.repo.listFeeds()
+    const feeds = []
+    for (const { key } of res) {
+      const f = await this.repo.loadFeed(key)
+      feeds.push({
+        v0: f.pickle(),
+        buf: btok(f.buf.slice(0, f.tail))
+      })
+    }
 
     return {
       secret: this._secret,
