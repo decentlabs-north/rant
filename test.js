@@ -178,6 +178,21 @@ test('Delete others rants', async t => {
   t.equal(rants.length, 0, 'Imported rant Deleted')
 })
 
+test.only('Backup', async t => {
+  const a = new Kernel(makeDB())
+  await a.boot()
+  await a.checkout(null)
+  await a.setText('Published note')
+  await a.commit()
+  await a.checkout(null)
+  await a.setText('Draft note')
+  await a.checkout(null)
+  const backup = await a.backup()
+  t.ok(Array.isArray(backup.drafts))
+  t.ok(Array.isArray(backup.notes))
+  debugger
+})
+
 function makeDB () {
   return new MemoryLevel('rant.lvl', { keyEncoding: 'buffer', valueEncoding: 'buffer' })
 }

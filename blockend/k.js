@@ -335,6 +335,20 @@ export default class Kernel extends SimpleKernel {
     }
     return this._conf[key]
   }
+
+  async backup () {
+    console.log('Performing backup')
+    const drafts = get(this.$drafts())
+    const rants = get(this.$rants())
+    const feeds = await this.repo.listFeeds()
+
+    return {
+      secret: this._secret,
+      drafts,
+      rants,
+      feeds
+    }
+  }
 }
 
 function Notebook (name = 'rants', resolveLocalKey) {

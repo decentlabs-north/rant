@@ -7,7 +7,7 @@
     "dev": "rollup -w -c rollup.config.js",
     "start": "sirv pub/",
     "test": "tape test.js",
-    "debug": "node inspect $(npm bin)/tape test.js"
+    "debug": "node inspect test.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",

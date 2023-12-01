@@ -98,7 +98,7 @@ async function main () {
   const mirror = kernel.config('mirror', false)
   nValue('opt-mirror', ...mirror)
   nAttr('main', 'mirror', mirror[0])
-  nText('nfo-build', init(`__ENV__-__VERSION__-${'__COMMIT__'.substr(0, 8)}`))
+  nText('nfo-build', init(`__ENV__-__VERSION__-${'__COMMIT__'.slice(0, 8)}`))
   nText('nfo-version', init('__VERSION__'.replace(/^(\d+).+/, '$1')))
   nText('opt-pk', init(kernel.pk.toString('base64')))
   nClick('opt-btn-reload', async () => {
