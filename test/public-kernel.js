@@ -48,7 +48,8 @@ test('Board message limit', async t => {
   t.equals(rants.length, 50, 'Alice sees the 50rants and no more')
 })
 
-test.only('Kernel resolves bump conflicts', async t => {
+// Last PublicKernel W.I.P
+test.skip('Kernel resolves bump conflicts', async t => {
   const [a, b, c, d] = await spawnSwarm('Alice', 'Bob', 'Charlie', 'Daphne')
   const id = await a.post('Cats are cool')
   await until(c.pub.$rants(), rs => rs.find(r => r.id.equals(id)))

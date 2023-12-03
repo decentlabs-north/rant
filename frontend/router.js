@@ -46,7 +46,7 @@ export function apply () {
   const virt = new URL(origin + '/' + hash.replace(/^#\/?/, ''))
   // console.log('VirtualURL', virt)
 
-  // Naive approach "/path/:id", "/nested/deep/paths/:id" not supported
+  // Naive approach to extract "/path/:id". Nested routes not supported "/nested/deep/paths/:id"
   let path = 'pitch'
   let id
   const match = virt.pathname.match(/^\/([^/]+)(?:\/(.+))?/)

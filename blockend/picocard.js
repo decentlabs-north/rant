@@ -72,14 +72,10 @@ export function pack (props, secret, isDraft) {
   let text = props.text // Prepack transforms
     .replace(/\r/, '') // Unecessary CRLF
   // .replace(/ {4}/, '\t') // most likely annoy more people than it saves space.
-  let encrypted = null
   if (!isDraft) {
     if (encryption === 1) {
       try {
-        if (text) {
-          text = encrypt(text, secret)
-          encrypted = true
-        }
+        if (text) text = encrypt(text, secret)
       } catch (e) {
         throw new Error('something went wrong in the encrypt department \n', e.message)
       }
@@ -100,9 +96,8 @@ export function pack (props, secret, isDraft) {
   const card = {
     b: type || 0,
     t,
-    z, // compression
-    x: encryption || 0, // encryption
-    y: encrypted || false,
+    z, // compression-scheme
+    x: encryption || 0, // encryption-scheme-id
     l: theme || 0,
     d: date || Date.now(),
     s: page || 0,
@@ -136,7 +131,6 @@ export function unpack (card, secret, isDraft) {
     date: card.d,
     compression: card.z,
     encryption: card.x,
-    encrypted: card.y,
     theme: card.l,
     page: card.s,
     public: card.p
@@ -152,7 +146,7 @@ export function unpackFeed (pickle, secret) {
 
 export function extractTitle (md) {
   if (typeof md !== 'string' && !md.length) return
-  // Not sure how robust theese regexes are, feel free to improve.
+  // Not sure how robust these regexes are
   let title = ''
 
   let m = md.match(/^\s*(.+)\s*\n==+/m)

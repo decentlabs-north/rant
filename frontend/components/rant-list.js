@@ -75,7 +75,9 @@ Tonic.add(class RantList extends Tonic {
       ${(rants || []).map(rant => {
         let id = rant.id
         if (isRantID(rant.id)) id = id.toString('base64')
-        const sampl = (rant.encrypted && (!rant.decrypted || rant.decrypted === undefined)) ? '[Locked] 🔐' : `${rant.excerpt}...`
+        const sampl = rant.encryption && !rant.decrypted
+          ? '[Locked] 🔐'
+          : `${rant.excerpt}...`
         return this.html`
           <rant class="row xcenter space-between"
             data-id="${id}"
@@ -88,7 +90,7 @@ Tonic.add(class RantList extends Tonic {
                 <div class="sampl">${sampl}</div>
               </div>
             </div>
-            <b role="button" class="btn-round trash" data-encrypted=${rant.encrypted.toString()}></b>
+            <b role="button" class="btn-round trash" data-encrypted=${(!!rant.encryption).toString()}></b>
           </rant>
         `
       })}
