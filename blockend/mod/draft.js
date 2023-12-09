@@ -205,7 +205,9 @@ export default function DraftsModule (db, config) {
       }
       if (!get($draft).text?.length) return // Don't save empty drafts
 
-      setDate(Date.now()) // bump date
+      // Bump date is bad for note-app POV
+      // for socmed it should maybe be bumped on publish.
+      // setDate(Date.now()) // bump date
       const draft = get($draft) // fetch neuron value
       const secret = get($secret)
       const content = encode(draft, secret) // Compress+Encrypt => Buffer
